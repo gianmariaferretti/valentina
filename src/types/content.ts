@@ -20,9 +20,3 @@ export interface Challenge {
   readonly description: string;
   readonly format: string;
 }
-
-export interface OpenWhenLetter {
-  readonly slug: string;
-  readonly title: string;
-  readonly preview: string;
-}

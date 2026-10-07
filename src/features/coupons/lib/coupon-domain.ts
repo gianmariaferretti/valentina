@@ -22,10 +22,7 @@ export function resolveCoupon(
     };
   }
 
-  if (
-    coupon.type === "challenge" &&
-    walletState.unlockedCouponIds.includes(coupon.id)
-  ) {
+  if (walletState.unlockedCouponIds.includes(coupon.id)) {
     return {
       ...coupon,
       status: "available",

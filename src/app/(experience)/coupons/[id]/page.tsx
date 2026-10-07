@@ -30,20 +30,23 @@ const rarityClassNames: Record<CouponRarity, string> = {
 };
 
 export function generateStaticParams() {
-  return coupons
-    .filter((coupon) => coupon.status !== "undiscovered")
-    .map((coupon) => ({ id: coupon.id }));
+  return coupons.map((coupon) => ({ id: coupon.id }));
 }
 
 export async function generateMetadata({
   params,
 }: CouponPageProps): Promise<Metadata> {
   const coupon = getCoupon((await params).id);
+  if (!coupon) return { title: "Coupon not found" };
+
+  const walletState = await getCouponStateRepository().get();
+  const resolvedCoupon = resolveCoupon(coupon, walletState);
+
   return {
     title:
-      coupon && coupon.status !== "undiscovered"
-        ? `${coupon.code} · ${coupon.title}`
-        : "Undiscovered coupon",
+      resolvedCoupon.status === "undiscovered"
+        ? "Undiscovered coupon"
+        : `${resolvedCoupon.code} · ${resolvedCoupon.title}`,
   };
 }
 
@@ -57,10 +60,11 @@ function formatDate(value: string): string {
 
 export default async function CouponPage({ params }: CouponPageProps) {
   const coupon = getCoupon((await params).id);
-  if (!coupon || coupon.status === "undiscovered") notFound();
+  if (!coupon) notFound();
 
   const walletState = await getCouponStateRepository().get();
   const resolvedCoupon = resolveCoupon(coupon, walletState);
+  if (resolvedCoupon.status === "undiscovered") notFound();
   const isDark =
     resolvedCoupon.rarity === "premium" ||
     resolvedCoupon.rarity === "impossible";

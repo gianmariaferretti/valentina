@@ -80,6 +80,8 @@ Coupons use the same adapter principle with a stricter server-owned boundary. `C
 
 Challenge progress follows the same server-owned adapter boundary. `ChallengeStateRepository` persists attempts, best scores, and completion in a signed HTTP-only cookie, while challenge completion updates the associated coupon unlock state. The game definitions remain configuration-driven, so targets and future game types can be added without coupling them to route files. Both current game engines—Snake and the original Midnight Circuit maze chase—were implemented in-house using Canvas and `requestAnimationFrame`; they contain no third-party gameplay code, branded characters, copied sprites, sounds, or artwork.
 
+Open When follows the same pattern through `OpenWhenStateRepository`. The current signed-cookie adapter records opened envelopes and claimed reward IDs without exposing mutable progress to client JavaScript. Letter content is defined in the typed `src/data/open-when.ts` registry, while rewards live in `src/data/rewards.ts` and pass through a generic server-side grant executor. The first reward type unlocks coupons, but the discriminated reward model is designed to accept additional reward kinds without coupling them to `Envelope`, `Letter`, or route components.
+
 ### Geographic maps
 
 `/map` and `/map/[place]` use MapLibre GL JS with real vector map data. The typed destination registry in `src/data/places.ts` stores coordinates in MapLibre’s `[longitude, latitude]` order alongside editorial content, image placeholders, sticker metadata, notes, and a deliberately non-chronological atlas order.
@@ -110,4 +112,4 @@ Map photographs currently use source-controlled editorial SVG placeholders under
 
 ## Product direction
 
-The visual system is editorial and warm rather than Valentine-themed: parchment neutrals, oxblood accents, ink typography, restrained ornament, and dry microcopy. The route pages intentionally stop at polished skeletons so real memories, photographs, and final interactions can be added deliberately in later iterations.
+The visual system is editorial and warm rather than Valentine-themed: parchment neutrals, oxblood accents, ink typography, restrained ornament, and dry microcopy. Routes that still use placeholders are structured so real memories, photographs, and final interactions can be added deliberately in later iterations.

@@ -1,61 +1,133 @@
-import { ArrowUpRight, Mail } from "lucide-react";
+import { MailOpen, PenLine, ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 
-import { Tape } from "@/components/design-system";
-import { PageIntro } from "@/components/ui/page-intro";
+import {
+  DoodleArrow,
+  HandwrittenNote,
+  Sticker,
+  Tape,
+} from "@/components/design-system";
+import { FadeIn } from "@/components/motion/fade-in";
 import { openWhenLetters } from "@/data/open-when";
+import { Envelope } from "@/features/open-when/components/envelope";
+import { getOpenWhenStateRepository } from "@/features/open-when/repositories/get-open-when-state-repository";
 
 export const metadata: Metadata = {
   title: "Open when",
+  description: "Eleven private letters for very specific emotional weather.",
 };
 
-export default function OpenWhenPage() {
+export default async function OpenWhenPage() {
+  const state = await getOpenWhenStateRepository().get();
+  const openedSlugs = new Set(state.openedLetters.map((letter) => letter.slug));
+  const openedCount = openWhenLetters.filter((letter) =>
+    openedSlugs.has(letter.slug),
+  ).length;
+
   return (
-    <div className="page-container py-10 sm:py-14 lg:py-20">
-      <PageIntro
-        description="A tiny emergency kit for very specific situations. No essays. Mostly love, occasionally damage control."
-        eyebrow="Filed for future use"
-        title="Open when you need the right note."
-      />
-      <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3 sm:mt-12">
-        {openWhenLetters.map((letter, index) => (
-          <Link
-            className="group relative flex min-h-72 flex-col rounded-[1.75rem] border border-[var(--line)] bg-white/35 p-6 transition duration-500 hover:-translate-y-1 hover:bg-white/50 sm:p-8"
-            href={`/open-when/${letter.slug}`}
-            key={letter.slug}
-          >
-            <Tape
-              position="top-right"
-              rotation={index % 2 === 0 ? 4 : -3}
+    <div className="page-container py-6 sm:py-10 lg:py-14">
+      <FadeIn>
+        <header className="open-when-header">
+          <div className="open-when-header__topline">
+            <p>V + G · Emergency correspondence</p>
+            <Sticker
+              className="hidden sm:inline-flex"
+              rotation={3}
               size="sm"
-              tone={index === 1 ? "rose" : "cream"}
+              text="For Valentina only"
+              variant="classified"
             />
-            <div className="flex items-center justify-between text-[var(--muted)]">
-              <Mail aria-hidden="true" size={19} strokeWidth={1.5} />
-              <span className="font-mono text-[0.65rem]">0{index + 1}</span>
-            </div>
-            <div className="mt-auto pt-16">
-              <p className="text-[0.6rem] font-semibold tracking-[0.16em] text-[var(--rust)] uppercase">
-                Open when
+          </div>
+
+          <div className="open-when-header__body">
+            <div>
+              <p className="open-when-header__eyebrow">
+                Eleven notes for later
               </p>
-              <h2 className="mt-3 font-display text-4xl leading-none tracking-[-0.035em]">
-                {letter.title}.
-              </h2>
-              <div className="mt-5 flex items-end justify-between gap-6">
-                <p className="text-sm leading-6 text-[var(--muted)]">
-                  {letter.preview}
-                </p>
-                <ArrowUpRight
-                  aria-hidden="true"
-                  className="shrink-0 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1"
-                  size={18}
-                />
-              </div>
+              <h1>
+                Open
+                <br />
+                <em>when…</em>
+              </h1>
+              <p className="open-when-header__description">
+                A small emergency kit for specific emotional weather. Some
+                sincerity, some damage control, and at least one envelope with
+                suspicious intentions.
+              </p>
             </div>
-          </Link>
-        ))}
-      </section>
+
+            <div className="open-when-progress">
+              <div>
+                <MailOpen aria-hidden="true" size={22} strokeWidth={1.4} />
+                <p>
+                  <strong>{openedCount}</strong>
+                  <span>/ {openWhenLetters.length} opened</span>
+                </p>
+              </div>
+              <progress
+                aria-label={`${openedCount} of ${openWhenLetters.length} envelopes opened`}
+                max={openWhenLetters.length}
+                value={openedCount}
+              />
+              <p>
+                {openWhenLetters.length - openedCount} still waiting for you
+              </p>
+            </div>
+          </div>
+
+          <HandwrittenNote
+            className="open-when-header__note"
+            rotation={-4}
+            tone="paper"
+          >
+            no particular order. emotional emergencies ignore filing systems.
+          </HandwrittenNote>
+        </header>
+      </FadeIn>
+
+      <FadeIn delay={0.08}>
+        <section className="open-when-desk" aria-labelledby="letter-collection">
+          <Tape
+            className="open-when-desk__tape"
+            position="inline"
+            rotation={-8}
+            size="lg"
+            tone="cream"
+          />
+          <div className="open-when-desk__label">
+            <PenLine aria-hidden="true" size={16} />
+            <div>
+              <p id="letter-collection">Filed for future use</p>
+              <span>Tap an envelope to inspect the contents</span>
+            </div>
+          </div>
+          <DoodleArrow
+            className="open-when-desk__arrow"
+            direction="down"
+            label="choose carefully"
+          />
+
+          <ol className="open-when-scatter">
+            {openWhenLetters.map((letter, index) => (
+              <li key={letter.slug}>
+                <Envelope
+                  href={`/open-when/${letter.slug}`}
+                  index={index}
+                  letter={letter}
+                  opened={openedSlugs.has(letter.slug)}
+                />
+              </li>
+            ))}
+          </ol>
+
+          <div className="open-when-desk__footer">
+            <span>
+              <ShieldCheck aria-hidden="true" size={15} /> Private archive
+            </span>
+            <span>Contents may contain feelings</span>
+          </div>
+        </section>
+      </FadeIn>
     </div>
   );
 }

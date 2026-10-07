@@ -26,7 +26,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en">
+    <html data-scroll-behavior="smooth" lang="en">
       <body className="paper-noise antialiased">{children}</body>
     </html>
   );
