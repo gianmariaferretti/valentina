@@ -1,44 +1,82 @@
-# V + G — Year One
+# V&G — Year One
 
-Interactive first-anniversary website for Valentina & Gianmaria.
+A private, interactive first-anniversary experience created by Gianmaria for Valentina. This repository is the production foundation for the application; the previous single-file prototype has intentionally been removed.
 
-## Current experience
-- Private entrance with relationship-date access code
-- Coupon wallet with persistent redeemed state
-- Impossible "Unlimited Shopping" coupon / Error 402 joke
-- Interactive Our Map cards
-- Open When… message pills
-- V + G Awards
-- Interactive boyfriend quiz
-- Year Two ending
-- Responsive/mobile-first layout
+## Stack
 
-## Personalise it
-Everything currently lives in `index.html` so the first prototype is deliberately easy to edit.
+- Next.js 16 with the App Router and React 19
+- TypeScript in strict mode
+- Tailwind CSS 4
+- Motion for React for focused interface motion
+- Lucide icons
+- ESLint and Prettier
 
-### Access code
-Search for:
-```js
-const ACCESS_CODE="041025";
+## Getting started
+
+```bash
+npm install
+cp .env.example .env.local
+npm run dev
 ```
 
-### Coupons
-Edit the `coupons` array.
+Set `SITE_ACCESS_CODE` and a long random `AUTH_SECRET` in `.env.local`. Development has safe local fallbacks so the app can be built before secrets are provisioned; production deliberately fails access verification if either secret is missing.
 
-### Map
-Edit `places` and the map pin buttons.
+Run the complete local quality gate with:
 
-### Open When
-Edit `letterData`.
+```bash
+npm run verify
+```
 
-### Quiz
-Edit `questions`.
+## Architecture
 
-## Photos
-The map currently uses elegant placeholders because the final couple photos have not been added yet. The next pass should add real images and memories.
+```text
+src/
+├── app/                 # Routes, route groups, layouts, and global styles
+│   ├── (experience)/    # Authenticated application shell and feature routes
+│   └── access/          # Public access challenge
+├── components/
+│   ├── layout/          # Navigation, shell, and footer
+│   ├── motion/          # Small client-only animation boundaries
+│   └── ui/              # Reusable visual primitives
+├── data/                # Typed, static content registries
+├── features/            # Feature-owned actions, components, and domain logic
+├── hooks/               # Reusable client hooks
+├── lib/                 # Auth, persistence contracts, and shared utilities
+├── types/               # Cross-feature TypeScript models
+└── assets/              # Source-controlled asset notes and future originals
+```
 
-## Deployment
-This is a static site and can be deployed directly with Vercel, GitHub Pages, Netlify, or any static host.
+Route groups keep public entry pages separate from the authenticated experience without changing public URLs. Server Components are the default. Client Components are limited to the access form, mobile navigation, and motion/persistence helpers that require browser APIs.
 
----
-Built as a private little archive of Year One.
+### Routes
+
+The current route foundation includes:
+
+- `/`, `/access`, `/home`
+- `/coupons`, `/coupons/[id]`
+- `/challenges/[game]`
+- `/map`, `/map/[place]`
+- `/open-when`, `/open-when/[slug]`
+- `/awards`, `/quiz`, `/gallery`, `/achievements`, `/secret`, `/year-two`
+
+Navigation is driven by `src/data/navigation.ts`, so future sections can be added without rewriting the shell.
+
+### Access and privacy
+
+The access code is verified in a Server Action and never shipped in the client bundle. Successful verification creates an HTTP-only, same-site session cookie signed with HMAC. The `(experience)` layout verifies that cookie on the server before rendering private routes.
+
+This is an application-level privacy gate, not a replacement for deployment access controls. For a truly private deployment, also configure platform-level protection and rotate secrets before launch.
+
+### Persistence and Supabase
+
+Persistent feature state is accessed through the `ProgressRepository` interface in `src/lib/persistence`. The initial browser implementation uses local storage and keeps the prototype usable without infrastructure. A later Supabase adapter can implement the same contract and be selected by a repository factory without coupling components to a database client.
+
+Suggested next step: add a Supabase server/client package, implement `ProgressRepository`, and migrate access throttling and user progress into database-backed records protected by Row Level Security.
+
+### Content model
+
+Placeholder content lives in typed registries under `src/data`. Feature work should extend those models or move a domain into its own `features/<feature>` package; route files should remain thin composition layers.
+
+## Product direction
+
+The visual system is editorial and warm rather than Valentine-themed: parchment neutrals, oxblood accents, ink typography, restrained ornament, and dry microcopy. The route pages intentionally stop at polished skeletons so real memories, photographs, and final interactions can be added deliberately in later iterations.

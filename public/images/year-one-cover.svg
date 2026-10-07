@@ -1,0 +1,11 @@
+<svg width="1200" height="1400" viewBox="0 0 1200 1400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1400" fill="#241E1C"/>
+  <circle cx="921" cy="276" r="381" fill="#8F3F37"/>
+  <circle cx="266" cy="1106" r="419" fill="#D6B596"/>
+  <path d="M-18 841C189 573 378 537 603 681C830 826 1007 786 1243 463" stroke="#F3ECE2" stroke-width="4"/>
+  <path d="M-3 901C247 633 424 626 636 752C875 893 1041 826 1217 607" stroke="#F3ECE2" stroke-opacity=".45" stroke-width="2"/>
+  <rect x="78" y="80" width="1044" height="1240" rx="8" stroke="#F3ECE2" stroke-opacity=".34"/>
+  <text x="118" y="178" fill="#F3ECE2" font-size="34" font-family="Georgia, serif" letter-spacing="8">V&amp;G</text>
+  <text x="118" y="1240" fill="#F3ECE2" font-size="96" font-family="Georgia, serif">Year One</text>
+  <text x="122" y="1289" fill="#F3ECE2" fill-opacity=".7" font-size="20" font-family="Arial, sans-serif" letter-spacing="4">04.10.2025 — 04.10.2026</text>
+</svg>
