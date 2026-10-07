@@ -2,6 +2,7 @@ import { ArrowUpRight, MapPinned } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { PassportStamp, PostageStamp } from "@/components/design-system";
 import { PageIntro } from "@/components/ui/page-intro";
 import { places } from "@/data/places";
 
@@ -24,6 +25,9 @@ export default function MapPage() {
         <div className="relative min-h-[32rem] overflow-hidden bg-[radial-gradient(circle_at_center,rgba(255,255,255,.65),transparent_60%),linear-gradient(rgba(36,30,28,.07)_1px,transparent_1px),linear-gradient(90deg,rgba(36,30,28,.07)_1px,transparent_1px)] bg-[size:auto,34px_34px,34px_34px]">
           <div className="absolute inset-[12%] rounded-[50%_42%_48%_44%] border border-[var(--line-strong)] opacity-70" />
           <div className="absolute inset-[25%_20%] rotate-[-8deg] rounded-[45%] border border-[var(--line)]" />
+          <div className="absolute right-7 bottom-7 hidden opacity-70 sm:block">
+            <PassportStamp date="YEAR ONE" location="V + G" rotation={7} />
+          </div>
           {places.map((place, index) => (
             <Link
               aria-label={`Open ${place.city}`}
@@ -73,6 +77,12 @@ export default function MapPage() {
               </Link>
             ))}
           </div>
+          <PostageStamp
+            className="mt-8"
+            country="Our world"
+            tone="burgundy"
+            value="01"
+          />
         </aside>
       </section>
     </div>

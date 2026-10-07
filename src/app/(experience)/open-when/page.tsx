@@ -2,6 +2,7 @@ import { ArrowUpRight, Mail } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { Tape } from "@/components/design-system";
 import { PageIntro } from "@/components/ui/page-intro";
 import { openWhenLetters } from "@/data/open-when";
 
@@ -20,10 +21,16 @@ export default function OpenWhenPage() {
       <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3 sm:mt-12">
         {openWhenLetters.map((letter, index) => (
           <Link
-            className="group flex min-h-72 flex-col rounded-[1.75rem] border border-[var(--line)] bg-white/35 p-6 transition duration-500 hover:-translate-y-1 hover:bg-white/50 sm:p-8"
+            className="group relative flex min-h-72 flex-col rounded-[1.75rem] border border-[var(--line)] bg-white/35 p-6 transition duration-500 hover:-translate-y-1 hover:bg-white/50 sm:p-8"
             href={`/open-when/${letter.slug}`}
             key={letter.slug}
           >
+            <Tape
+              position="top-right"
+              rotation={index % 2 === 0 ? 4 : -3}
+              size="sm"
+              tone={index === 1 ? "rose" : "cream"}
+            />
             <div className="flex items-center justify-between text-[var(--muted)]">
               <Mail aria-hidden="true" size={19} strokeWidth={1.5} />
               <span className="font-mono text-[0.65rem]">0{index + 1}</span>

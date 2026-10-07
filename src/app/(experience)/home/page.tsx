@@ -1,6 +1,7 @@
 import { ArrowDownRight, CalendarDays, MapPin, Plane } from "lucide-react";
 import type { Metadata } from "next";
 
+import { Sticker } from "@/components/design-system";
 import { FadeIn } from "@/components/motion/fade-in";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { FeatureCard } from "@/components/ui/feature-card";
@@ -22,6 +23,9 @@ export default function HomePage() {
       <FadeIn>
         <section className="relative overflow-hidden rounded-[2.25rem] bg-[var(--ink)] px-6 py-8 text-[var(--paper)] sm:px-10 sm:py-12 lg:px-16 lg:py-16">
           <div className="absolute -top-32 -right-20 size-96 rounded-full bg-[var(--rust)] opacity-65 blur-2xl" />
+          <div className="absolute top-7 right-7 z-10 hidden sm:block">
+            <Sticker size="sm" variant="girlfriend-approved" />
+          </div>
           <div className="relative grid min-h-[31rem] gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end">
             <div className="self-center">
               <Eyebrow className="text-white/55">

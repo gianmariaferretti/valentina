@@ -10,14 +10,24 @@
 
 :root {
   --paper: #f2ebe0;
+  --paper-white: #fbf8f3;
   --paper-deep: #e8ddce;
   --ink: #241e1c;
+  --ink-soft: #403735;
   --muted: #756a64;
   --rust: #93463e;
+  --red-muted: #b46258;
   --oxblood: #592c2c;
   --sand: #d6b596;
+  --taupe: #b7a594;
+  --sticker-yellow: #f2c84b;
+  --sticker-blue: #9bc8d7;
+  --sticker-green: #afc99d;
+  --ink-blue: #34596d;
   --line: rgba(36, 30, 28, 0.14);
   --line-strong: rgba(36, 30, 28, 0.26);
+  --shadow-paper: 0 20px 60px rgba(49, 35, 30, 0.1);
+  --shadow-lifted: 0 26px 80px rgba(49, 35, 30, 0.16);
 }
 
 * {
@@ -33,6 +43,7 @@ html {
 body {
   min-height: 100vh;
   margin: 0;
+  overflow-x: clip;
   background:
     radial-gradient(
       circle at 85% -10%,
@@ -80,9 +91,642 @@ a {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E");
 }
 
+/* Design system: stickers and tactile ephemera */
+
+.sticker {
+  --sticker-rotation: 0deg;
+  display: inline-flex;
+  max-width: min(100%, 22rem);
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(36, 30, 28, 0.68);
+  box-shadow: 0 4px 0 rgba(36, 30, 28, 0.12);
+  color: var(--ink);
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transform: rotate(var(--sticker-rotation));
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease;
+  white-space: nowrap;
+}
+
+.sticker:hover {
+  box-shadow: 0 7px 0 rgba(36, 30, 28, 0.1);
+  transform: rotate(var(--sticker-rotation)) translateY(-2px);
+}
+
+.sticker[data-variant="text"] {
+  border-radius: 999px;
+  background: var(--paper-white);
+}
+
+.sticker[data-variant="location"] {
+  border-style: dashed;
+  border-radius: 0.7rem 0.3rem 0.7rem 0.35rem;
+  background: var(--sticker-blue);
+}
+
+.sticker[data-variant="date"] {
+  border-radius: 0.25rem;
+  background: var(--paper-white);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.sticker[data-variant="classified"],
+.sticker[data-variant="top-secret"] {
+  border: 2px solid var(--ink);
+  border-radius: 0.2rem;
+  background: var(--ink);
+  box-shadow: 0 0 0 3px var(--paper-white);
+  color: var(--paper-white);
+}
+
+.sticker[data-variant="girlfriend-approved"] {
+  border-radius: 999px;
+  background: var(--sticker-green);
+}
+
+.sticker[data-variant="boyfriend-certified"] {
+  border: 2px solid var(--ink-blue);
+  border-radius: 999px;
+  background: var(--paper-white);
+  color: var(--ink-blue);
+}
+
+.sticker[data-variant="do-not-open"] {
+  border-radius: 0.25rem;
+  background: var(--sticker-yellow);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0 7px,
+    rgba(36, 30, 28, 0.09) 7px 10px
+  );
+}
+
+.sticker[data-variant="redeemed"] {
+  border: 2px solid var(--red-muted);
+  border-radius: 0.2rem;
+  background: rgba(251, 248, 243, 0.88);
+  box-shadow: none;
+  color: var(--red-muted);
+}
+
+.sticker[data-variant="legendary"],
+.sticker[data-variant="star"] {
+  border-radius: 999px;
+  background: var(--sticker-yellow);
+}
+
+.sticker[data-variant="heart"] {
+  border-color: var(--rust);
+  border-radius: 999px;
+  background: #f0c2ba;
+  color: var(--oxblood);
+}
+
+.tape {
+  --tape-rotation: 0deg;
+  display: inline-block;
+  flex: none;
+  clip-path: polygon(2% 8%, 98% 0, 96% 95%, 3% 100%, 0 74%);
+  opacity: 0.82;
+  pointer-events: none;
+  transform: rotate(var(--tape-rotation));
+}
+
+.tape[data-position="top"] {
+  transform: translate(-50%, -50%) rotate(var(--tape-rotation));
+}
+
+.tape[data-position="top-left"],
+.tape[data-position="top-right"] {
+  transform: translateY(-50%) rotate(var(--tape-rotation));
+}
+
+.tape[data-tone="cream"] {
+  background: rgba(224, 208, 174, 0.86);
+}
+
+.tape[data-tone="rose"] {
+  background: rgba(214, 147, 139, 0.82);
+}
+
+.tape[data-tone="yellow"] {
+  background: rgba(239, 205, 94, 0.84);
+}
+
+.tape[data-tone="clear"] {
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  background: rgba(255, 255, 255, 0.34);
+  backdrop-filter: blur(2px);
+}
+
+.tape[data-tone="burgundy"] {
+  background: rgba(116, 50, 48, 0.84);
+}
+
+/* Design system: cards and tickets */
+
+.paper-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 1.6rem;
+  padding: 1.5rem;
+  color: var(--ink);
+}
+
+.paper-card--elevated {
+  box-shadow: var(--shadow-paper);
+}
+
+.paper-card[data-tone="white"] {
+  background-color: var(--paper-white);
+}
+
+.paper-card[data-tone="ivory"] {
+  background-color: var(--paper);
+}
+
+.paper-card[data-tone="taupe"] {
+  background-color: #ded2c3;
+}
+
+.paper-card[data-tone="ink"] {
+  border-color: var(--ink);
+  background-color: var(--ink);
+  color: var(--paper-white);
+}
+
+.paper-card[data-tone="burgundy"] {
+  border-color: var(--oxblood);
+  background-color: var(--oxblood);
+  color: var(--paper-white);
+}
+
+.paper-card[data-texture="ruled"] {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 31px,
+    rgba(36, 30, 28, 0.09) 31px 32px
+  );
+}
+
+.paper-card[data-texture="grid"] {
+  background-image:
+    linear-gradient(rgba(36, 30, 28, 0.065) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(36, 30, 28, 0.065) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.ticket-card {
+  position: relative;
+  display: flex;
+  min-height: 20rem;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 1.6rem;
+  padding: 1.5rem;
+  color: var(--ink);
+  transition:
+    transform 260ms ease,
+    box-shadow 260ms ease;
+}
+
+.ticket-card::before,
+.ticket-card::after {
+  position: absolute;
+  top: 52%;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--paper);
+  content: "";
+}
+
+.ticket-card::before {
+  left: -0.8rem;
+}
+
+.ticket-card::after {
+  right: -0.8rem;
+}
+
+.ticket-card:hover {
+  box-shadow: var(--shadow-paper);
+  transform: translateY(-3px);
+}
+
+.ticket-card[data-tone="paper"] {
+  background: rgba(251, 248, 243, 0.74);
+}
+
+.ticket-card[data-tone="burgundy"] {
+  border-color: var(--rust);
+  background: var(--rust);
+  color: white;
+}
+
+.ticket-card[data-tone="ink"] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper-white);
+}
+
+.ticket-card__code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  opacity: 0.62;
+}
+
+.ticket-card__eyebrow {
+  margin-top: 0.35rem;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.58;
+}
+
+.ticket-card__arrow {
+  transition: transform 240ms ease;
+}
+
+.ticket-card:hover .ticket-card__arrow {
+  transform: translate(3px, -3px);
+}
+
+.ticket-card__description {
+  max-width: 25rem;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  opacity: 0.66;
+}
+
+.ticket-card__footer {
+  display: flex;
+  min-height: 2.6rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px dashed currentColor;
+  padding-top: 1rem;
+  font-size: 0.56rem;
+  font-weight: 650;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.ticket-card__footer > span:first-child {
+  opacity: 0.54;
+}
+
+/* Design system: photography and travel objects */
+
+.polaroid {
+  --polaroid-rotation: 0deg;
+  position: relative;
+  width: min(100%, 22rem);
+  margin: 0;
+  padding: 0.65rem 0.65rem 1.1rem;
+  border: 1px solid rgba(36, 30, 28, 0.12);
+  background: var(--paper-white);
+  box-shadow: var(--shadow-paper);
+  color: var(--ink);
+  transform: rotate(var(--polaroid-rotation));
+  transition:
+    transform 300ms ease,
+    box-shadow 300ms ease;
+}
+
+.polaroid:hover {
+  box-shadow: var(--shadow-lifted);
+  transform: rotate(var(--polaroid-rotation)) translateY(-4px);
+}
+
+.polaroid__image {
+  position: relative;
+  overflow: hidden;
+  background: #ddd2c4;
+}
+
+.polaroid__image[data-orientation="portrait"] {
+  aspect-ratio: 4 / 5;
+}
+
+.polaroid__image[data-orientation="landscape"] {
+  aspect-ratio: 4 / 3;
+}
+
+.polaroid__image[data-orientation="square"] {
+  aspect-ratio: 1;
+}
+
+.polaroid__placeholder {
+  display: grid;
+  height: 100%;
+  place-content: center;
+  justify-items: center;
+  gap: 0.7rem;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.42), transparent),
+    radial-gradient(circle at 72% 22%, #c79588, transparent 34%), #cbb9a7;
+  color: rgba(36, 30, 28, 0.58);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.polaroid__caption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 0.45rem 0;
+  font-family: "Bradley Hand", "Segoe Print", Noteworthy, cursive;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.polaroid__caption small {
+  flex: none;
+  font-family: var(--font-sans);
+  font-size: 0.48rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.postage-stamp {
+  display: inline-grid;
+  width: 7.5rem;
+  aspect-ratio: 0.86;
+  padding: 0.45rem;
+  border: 4px dotted currentColor;
+  background: var(--paper-white);
+  color: var(--oxblood);
+  text-transform: uppercase;
+}
+
+.postage-stamp[data-tone="blue"] {
+  color: var(--ink-blue);
+}
+
+.postage-stamp[data-tone="mustard"] {
+  color: #8b681d;
+}
+
+.postage-stamp__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid currentColor;
+  padding: 0.5rem 0.35rem;
+  font-size: 0.5rem;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+}
+
+.passport-stamp {
+  --stamp-rotation: 0deg;
+  display: inline-flex;
+  width: 7.8rem;
+  aspect-ratio: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 4px var(--paper),
+    inset 0 0 0 5px currentColor;
+  color: var(--rust);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.54rem;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-align: center;
+  text-transform: uppercase;
+  transform: rotate(var(--stamp-rotation));
+}
+
+.passport-stamp strong {
+  max-width: 6rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+}
+
+.passport-stamp__code {
+  font-size: 0.52rem;
+  opacity: 0.72;
+}
+
+.luggage-tag {
+  position: relative;
+  width: min(100%, 23rem);
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 0.6rem 1.8rem 1.8rem 0.6rem;
+  background: var(--sticker-yellow);
+  box-shadow: 0 9px 0 rgba(36, 30, 28, 0.09);
+  color: var(--ink);
+  transform: rotate(1.5deg);
+}
+
+.luggage-tag__hole {
+  position: absolute;
+  top: 50%;
+  left: 0.85rem;
+  width: 0.68rem;
+  height: 0.68rem;
+  border: 2px solid rgba(36, 30, 28, 0.4);
+  border-radius: 50%;
+  background: var(--paper);
+  transform: translateY(-50%);
+}
+
+.luggage-tag__meta,
+.luggage-tag__barcode {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-left: 2.5rem;
+  padding: 0.7rem 1rem;
+  font-size: 0.52rem;
+  font-weight: 750;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.luggage-tag__meta {
+  border-bottom: 1px dashed rgba(36, 30, 28, 0.36);
+}
+
+.luggage-tag__route {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-left: 2.5rem;
+  padding: 0.9rem 1rem;
+}
+
+.luggage-tag__route strong {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: clamp(1.35rem, 7vw, 2rem);
+  letter-spacing: 0.06em;
+}
+
+.luggage-tag__barcode {
+  justify-content: flex-start;
+  border-top: 1px dashed rgba(36, 30, 28, 0.36);
+}
+
+/* Design system: annotations and labels */
+
+.handwritten-note {
+  --note-rotation: 0deg;
+  display: inline-block;
+  max-width: 22rem;
+  color: var(--rust);
+  font-family: "Bradley Hand", "Segoe Print", Noteworthy, cursive;
+  font-size: 1.15rem;
+  line-height: 1.3;
+  transform: rotate(var(--note-rotation));
+}
+
+.handwritten-note[data-tone="ink"] {
+  color: var(--ink);
+}
+
+.handwritten-note[data-tone="blue"] {
+  color: var(--ink-blue);
+}
+
+.handwritten-note[data-tone="paper"] {
+  color: var(--sand);
+}
+
+.doodle-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--rust);
+  font-family: "Bradley Hand", "Segoe Print", Noteworthy, cursive;
+  font-size: 0.9rem;
+}
+
+.doodle-arrow svg {
+  width: 6.5rem;
+  height: auto;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+}
+
+.doodle-arrow[data-tone="ink"] {
+  color: var(--ink);
+}
+
+.doodle-arrow[data-tone="sand"] {
+  color: var(--sand);
+}
+
+.doodle-arrow[data-direction="left"] svg {
+  transform: scaleX(-1);
+}
+
+.doodle-arrow[data-direction="down"] {
+  flex-direction: column;
+}
+
+.doodle-arrow[data-direction="down"] svg {
+  transform: rotate(90deg);
+}
+
+.doodle {
+  display: inline-grid;
+  place-items: center;
+  color: var(--rust);
+  transform: rotate(-6deg);
+}
+
+.doodle[data-variant="heart"] {
+  color: var(--red-muted);
+}
+
+.doodle[data-variant="star"] {
+  color: #9b751f;
+}
+
+.section-label {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--muted);
+  font-size: 0.6rem;
+  font-weight: 750;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+
+.section-label span {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  flex: none;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0;
+}
+
+.section-label p {
+  flex: none;
+}
+
+.section-label i {
+  height: 1px;
+  flex: 1;
+  background: var(--line);
+}
+
+.section-label--inverse {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.section-label--inverse span {
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.section-label--inverse i {
+  background: rgba(255, 255, 255, 0.18);
+}
+
 @media (min-width: 640px) {
   .page-container {
     width: min(100% - 4rem, 92rem);
+  }
+
+  .paper-card,
+  .ticket-card {
+    padding: 2rem;
   }
 }
 

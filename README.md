@@ -35,6 +35,7 @@ src/
 │   ├── (experience)/    # Authenticated application shell and feature routes
 │   └── access/          # Public access challenge
 ├── components/
+│   ├── design-system/   # Stickers, paper, tickets, polaroids, and ephemera
 │   ├── layout/          # Navigation, shell, and footer
 │   ├── motion/          # Small client-only animation boundaries
 │   └── ui/              # Reusable visual primitives
@@ -58,6 +59,7 @@ The current route foundation includes:
 - `/map`, `/map/[place]`
 - `/open-when`, `/open-when/[slug]`
 - `/awards`, `/quiz`, `/gallery`, `/achievements`, `/secret`, `/year-two`
+- `/design-system` for development review of visual tokens and components
 
 Navigation is driven by `src/data/navigation.ts`, so future sections can be added without rewriting the shell.
 
@@ -76,6 +78,10 @@ Suggested next step: add a Supabase server/client package, implement `ProgressRe
 ### Content model
 
 Placeholder content lives in typed registries under `src/data`. Feature work should extend those models or move a domain into its own `features/<feature>` package; route files should remain thin composition layers.
+
+### Visual system
+
+The reusable primitives under `src/components/design-system` combine editorial typography with tactile travel-journal objects. `Sticker` provides deterministic variants, rotations, sizes, and position presets; supporting components cover tape, paper surfaces, tickets, polaroids, postage, passport stamps, luggage tags, handwriting, arrows, and small doodles. The `/design-system` route is the canonical visual review surface.
 
 ## Product direction
 

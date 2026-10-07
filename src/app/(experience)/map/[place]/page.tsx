@@ -1,8 +1,9 @@
-import { ArrowLeft, Camera, MapPin } from "lucide-react";
+import { ArrowLeft, MapPin } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { PassportStamp, Polaroid } from "@/components/design-system";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { getPlace, places } from "@/data/places";
 
@@ -35,14 +36,15 @@ export default async function PlacePage({ params }: PlacePageProps) {
         Our map
       </Link>
       <section className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.7fr)]">
-        <div className="grid min-h-[34rem] place-items-center rounded-[2rem] border border-[var(--line)] bg-[var(--paper-deep)] p-8 text-center">
-          <div>
-            <span className="mx-auto grid size-16 place-items-center rounded-full border border-[var(--line-strong)]">
-              <Camera aria-hidden="true" size={23} />
-            </span>
-            <p className="mt-5 text-sm text-[var(--muted)]">
-              Reserved for the right photograph
-            </p>
+        <div className="relative grid min-h-[34rem] place-items-center overflow-hidden rounded-[2rem] border border-[var(--line)] bg-[var(--paper-deep)] p-10 text-center">
+          <Polaroid
+            caption={`A ${place.city} memory belongs here`}
+            label="Photo pending"
+            rotation={-3}
+            taped
+          />
+          <div className="absolute right-7 bottom-7 hidden opacity-70 sm:block">
+            <PassportStamp date="YEAR ONE" location={place.city} rotation={6} />
           </div>
         </div>
         <div className="flex flex-col rounded-[2rem] bg-[var(--ink)] p-7 text-[var(--paper)] sm:p-10">
