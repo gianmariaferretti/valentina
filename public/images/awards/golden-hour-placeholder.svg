@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Golden hour photograph placeholder</title>
+  <desc id="desc">An abstract warm spotlight scene reserved for a personal photograph.</desc>
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="34%" r="68%">
+      <stop offset="0" stop-color="#f3d98e"/>
+      <stop offset=".45" stop-color="#bb785c"/>
+      <stop offset="1" stop-color="#4e2930"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence baseFrequency=".58" numOctaves="4" seed="7"/><feColorMatrix values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 .1 0"/></filter>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#glow)"/>
+  <ellipse cx="800" cy="790" rx="460" ry="110" fill="#281d1d" opacity=".55"/>
+  <path d="M800 210c-134 0-244 109-244 244 0 89 48 168 120 211v99h248v-99c72-43 120-122 120-211 0-135-110-244-244-244Z" fill="#4d3030" opacity=".27"/>
+  <rect width="1600" height="1000" filter="url(#grain)" opacity=".48"/>
+  <g fill="#fff8e8" font-family="Arial, sans-serif" letter-spacing="8">
+    <text x="74" y="84" font-size="24">V+G / OFFICIAL PORTRAIT</text>
+    <text x="74" y="920" font-size="19" opacity=".7">PERSONAL PHOTOGRAPH TO BE ADDED</text>
+  </g>
+</svg>

@@ -82,6 +82,8 @@ Challenge progress follows the same server-owned adapter boundary. `ChallengeSta
 
 Open When follows the same pattern through `OpenWhenStateRepository`. The current signed-cookie adapter records opened envelopes and claimed reward IDs without exposing mutable progress to client JavaScript. Letter content is defined in the typed `src/data/open-when.ts` registry, while rewards live in `src/data/rewards.ts` and pass through a generic server-side grant executor. The first reward type unlocks coupons, but the discriminated reward model is designed to accept additional reward kinds without coupling them to `Envelope`, `Letter`, or route components.
 
+The V&G Awards are configured entirely in `src/data/awards.ts`. Each typed entry owns its category, nominees, winner, copy, media, optional evidence, sticker treatment, prize, and presentation size. The route remains a Server Component while each ceremony envelope uses a small Client Component for the nominee and winner reveal sequence. Ceremony styling is scoped to the feature with a CSS Module.
+
 ### Geographic maps
 
 `/map` and `/map/[place]` use MapLibre GL JS with real vector map data. The typed destination registry in `src/data/places.ts` stores coordinates in MapLibre’s `[longitude, latitude]` order alongside editorial content, image placeholders, sticker metadata, notes, and a deliberately non-chronological atlas order.
@@ -109,6 +111,8 @@ Placeholder content lives in typed registries under `src/data`. Feature work sho
 The reusable primitives under `src/components/design-system` combine editorial typography with tactile travel-journal objects. `Sticker` provides deterministic variants, rotations, sizes, and position presets; supporting components cover tape, paper surfaces, tickets, polaroids, postage, passport stamps, luggage tags, handwriting, arrows, and small doodles. The `/design-system` route is the canonical visual review surface.
 
 Map photographs currently use source-controlled editorial SVG placeholders under `public/images/map`. Replace the image paths in the destination registry when personal photographs are ready; the route components already use `next/image` and retain authored alternative text and captions.
+
+Awards photographs use source-controlled editorial SVG placeholders under `public/images/awards`. Replace each `photo.src` and `photo.alt` in the awards registry as personal images are selected; the reveal cards already use `next/image` with stable responsive media frames.
 
 ## Product direction
 

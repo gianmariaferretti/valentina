@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Classified jury evidence placeholder</title>
+  <desc id="desc">An abstract case file and evidence photograph reserved for personal material.</desc>
+  <defs>
+    <linearGradient id="case" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d9c5a8"/><stop offset="1" stop-color="#a97e60"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="24" stdDeviation="22" flood-color="#2d201b" flood-opacity=".35"/></filter>
+  </defs>
+  <rect width="1600" height="1000" fill="#3a2a27"/>
+  <g transform="translate(190 90) rotate(2 610 400)" filter="url(#shadow)">
+    <path d="M0 82h470l65-82h685v800H0Z" fill="url(#case)"/>
+    <rect x="95" y="155" width="530" height="470" fill="#f2eadf" stroke="#4d3931" stroke-width="8"/>
+    <rect x="125" y="185" width="470" height="360" fill="#625052"/>
+    <path d="m125 545 140-170 110 100 92-147 128 161v56Z" fill="#252223" opacity=".78"/>
+    <g fill="#5a3535" font-family="Arial, sans-serif" font-weight="700">
+      <text x="760" y="225" font-size="44" letter-spacing="8">EVIDENCE</text>
+      <text x="760" y="305" font-size="24" letter-spacing="5">CASE: V+G / 001</text>
+      <rect x="750" y="385" width="330" height="95" fill="none" stroke="#6d3030" stroke-width="9"/>
+      <text x="790" y="447" font-size="31" letter-spacing="6">CLASSIFIED</text>
+    </g>
+  </g>
+  <g fill="#f7eee2" font-family="Arial, sans-serif" letter-spacing="8">
+    <text x="74" y="84" font-size="24">V+G / JURY MATERIAL</text>
+    <text x="74" y="940" font-size="19" opacity=".62">PERSONAL PHOTOGRAPH TO BE ADDED</text>
+  </g>
+</svg>

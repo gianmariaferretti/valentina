@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Instant film photograph placeholder</title>
+  <desc id="desc">Layered abstract instant-film frames reserved for personal photographs.</desc>
+  <defs>
+    <linearGradient id="photo" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#35515c"/>
+      <stop offset=".52" stop-color="#9f5c52"/>
+      <stop offset="1" stop-color="#e5bd78"/>
+    </linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="20" stdDeviation="18" flood-color="#201917" flood-opacity=".34"/></filter>
+  </defs>
+  <rect width="1600" height="1000" fill="#9a7c65"/>
+  <g filter="url(#shadow)" transform="translate(530 80) rotate(-5 290 390)">
+    <rect width="580" height="790" fill="#f5eee2"/>
+    <rect x="38" y="38" width="504" height="570" fill="url(#photo)"/>
+    <circle cx="370" cy="220" r="105" fill="#f0cc7a" opacity=".7"/>
+    <path d="m38 520 150-155 115 91 103-153 136 160v145H38Z" fill="#273136" opacity=".8"/>
+    <text x="55" y="690" fill="#493d38" font-family="cursive" font-size="36">selected evidence</text>
+    <text x="55" y="744" fill="#7a6b63" font-family="Arial, sans-serif" font-size="17" letter-spacing="5">PHOTO COMING SOON</text>
+  </g>
+  <g fill="#f7eee2" font-family="Arial, sans-serif" letter-spacing="8">
+    <text x="74" y="84" font-size="24">V+G / CAMERA ROLL</text>
+    <text x="74" y="920" font-size="19" opacity=".7">PERSONAL PHOTOGRAPH TO BE ADDED</text>
+  </g>
+</svg>

@@ -9,6 +9,8 @@ export type StickerVariant =
   | "redeemed"
   | "legendary"
   | "top-secret"
+  | "trophy"
+  | "jury"
   | "star"
   | "heart";
 

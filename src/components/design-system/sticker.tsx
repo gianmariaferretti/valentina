@@ -6,8 +6,10 @@ import {
   Heart,
   KeyRound,
   MapPin,
+  Scale,
   ShieldCheck,
   Star,
+  Trophy,
   type LucideIcon,
 } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
@@ -44,6 +46,8 @@ const stickerDefinitions: Record<StickerVariant, StickerDefinition> = {
   redeemed: { defaultText: "Redeemed", icon: Check, rotation: -5 },
   legendary: { defaultText: "Legendary", icon: Flame, rotation: 4 },
   "top-secret": { defaultText: "Top secret", icon: KeyRound, rotation: -2 },
+  trophy: { defaultText: "Trophy winner", icon: Trophy, rotation: -3 },
+  jury: { defaultText: "Jury approved", icon: Scale, rotation: 2 },
   star: { defaultText: "Five stars", icon: Star, rotation: 5 },
   heart: { defaultText: "Us", icon: Heart, rotation: -3 },
 };

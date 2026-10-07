@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Table for two photograph placeholder</title>
+  <desc id="desc">An abstract candlelit table reserved for a personal dinner photograph.</desc>
+  <defs>
+    <radialGradient id="light" cx="50%" cy="40%" r="65%"><stop stop-color="#e2bb6d"/><stop offset=".38" stop-color="#75433c"/><stop offset="1" stop-color="#21191a"/></radialGradient>
+    <filter id="grain"><feTurbulence baseFrequency=".8" numOctaves="3" seed="11"/><feColorMatrix values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 .1 0"/></filter>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#light)"/>
+  <ellipse cx="800" cy="780" rx="610" ry="190" fill="#352323"/>
+  <circle cx="540" cy="735" r="130" fill="none" stroke="#d1b58a" stroke-width="16" opacity=".65"/>
+  <circle cx="1060" cy="735" r="130" fill="none" stroke="#d1b58a" stroke-width="16" opacity=".65"/>
+  <rect x="785" y="280" width="30" height="390" rx="15" fill="#eadcae"/>
+  <path d="M800 165c-52 65-61 112 0 154 61-42 52-89 0-154Z" fill="#f4d279"/>
+  <rect width="1600" height="1000" filter="url(#grain)" opacity=".5"/>
+  <g fill="#f7eee2" font-family="Arial, sans-serif" letter-spacing="8">
+    <text x="74" y="84" font-size="24">V+G / TABLE FOR TWO</text>
+    <text x="74" y="920" font-size="19" opacity=".65">PERSONAL PHOTOGRAPH TO BE ADDED</text>
+  </g>
+</svg>

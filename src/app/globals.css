@@ -175,9 +175,17 @@ a {
 }
 
 .sticker[data-variant="legendary"],
+.sticker[data-variant="trophy"],
 .sticker[data-variant="star"] {
   border-radius: 999px;
   background: var(--sticker-yellow);
+}
+
+.sticker[data-variant="jury"] {
+  border: 2px solid var(--ink-blue);
+  border-radius: 0.35rem;
+  background: var(--sticker-blue);
+  color: var(--ink-blue);
 }
 
 .sticker[data-variant="heart"] {
