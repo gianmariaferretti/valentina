@@ -21,14 +21,6 @@ export interface Challenge {
   readonly format: string;
 }
 
-export interface Place {
-  readonly slug: string;
-  readonly city: string;
-  readonly country: string;
-  readonly coordinates: readonly [number, number];
-  readonly summary: string;
-}
-
 export interface OpenWhenLetter {
   readonly slug: string;
   readonly title: string;

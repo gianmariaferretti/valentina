@@ -67,6 +67,67 @@ interface LuggageTagProps {
   className?: string;
 }
 
+interface BoardingPassProps {
+  code: string;
+  city: string;
+  country: string;
+  date: string;
+  passenger?: string;
+  className?: string;
+}
+
+export function BoardingPass({
+  code,
+  city,
+  country,
+  date,
+  passenger = "V + G",
+  className,
+}: BoardingPassProps) {
+  return (
+    <div className={cn("boarding-pass", className)}>
+      <div className="boarding-pass__main">
+        <div className="boarding-pass__meta">
+          <span>Boarding pass · Year One</span>
+          <span>Private archive</span>
+        </div>
+        <div className="boarding-pass__route">
+          <div>
+            <small>From</small>
+            <strong>US</strong>
+          </div>
+          <span aria-hidden="true">
+            <Plane size={20} />
+          </span>
+          <div>
+            <small>To</small>
+            <strong>{code}</strong>
+          </div>
+        </div>
+        <div className="boarding-pass__details">
+          <span>
+            <small>Passenger</small>
+            <strong>{passenger}</strong>
+          </span>
+          <span>
+            <small>Destination</small>
+            <strong>{city}</strong>
+          </span>
+          <span>
+            <small>Date</small>
+            <strong>{date}</strong>
+          </span>
+        </div>
+      </div>
+      <div className="boarding-pass__stub">
+        <span>{country}</span>
+        <ScanLine aria-hidden="true" size={30} />
+        <strong>{code} · 01</strong>
+      </div>
+    </div>
+  );
+}
+
 export function LuggageTag({
   from,
   to,

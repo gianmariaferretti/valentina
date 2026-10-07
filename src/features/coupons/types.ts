@@ -51,10 +51,15 @@ export interface CouponRedemption {
 export interface CouponWalletState {
   readonly version: 1;
   readonly redemptions: readonly CouponRedemption[];
+  readonly unlockedCouponIds: readonly string[];
 }
 
-export interface ResolvedCoupon extends Omit<Coupon, "status" | "redeemedAt"> {
+export interface ResolvedCoupon extends Omit<
+  Coupon,
+  "status" | "redeemable" | "redeemedAt"
+> {
   readonly status: CouponStatus;
+  readonly redeemable: boolean;
   readonly redeemedAt: string | null;
 }
 
@@ -87,4 +92,5 @@ export type CouponFilter =
 export const EMPTY_COUPON_WALLET_STATE: CouponWalletState = {
   version: 1,
   redemptions: [],
+  unlockedCouponIds: [],
 };

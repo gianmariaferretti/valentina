@@ -42,13 +42,6 @@ export async function redeemCoupon(
     return { status: "error", message: "This coupon is already redeemed." };
   }
 
-  if (resolvedCoupon.type === "challenge") {
-    return {
-      status: "error",
-      message: "This coupon must be won before it can be redeemed.",
-    };
-  }
-
   if (!canRedeemCoupon(resolvedCoupon)) {
     return {
       status: "error",
@@ -59,6 +52,7 @@ export async function redeemCoupon(
   const redeemedAt = new Date().toISOString();
   await repository.save({
     version: 1,
+    unlockedCouponIds: currentState.unlockedCouponIds,
     redemptions: [
       ...currentState.redemptions,
       { couponId: resolvedCoupon.id, redeemedAt },

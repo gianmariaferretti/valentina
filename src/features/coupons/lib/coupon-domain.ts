@@ -22,6 +22,18 @@ export function resolveCoupon(
     };
   }
 
+  if (
+    coupon.type === "challenge" &&
+    walletState.unlockedCouponIds.includes(coupon.id)
+  ) {
+    return {
+      ...coupon,
+      status: "available",
+      redeemable: true,
+      redeemedAt: null,
+    };
+  }
+
   return coupon;
 }
 
@@ -33,11 +45,7 @@ export function resolveCoupons(
 }
 
 export function canRedeemCoupon(coupon: ResolvedCoupon): boolean {
-  return (
-    coupon.status === "available" &&
-    coupon.redeemable &&
-    coupon.type === "standard"
-  );
+  return coupon.status === "available" && coupon.redeemable;
 }
 
 export function createWalletItem(coupon: ResolvedCoupon): CouponWalletItem {
@@ -57,7 +65,8 @@ export function createWalletItem(coupon: ResolvedCoupon): CouponWalletItem {
     };
   }
 
-  const isChallenge = coupon.type === "challenge";
+  const requiresChallenge =
+    coupon.type === "challenge" && coupon.status !== "available";
 
   return {
     id: coupon.id,
@@ -68,10 +77,10 @@ export function createWalletItem(coupon: ResolvedCoupon): CouponWalletItem {
     rarity: coupon.rarity,
     type: coupon.type,
     status: coupon.status,
-    href: isChallenge
+    href: requiresChallenge
       ? `/challenges/${coupon.challengeId}`
       : `/coupons/${coupon.id}`,
-    callToAction: isChallenge ? "WIN TO REDEEM" : "VIEW COUPON",
+    callToAction: requiresChallenge ? "WIN TO REDEEM" : "VIEW COUPON",
     secret: coupon.secret,
   };
 }

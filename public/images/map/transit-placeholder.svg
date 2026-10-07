@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1100" role="img" aria-label="Reserved travel photograph placeholder">
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#2c4550"/>
+      <stop offset=".5" stop-color="#17282f"/>
+      <stop offset="1" stop-color="#111517"/>
+    </linearGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".7" numOctaves="3"/><feColorMatrix values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 .16 0"/></filter>
+  </defs>
+  <rect width="1600" height="1100" fill="url(#night)"/>
+  <path d="M-80 932 743 124h227L1680 858v242H-80Z" fill="#d4bb95" opacity=".16"/>
+  <path d="M270 1100 783 130l99 1 462 969Z" fill="#faf3e7" opacity=".65"/>
+  <path d="M450 1100 817 241 1181 1100Z" fill="#6f3537" opacity=".88"/>
+  <g fill="none" stroke="#efe1cb" stroke-width="9" opacity=".72">
+    <path d="M820 302v493" stroke-dasharray="20 23"/>
+    <path d="m781 421 39-48 39 48"/>
+  </g>
+  <rect width="1600" height="1100" filter="url(#grain)" opacity=".8"/>
+  <text x="86" y="104" fill="#efe1cb" font-family="Arial, sans-serif" font-size="20" font-weight="700" letter-spacing="8">IN TRANSIT · V+G</text>
+  <text x="86" y="1002" fill="#efe1cb" font-family="Georgia, serif" font-size="66">The route will be added later.</text>
+  <text x="90" y="1048" fill="#efe1cb" font-family="Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="6" opacity=".62">NO CHRONOLOGY IMPLIED</text>
+</svg>

@@ -1,7 +1,5 @@
 import "server-only";
 
-import { createHmac, timingSafeEqual } from "node:crypto";
-
 import { cookies } from "next/headers";
 
 import type { CouponStateRepository } from "@/features/coupons/repositories/coupon-state-repository";
@@ -10,14 +8,10 @@ import {
   type CouponRedemption,
   type CouponWalletState,
 } from "@/features/coupons/types";
-import { getAuthSecret } from "@/lib/auth/session";
+import { decodeSignedState, encodeSignedState } from "@/lib/auth/signed-state";
 
 const COUPON_STATE_COOKIE = "vg_coupon_state";
 const COOKIE_DURATION_SECONDS = 60 * 60 * 24 * 365;
-
-function sign(payload: string, secret: string): string {
-  return createHmac("sha256", secret).update(payload).digest("base64url");
-}
 
 function isCouponRedemption(value: unknown): value is CouponRedemption {
   if (!value || typeof value !== "object") return false;
@@ -31,44 +25,20 @@ function isCouponRedemption(value: unknown): value is CouponRedemption {
 }
 
 function parseState(value: string | undefined): CouponWalletState {
-  const secret = getAuthSecret();
-  if (!value || !secret) return EMPTY_COUPON_WALLET_STATE;
+  const parsed = decodeSignedState(value);
+  if (!parsed || typeof parsed !== "object") return EMPTY_COUPON_WALLET_STATE;
 
-  const [payload, signature] = value.split(".");
-  if (!payload || !signature) return EMPTY_COUPON_WALLET_STATE;
+  const record = parsed as Record<string, unknown>;
+  const redemptions = Array.isArray(record.redemptions)
+    ? record.redemptions.filter(isCouponRedemption)
+    : [];
+  const unlockedCouponIds = Array.isArray(record.unlockedCouponIds)
+    ? record.unlockedCouponIds.filter(
+        (couponId): couponId is string => typeof couponId === "string",
+      )
+    : [];
 
-  const expected = Buffer.from(sign(payload, secret));
-  const received = Buffer.from(signature);
-
-  if (
-    expected.length !== received.length ||
-    !timingSafeEqual(expected, received)
-  ) {
-    return EMPTY_COUPON_WALLET_STATE;
-  }
-
-  try {
-    const parsed = JSON.parse(
-      Buffer.from(payload, "base64url").toString("utf8"),
-    ) as Record<string, unknown>;
-    const redemptions = Array.isArray(parsed.redemptions)
-      ? parsed.redemptions.filter(isCouponRedemption)
-      : [];
-
-    return { version: 1, redemptions };
-  } catch {
-    return EMPTY_COUPON_WALLET_STATE;
-  }
-}
-
-function serializeState(state: CouponWalletState): string {
-  const secret = getAuthSecret();
-  if (!secret) throw new Error("AUTH_SECRET must be configured in production.");
-
-  const payload = Buffer.from(JSON.stringify(state), "utf8").toString(
-    "base64url",
-  );
-  return `${payload}.${sign(payload, secret)}`;
+  return { version: 1, redemptions, unlockedCouponIds };
 }
 
 export class CookieCouponStateRepository implements CouponStateRepository {
@@ -80,7 +50,7 @@ export class CookieCouponStateRepository implements CouponStateRepository {
   async save(state: CouponWalletState): Promise<void> {
     const cookieStore = await cookies();
 
-    cookieStore.set(COUPON_STATE_COOKIE, serializeState(state), {
+    cookieStore.set(COUPON_STATE_COOKIE, encodeSignedState(state), {
       httpOnly: true,
       maxAge: COOKIE_DURATION_SECONDS,
       path: "/",

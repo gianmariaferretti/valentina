@@ -3,7 +3,14 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { RouteScaffold } from "@/components/ui/route-scaffold";
-import { challenges, getChallenge } from "@/data/challenges";
+import {
+  challenges,
+  getArcadeChallenge,
+  getChallenge,
+} from "@/data/challenges";
+import { ChallengeArcade } from "@/features/challenges/components/challenge-arcade";
+import { getChallengeProgress } from "@/features/challenges/lib/challenge-domain";
+import { getChallengeStateRepository } from "@/features/challenges/repositories/get-challenge-state-repository";
 
 interface ChallengePageProps {
   params: Promise<{ game: string }>;
@@ -21,8 +28,20 @@ export async function generateMetadata({
 }
 
 export default async function ChallengePage({ params }: ChallengePageProps) {
-  const challenge = getChallenge((await params).game);
+  const game = (await params).game;
+  const challenge = getChallenge(game);
   if (!challenge) notFound();
+
+  const arcadeChallenge = getArcadeChallenge(game);
+  if (arcadeChallenge) {
+    const state = await getChallengeStateRepository().get();
+    return (
+      <ChallengeArcade
+        challenge={arcadeChallenge}
+        initialProgress={getChallengeProgress(arcadeChallenge.slug, state)}
+      />
+    );
+  }
 
   return (
     <RouteScaffold

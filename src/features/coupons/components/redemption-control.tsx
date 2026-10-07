@@ -61,7 +61,7 @@ export function RedemptionControl({
     );
   }
 
-  if (type === "challenge" && challengeId) {
+  if (type === "challenge" && challengeId && !redeemable) {
     return (
       <div>
         <Link

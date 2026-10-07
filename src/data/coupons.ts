@@ -174,7 +174,7 @@ export const coupons = [
     type: "challenge",
     status: "locked",
     redeemable: false,
-    challengeId: "two-truths",
+    challengeId: "maze",
     unlockCondition: "Win Two Truths, One Revisionist History to unlock.",
     secret: false,
     createdAt: "2025-10-11T18:00:00.000Z",
@@ -267,7 +267,7 @@ export const coupons = [
     type: "challenge",
     status: "locked",
     redeemable: false,
-    challengeId: "final-verdict",
+    challengeId: "snake",
     unlockCondition:
       "Defeat the Final Verdict challenge. Good luck to everyone.",
     secret: false,

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
+import "maplibre-gl/dist/maplibre-gl.css";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {

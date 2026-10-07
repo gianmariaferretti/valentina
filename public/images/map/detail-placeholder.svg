@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1500" role="img" aria-label="Reserved detail photograph placeholder">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#e8d9c6"/>
+      <stop offset=".55" stop-color="#c5a184"/>
+      <stop offset="1" stop-color="#70463f"/>
+    </linearGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="4"/><feColorMatrix values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 .12 0"/></filter>
+  </defs>
+  <rect width="1200" height="1500" fill="url(#paper)"/>
+  <rect x="122" y="152" width="956" height="1050" rx="12" fill="#f4ede3" opacity=".48" transform="rotate(-3 600 677)"/>
+  <circle cx="612" cy="637" r="305" fill="none" stroke="#5a302f" stroke-width="28" opacity=".58"/>
+  <circle cx="612" cy="637" r="223" fill="#302628" opacity=".8"/>
+  <path d="M431 691c114-151 238-189 375-111" fill="none" stroke="#d9b794" stroke-width="18" stroke-linecap="round" opacity=".72"/>
+  <rect width="1200" height="1500" filter="url(#grain)" opacity=".8"/>
+  <text x="86" y="108" fill="#382b2b" font-family="Arial, sans-serif" font-size="20" font-weight="700" letter-spacing="7">DETAIL STUDY · 01</text>
+  <text x="86" y="1374" fill="#382b2b" font-family="Georgia, serif" font-size="58">Something worth noticing.</text>
+  <text x="90" y="1422" fill="#382b2b" font-family="Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="5" opacity=".65">PHOTO PENDING · V+G</text>
+</svg>
