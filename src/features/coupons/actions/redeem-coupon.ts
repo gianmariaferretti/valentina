@@ -9,6 +9,10 @@ import {
 } from "@/features/coupons/lib/coupon-domain";
 import { getCouponStateRepository } from "@/features/coupons/repositories/get-coupon-state-repository";
 import { hasValidAccessSession } from "@/lib/auth/session";
+import {
+  persistenceFailureMessage,
+  reportPersistenceFailure,
+} from "@/lib/persistence/persistence-error";
 
 export interface RedeemCouponResult {
   status: "success" | "error";
@@ -34,37 +38,41 @@ export async function redeemCoupon(
     };
   }
 
-  const repository = getCouponStateRepository();
-  const currentState = await repository.get();
-  const resolvedCoupon = resolveCoupon(coupon, currentState);
+  try {
+    const repository = getCouponStateRepository();
+    const currentState = await repository.get();
+    const resolvedCoupon = resolveCoupon(coupon, currentState);
 
-  if (resolvedCoupon.status === "redeemed") {
-    return { status: "error", message: "This coupon is already redeemed." };
-  }
+    if (resolvedCoupon.status === "redeemed") {
+      return { status: "error", message: "This coupon is already redeemed." };
+    }
 
-  if (!canRedeemCoupon(resolvedCoupon)) {
+    if (!canRedeemCoupon(resolvedCoupon)) {
+      return {
+        status: "error",
+        message:
+          resolvedCoupon.unlockCondition ?? "This coupon is still locked.",
+      };
+    }
+
+    const redeemedAt = await repository.redeem(
+      resolvedCoupon.id,
+      new Date().toISOString(),
+    );
+
+    revalidatePath("/coupons");
+    revalidatePath(`/coupons/${resolvedCoupon.id}`);
+
+    return {
+      status: "success",
+      message: "Coupon redeemed. Gianmaria has been formally notified.",
+      redeemedAt,
+    };
+  } catch (error) {
+    reportPersistenceFailure("redeem coupon", error);
     return {
       status: "error",
-      message: resolvedCoupon.unlockCondition ?? "This coupon is still locked.",
+      message: persistenceFailureMessage("This coupon"),
     };
   }
-
-  const redeemedAt = new Date().toISOString();
-  await repository.save({
-    version: 1,
-    unlockedCouponIds: currentState.unlockedCouponIds,
-    redemptions: [
-      ...currentState.redemptions,
-      { couponId: resolvedCoupon.id, redeemedAt },
-    ],
-  });
-
-  revalidatePath("/coupons");
-  revalidatePath(`/coupons/${resolvedCoupon.id}`);
-
-  return {
-    status: "success",
-    message: "Coupon redeemed. Gianmaria has been formally notified.",
-    redeemedAt,
-  };
 }

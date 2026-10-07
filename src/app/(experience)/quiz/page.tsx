@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { quizAchievementRule, quizCouponRewardRule } from "@/data/quiz";
 import { getQuizQuestionViews } from "@/data/quiz-questions";
 import { RelationshipQuiz } from "@/features/quiz/components/relationship-quiz";
-import { getQuizStateRepository } from "@/features/quiz/repositories/get-quiz-state-repository";
+import { loadQuizState } from "@/features/quiz/repositories/get-quiz-state-repository";
 
 export const metadata: Metadata = {
   title: "The Boyfriend Exam",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function QuizPage() {
-  const state = await getQuizStateRepository().get();
+  const state = await loadQuizState();
 
   return (
     <RelationshipQuiz

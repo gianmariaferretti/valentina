@@ -11,7 +11,7 @@ import {
   isLetterOpened,
   isRewardClaimed,
 } from "@/features/open-when/lib/open-when-domain";
-import { getOpenWhenStateRepository } from "@/features/open-when/repositories/get-open-when-state-repository";
+import { loadOpenWhenState } from "@/features/open-when/repositories/get-open-when-state-repository";
 import { createRewardPresentation } from "@/features/rewards/lib/reward-domain";
 
 interface LetterPageProps {
@@ -44,7 +44,7 @@ export default async function LetterPage({ params }: LetterPageProps) {
       (sequence - 1 + openWhenLetters.length) % openWhenLetters.length
     ];
   const next = openWhenLetters[(sequence + 1) % openWhenLetters.length];
-  const state = await getOpenWhenStateRepository().get();
+  const state = await loadOpenWhenState();
   const initialOpened = isLetterOpened(letter.slug, state);
   const initialOpenedCount = openWhenLetters.filter((item) =>
     state.openedLetters.some((openedLetter) => openedLetter.slug === item.slug),

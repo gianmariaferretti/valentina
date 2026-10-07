@@ -1,10 +1,41 @@
-const progressItems = [
-  { label: "Memories discovered", shortLabel: "Memories", value: "04" },
-  { label: "Coupons discovered", shortLabel: "Coupons", value: "12" },
-  { label: "Achievements", shortLabel: "Awards", value: "00" },
-] as const;
+import { coupons } from "@/data/coupons";
+import {
+  getCouponWalletStats,
+  resolveCoupons,
+} from "@/features/coupons/lib/coupon-domain";
+import { loadCouponState } from "@/features/coupons/repositories/get-coupon-state-repository";
+import { loadSiteProgress } from "@/lib/persistence/get-progress-repository";
 
-export function ProgressIndicator() {
+function formatCount(value: number): string {
+  return String(Math.max(0, value)).padStart(2, "0");
+}
+
+export async function ProgressIndicator() {
+  const [siteProgress, couponState] = await Promise.all([
+    loadSiteProgress(),
+    loadCouponState(),
+  ]);
+  const couponStats = getCouponWalletStats(
+    resolveCoupons(coupons, couponState),
+  );
+  const progressItems = [
+    {
+      label: "Memories discovered",
+      shortLabel: "Memories",
+      value: formatCount(siteProgress.memoriesDiscovered),
+    },
+    {
+      label: "Coupons discovered",
+      shortLabel: "Coupons",
+      value: formatCount(couponStats.discovered),
+    },
+    {
+      label: "Achievements",
+      shortLabel: "Awards",
+      value: formatCount(siteProgress.achievementCount),
+    },
+  ];
+
   return (
     <div className="border-t border-[var(--line)]" role="status">
       <div className="mx-auto flex min-h-11 max-w-[92rem] items-stretch px-5 sm:px-8">

@@ -10,7 +10,7 @@ import {
 } from "@/data/challenges";
 import { ChallengeArcade } from "@/features/challenges/components/challenge-arcade";
 import { getChallengeProgress } from "@/features/challenges/lib/challenge-domain";
-import { getChallengeStateRepository } from "@/features/challenges/repositories/get-challenge-state-repository";
+import { loadChallengeState } from "@/features/challenges/repositories/get-challenge-state-repository";
 
 interface ChallengePageProps {
   params: Promise<{ game: string }>;
@@ -34,7 +34,7 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
 
   const arcadeChallenge = getArcadeChallenge(game);
   if (arcadeChallenge) {
-    const state = await getChallengeStateRepository().get();
+    const state = await loadChallengeState();
     return (
       <ChallengeArcade
         challenge={arcadeChallenge}

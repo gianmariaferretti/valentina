@@ -10,7 +10,7 @@ import {
   getCouponWalletStats,
   resolveCoupons,
 } from "@/features/coupons/lib/coupon-domain";
-import { getCouponStateRepository } from "@/features/coupons/repositories/get-coupon-state-repository";
+import { loadCouponState } from "@/features/coupons/repositories/get-coupon-state-repository";
 
 export const metadata: Metadata = {
   title: "Valentina’s Wallet",
@@ -24,7 +24,7 @@ const statIcons = {
 } as const;
 
 export default async function CouponsPage() {
-  const walletState = await getCouponStateRepository().get();
+  const walletState = await loadCouponState();
   const resolvedCoupons = resolveCoupons(coupons, walletState);
   const stats = getCouponWalletStats(resolvedCoupons);
   const walletItems = resolvedCoupons.map(createWalletItem);

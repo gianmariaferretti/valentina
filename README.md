@@ -10,6 +10,7 @@ A private, interactive first-anniversary experience created by Gianmaria for Val
 - Motion for React for focused interface motion
 - Lucide icons
 - MapLibre GL JS for WebGL geographic maps
+- Supabase Postgres for private cross-device progress
 - ESLint and Prettier
 
 ## Getting started
@@ -20,7 +21,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Set `SITE_ACCESS_CODE` and a long random `AUTH_SECRET` in `.env.local`. The access code has no client-side or development fallback: verification remains unavailable until `SITE_ACCESS_CODE` is configured. Production also requires `AUTH_SECRET` to sign sessions.
+Set `SITE_ACCESS_CODE`, a long random `AUTH_SECRET`, and the server-only Supabase variables documented below in `.env.local`. The access code has no client-side or development fallback: verification remains unavailable until `SITE_ACCESS_CODE` is configured. Production also requires `AUTH_SECRET` to sign sessions.
 
 Run the complete local quality gate with:
 
@@ -68,23 +69,62 @@ Navigation is driven by `src/data/navigation.ts`, so future sections can be adde
 
 The access code is verified in a Server Action and never shipped in the client bundle. Successful verification creates an HTTP-only, same-site session cookie signed with HMAC. The `(experience)` layout verifies that cookie on the server before rendering private routes.
 
-The first complete journey is `/` → `/access` → `/home`. The landing page intentionally omits application navigation, the access screen returns rotating server-authored rejection messages, and successful verification briefly confirms the identity before opening the authenticated dashboard. The private shell includes a compact global progress indicator with placeholder values ready to be connected to persistence.
+The first complete journey is `/` → `/access` → `/home`. The landing page intentionally omits application navigation, the access screen returns rotating server-authored rejection messages, and successful verification briefly confirms the identity before opening the authenticated dashboard. The private shell includes a compact global progress indicator backed by persisted coupon and achievement state.
 
 This is an application-level privacy gate, not a replacement for deployment access controls. For a truly private deployment, also configure platform-level protection and rotate secrets before launch.
 
 ### Persistence and Supabase
 
-Persistent feature state is accessed through the `ProgressRepository` interface in `src/lib/persistence`. The initial browser implementation uses local storage and keeps the prototype usable without infrastructure. A later Supabase adapter can implement the same contract and be selected by a repository factory without coupling components to a database client.
+Persistent state is stored in Supabase Postgres through feature-owned repository contracts. Supabase clients exist only under `src/lib/supabase` and server-only repository modules; no database client, project secret, raw state mutation, or answer key is included in the browser bundle. The existing signed access session remains the application authorization boundary and maps every authorized request to the single configured `SUPABASE_PRIMARY_USER_ID`. Supabase Auth and multi-user social models are intentionally not part of this private site.
 
-Coupons use the same adapter principle with a stricter server-owned boundary. `CouponStateRepository` currently resolves to a signed, HTTP-only cookie adapter; redemption is validated in a Server Action before state is written. A future Supabase adapter can replace the repository factory while the wallet, ticket routes, and redemption controls remain unchanged. Challenge coupons are modeled explicitly and route into `/challenges/[game]` instead of passing through direct redemption.
+The versioned migration at `supabase/migrations/20261007220000_create_private_progress.sql` creates only user-state tables:
 
-Challenge progress follows the same server-owned adapter boundary. `ChallengeStateRepository` persists attempts, best scores, and completion in a signed HTTP-only cookie, while challenge completion updates the associated coupon unlock state. The game definitions remain configuration-driven, so targets and future game types can be added without coupling them to route files. Both current game engines—Snake and the original Midnight Circuit maze chase—were implemented in-house using Canvas and `requestAnimationFrame`; they contain no third-party gameplay code, branded characters, copied sprites, sounds, or artwork.
+| Table              | Stored state                                                          |
+| ------------------ | --------------------------------------------------------------------- |
+| `site_progress`    | Global memory count and last persisted activity                       |
+| `coupon_state`     | Coupon unlock and redemption timestamps                               |
+| `challenge_scores` | Best score, attempts, and completion per game                         |
+| `quiz_attempts`    | Active, completed, and abandoned attempts with server-checked answers |
+| `letter_state`     | Opened envelope timestamps                                            |
+| `achievements`     | Idempotent achievement unlocks                                        |
+| `discoveries`      | Reward, coupon, challenge, memory, and future secret discoveries      |
 
-Open When follows the same pattern through `OpenWhenStateRepository`. The current signed-cookie adapter records opened envelopes and claimed reward IDs without exposing mutable progress to client JavaScript. Letter content is defined in the typed `src/data/open-when.ts` registry, while rewards live in `src/data/rewards.ts` and pass through a generic server-side grant executor. The first reward type unlocks coupons, but the discriminated reward model is designed to accept additional reward kinds without coupling them to `Envelope`, `Letter`, or route components.
+Every table has Row Level Security enabled and public `anon`/`authenticated` privileges revoked. Only the server secret’s `service_role` can access state. Multi-table mutations for challenge rewards, letter rewards, quiz completion, and coupon redemption run in Postgres functions so related state is committed atomically. Static definitions—coupons, challenges, letters, cities, awards, quiz questions, and reward copy—remain typed application data under `src/data`; Supabase is not used as a CMS.
+
+Read paths fail closed to an empty state and log a server-side diagnostic, so editorial pages still render when Supabase is missing or temporarily unavailable. Mutations are not optimistically marked complete: the interface updates durable state only after the Server Action confirms the database write, and returns a retryable message when persistence fails.
+
+#### Supabase setup
+
+1. Create a Supabase project and choose one stable UUID for Valentina’s state. It does not need to reference `auth.users`; it is the private application record key.
+2. Install or invoke the Supabase CLI, link the project, and apply the committed migration:
+
+   ```bash
+   npx supabase login
+   npx supabase link --project-ref your-project-ref
+   npx supabase db push
+   ```
+
+3. Copy `.env.example` to `.env.local` and set:
+
+   ```text
+   SUPABASE_URL=https://your-project-ref.supabase.co
+   SUPABASE_SECRET_KEY=sb_secret_...
+   SUPABASE_PRIMARY_USER_ID=your-stable-uuid
+   ```
+
+   `SUPABASE_SECRET_KEY` is preferred for current Supabase projects. `SUPABASE_SERVICE_ROLE_KEY` remains supported as a legacy server-only alternative. Never prefix either secret with `NEXT_PUBLIC_`, commit it, print it, or pass it to a Client Component. The application does not require a publishable/anon key because all progress access occurs after the private session check on the server.
+
+4. Configure the same values in the deployment provider’s encrypted environment settings, then restart or redeploy the application. Visit `/coupons`, `/challenges`, `/quiz`, and `/open-when` from two devices to confirm the shared state.
+
+Database changes should be added as new migration files and deployed with `supabase db push`; do not edit the production schema manually after migration tracking begins. See the [Supabase migration workflow](https://supabase.com/docs/guides/deployment/database-migrations) and [server secret guidance](https://supabase.com/docs/guides/getting-started/api-keys).
+
+Challenge definitions remain configuration-driven, so targets and future game types can be added without coupling them to route files. Both current game engines—Snake and the original Midnight Circuit maze chase—were implemented in-house using Canvas and `requestAnimationFrame`; they contain no third-party gameplay code, branded characters, copied sprites, sounds, or artwork.
+
+Open When content remains in the typed `src/data/open-when.ts` registry, while rewards live in `src/data/rewards.ts`. The discriminated reward model can accept additional reward kinds without coupling them to `Envelope`, `Letter`, or route components.
 
 The V&G Awards are configured entirely in `src/data/awards.ts`. Each typed entry owns its category, nominees, winner, copy, media, optional evidence, sticker treatment, prize, and presentation size. The route remains a Server Component while each ceremony envelope uses a small Client Component for the nominee and winner reveal sequence. Ceremony styling is scoped to the feature with a CSS Module.
 
-The relationship quiz keeps its replaceable question bank in `src/data/quiz-questions.ts` and its result bands and reward thresholds in `src/data/quiz.ts`. Correct answer keys stay in a server-only module. Each answer is validated in sequence by a Server Action against a signed active attempt; the client receives only the selected answer result. `QuizStateRepository` persists best score, completed attempts, achievement IDs, claimed reward IDs, and the active attempt in an HTTP-only signed cookie. Perfect-score coupon grants pass through the shared reward executor and are idempotent.
+The relationship quiz keeps its replaceable question bank in `src/data/quiz-questions.ts` and its result bands and reward thresholds in `src/data/quiz.ts`. Correct answer keys stay in a server-only module. Each answer is validated in sequence by a Server Action against the active Supabase attempt; the client receives only the selected answer result. Completed attempts determine the persisted best score, while achievement and reward inserts are idempotent.
 
 ### Geographic maps
 
@@ -101,8 +141,6 @@ OpenFreeMap’s public service permits commercial usage, does not require an API
 The style URL is public browser configuration, not a secret. Map requests are sent directly from the visitor’s browser to the configured provider. A strict Content Security Policy must allow the configured style/tile/font hosts and MapLibre’s worker/image requirements. The MapLibre worker is bundled as a same-origin hashed asset using the official Next.js setup.
 
 Map interaction is paired with keyboard-accessible marker buttons, a complete destination index, direct memory links, and an external OpenStreetMap link on each location page. Cooperative touch gestures prevent the embedded map from trapping mobile page scrolling.
-
-Suggested next step: add a Supabase server/client package, implement `ProgressRepository`, and migrate access throttling and user progress into database-backed records protected by Row Level Security.
 
 ### Content model
 

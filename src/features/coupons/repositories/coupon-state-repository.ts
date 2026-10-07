@@ -2,11 +2,15 @@ import "server-only";
 
 import type { CouponWalletState } from "@/features/coupons/types";
 
-/**
- * Persistence boundary for coupon state. A Supabase implementation can replace
- * the signed-cookie adapter without changing route or component contracts.
- */
+export interface CouponUnlockInput {
+  readonly couponId: string;
+  readonly discoveredAt: string;
+  readonly discoveryId: string;
+  readonly source: string;
+}
+
 export interface CouponStateRepository {
   get(): Promise<CouponWalletState>;
-  save(state: CouponWalletState): Promise<void>;
+  redeem(couponId: string, redeemedAt: string): Promise<string>;
+  unlock(input: CouponUnlockInput): Promise<boolean>;
 }

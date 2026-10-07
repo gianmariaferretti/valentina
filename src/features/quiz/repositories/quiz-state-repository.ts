@@ -1,9 +1,26 @@
 import "server-only";
 
-import type { QuizState } from "@/features/quiz/types";
+import type { ActiveQuizAttempt, QuizState } from "@/features/quiz/types";
 
-/** Replace this adapter with a Supabase implementation without changing UI. */
+export interface CompleteQuizAttemptInput {
+  readonly attempt: ActiveQuizAttempt;
+  readonly score: number;
+  readonly completedAt: string;
+  readonly achievementId: string | null;
+  readonly rewardId: string | null;
+  readonly rewardCouponId: string | null;
+}
+
+export interface CompleteQuizAttemptResult {
+  readonly achievementWasNew: boolean;
+  readonly rewardWasNew: boolean;
+}
+
 export interface QuizStateRepository {
   get(): Promise<QuizState>;
-  save(state: QuizState): Promise<void>;
+  startAttempt(attempt: ActiveQuizAttempt): Promise<void>;
+  saveAnswer(attempt: ActiveQuizAttempt): Promise<void>;
+  completeAttempt(
+    input: CompleteQuizAttemptInput,
+  ): Promise<CompleteQuizAttemptResult>;
 }

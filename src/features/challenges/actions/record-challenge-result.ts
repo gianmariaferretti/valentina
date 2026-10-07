@@ -3,11 +3,13 @@
 import { revalidatePath } from "next/cache";
 
 import { getArcadeChallenge } from "@/data/challenges";
-import { getChallengeProgress } from "@/features/challenges/lib/challenge-domain";
 import { getChallengeStateRepository } from "@/features/challenges/repositories/get-challenge-state-repository";
 import type { ChallengeProgress } from "@/features/challenges/types";
-import { getCouponStateRepository } from "@/features/coupons/repositories/get-coupon-state-repository";
 import { hasValidAccessSession } from "@/lib/auth/session";
+import {
+  persistenceFailureMessage,
+  reportPersistenceFailure,
+} from "@/lib/persistence/persistence-error";
 
 export interface RecordChallengeResult {
   readonly status: "success" | "error";
@@ -37,61 +39,38 @@ export async function recordChallengeResult(
     return { status: "error", message: "That score could not be verified." };
   }
 
-  const challengeRepository = getChallengeStateRepository();
-  const currentState = await challengeRepository.get();
-  const currentProgress = getChallengeProgress(challengeId, currentState);
   const completed = score >= challenge.requiredScore;
-  const completedAt =
-    currentProgress.completedAt ??
-    (completed ? new Date().toISOString() : null);
-  const nextProgress: ChallengeProgress = {
-    challengeId,
-    attempts: currentProgress.attempts + 1,
-    bestScore: Math.max(currentProgress.bestScore, score),
-    completedAt,
-  };
 
-  await challengeRepository.save({
-    version: 1,
-    challenges: [
-      ...currentState.challenges.filter(
-        (progress) => progress.challengeId !== challengeId,
-      ),
-      nextProgress,
-    ],
-  });
+  try {
+    const saved = await getChallengeStateRepository().recordResult({
+      challengeId,
+      score,
+      completed,
+      rewardCouponId: challenge.rewardCouponId,
+      recordedAt: new Date().toISOString(),
+    });
 
-  let couponUnlocked = false;
-  if (completed) {
-    const couponRepository = getCouponStateRepository();
-    const couponState = await couponRepository.get();
-    couponUnlocked = !couponState.unlockedCouponIds.includes(
-      challenge.rewardCouponId,
-    );
-
-    if (couponUnlocked) {
-      await couponRepository.save({
-        ...couponState,
-        unlockedCouponIds: [
-          ...couponState.unlockedCouponIds,
-          challenge.rewardCouponId,
-        ],
-      });
+    if (completed) {
+      revalidatePath("/coupons");
+      revalidatePath(`/coupons/${challenge.rewardCouponId}`);
     }
 
-    revalidatePath("/coupons");
-    revalidatePath(`/coupons/${challenge.rewardCouponId}`);
+    revalidatePath(`/challenges/${challengeId}`);
+    revalidatePath("/challenges");
+
+    return {
+      status: "success",
+      message: completed
+        ? "Impossible. You actually did it."
+        : "Attempt archived. The coupon remains locked.",
+      progress: saved.progress,
+      couponUnlocked: saved.couponUnlocked,
+    };
+  } catch (error) {
+    reportPersistenceFailure("record challenge result", error);
+    return {
+      status: "error",
+      message: persistenceFailureMessage("This score"),
+    };
   }
-
-  revalidatePath(`/challenges/${challengeId}`);
-  revalidatePath("/challenges");
-
-  return {
-    status: "success",
-    message: completed
-      ? "Impossible. You actually did it."
-      : "Attempt archived. The coupon remains locked.",
-    progress: nextProgress,
-    couponUnlocked,
-  };
 }

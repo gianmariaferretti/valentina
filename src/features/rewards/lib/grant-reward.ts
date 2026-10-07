@@ -18,17 +18,14 @@ export async function grantExperienceReward(
       }
 
       const repository = getCouponStateRepository();
-      const state = await repository.get();
-      const alreadyUnlocked = state.unlockedCouponIds.includes(reward.targetId);
+      const newlyGranted = await repository.unlock({
+        couponId: reward.targetId,
+        discoveredAt: new Date().toISOString(),
+        discoveryId: reward.id,
+        source: "reward",
+      });
 
-      if (!alreadyUnlocked) {
-        await repository.save({
-          ...state,
-          unlockedCouponIds: [...state.unlockedCouponIds, reward.targetId],
-        });
-      }
-
-      return createRewardPresentation(reward, !alreadyUnlocked);
+      return createRewardPresentation(reward, newlyGranted);
     }
   }
 }

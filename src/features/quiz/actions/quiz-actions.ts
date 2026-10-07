@@ -16,8 +16,12 @@ import type {
   QuizCompletion,
   QuizPersistentStats,
 } from "@/features/quiz/types";
-import { grantExperienceReward } from "@/features/rewards/lib/grant-reward";
+import { createRewardPresentation } from "@/features/rewards/lib/reward-domain";
 import { hasValidAccessSession } from "@/lib/auth/session";
+import {
+  persistenceFailureMessage,
+  reportPersistenceFailure,
+} from "@/lib/persistence/persistence-error";
 
 export interface StartQuizResult {
   readonly status: "success" | "error";
@@ -66,30 +70,34 @@ export async function startQuiz(): Promise<StartQuizResult> {
     return { status: "error", message: "Your private session has expired." };
   }
 
-  const repository = getQuizStateRepository();
-  const state = await repository.get();
-  const attemptId = randomUUID();
-
-  await repository.save({
-    ...state,
-    activeAttempt: {
+  try {
+    const repository = getQuizStateRepository();
+    const state = await repository.get();
+    const attemptId = randomUUID();
+    await repository.startAttempt({
       id: attemptId,
       startedAt: new Date().toISOString(),
       answers: [],
-    },
-  });
+    });
 
-  return {
-    status: "success",
-    message: "Relationship examination started.",
-    attemptId,
-    stats: getPersistentStats(
-      state.bestScore,
-      state.attempts,
-      state.unlockedAchievementIds,
-      state.claimedRewardIds,
-    ),
-  };
+    return {
+      status: "success",
+      message: "Relationship examination started.",
+      attemptId,
+      stats: getPersistentStats(
+        state.bestScore,
+        state.attempts,
+        state.unlockedAchievementIds,
+        state.claimedRewardIds,
+      ),
+    };
+  } catch (error) {
+    reportPersistenceFailure("start quiz", error);
+    return {
+      status: "error",
+      message: persistenceFailureMessage("This quiz attempt"),
+    };
+  }
 }
 
 export async function submitQuizAnswer(
@@ -108,133 +116,138 @@ export async function submitQuizAnswer(
     return { status: "error", message: "That answer could not be verified." };
   }
 
-  const repository = getQuizStateRepository();
-  const state = await repository.get();
-  const attempt = state.activeAttempt;
+  try {
+    const repository = getQuizStateRepository();
+    const state = await repository.get();
+    const attempt = state.activeAttempt;
 
-  if (!attempt || attempt.id !== input.attemptId) {
-    return {
-      status: "error",
-      message: "This quiz attempt has expired. Start a fresh examination.",
-    };
-  }
+    if (!attempt || attempt.id !== input.attemptId) {
+      return {
+        status: "error",
+        message: "This quiz attempt has expired. Start a fresh examination.",
+      };
+    }
 
-  const question = quizQuestions[attempt.answers.length];
-  if (!question || question.id !== input.questionId) {
-    return {
-      status: "error",
-      message: "That question arrived out of order. The jury is suspicious.",
-    };
-  }
+    const question = quizQuestions[attempt.answers.length];
+    if (!question || question.id !== input.questionId) {
+      return {
+        status: "error",
+        message: "That question arrived out of order. The jury is suspicious.",
+      };
+    }
 
-  if (!question.options.some((option) => option.id === input.answerId)) {
-    return { status: "error", message: "That answer does not exist." };
-  }
+    if (!question.options.some((option) => option.id === input.answerId)) {
+      return { status: "error", message: "That answer does not exist." };
+    }
 
-  const isCorrect = question.correctOptionId === input.answerId;
-  const answers = [
-    ...attempt.answers,
-    {
-      questionId: question.id,
-      answerId: input.answerId,
-      correct: isCorrect,
-    },
-  ];
-  const currentScore = answers.filter((answer) => answer.correct).length;
-  const completed = answers.length === quizQuestions.length;
+    const isCorrect = question.correctOptionId === input.answerId;
+    const answers = [
+      ...attempt.answers,
+      {
+        questionId: question.id,
+        answerId: input.answerId,
+        correct: isCorrect,
+      },
+    ];
+    const currentScore = answers.filter((answer) => answer.correct).length;
+    const completed = answers.length === quizQuestions.length;
 
-  if (!completed) {
-    await repository.save({
-      ...state,
-      activeAttempt: { ...attempt, answers },
+    if (!completed) {
+      await repository.saveAnswer({ ...attempt, answers });
+
+      return {
+        status: "success",
+        message: "Answer archived.",
+        isCorrect,
+        feedback: isCorrect
+          ? question.feedback.correct
+          : question.feedback.incorrect,
+        currentScore,
+        answeredCount: answers.length,
+        completed: false,
+      };
+    }
+
+    const attempts = state.attempts + 1;
+    const bestScore = Math.max(state.bestScore, currentScore);
+    const achievementEarned = Boolean(
+      quizAchievementRule && currentScore >= quizAchievementRule.threshold,
+    );
+    const rewardEarned = Boolean(
+      quizCouponRewardRule &&
+      currentScore >= quizCouponRewardRule.threshold &&
+      !state.claimedRewardIds.includes(quizCouponRewardRule.rewardId),
+    );
+    const rewardDefinition =
+      rewardEarned && quizCouponRewardRule
+        ? getExperienceReward(quizCouponRewardRule.rewardId)
+        : undefined;
+
+    if (rewardEarned && !rewardDefinition) {
+      return { status: "error", message: "The quiz reward is unavailable." };
+    }
+
+    const saved = await repository.completeAttempt({
+      attempt: { ...attempt, answers },
+      score: currentScore,
+      completedAt: new Date().toISOString(),
+      achievementId:
+        achievementEarned && quizAchievementRule
+          ? quizAchievementRule.achievement.id
+          : null,
+      rewardId: rewardDefinition?.id ?? null,
+      rewardCouponId:
+        rewardDefinition?.kind === "coupon" ? rewardDefinition.targetId : null,
     });
+    const achievement: QuizCompletion["achievement"] =
+      achievementEarned && quizAchievementRule
+        ? {
+            ...quizAchievementRule.achievement,
+            newlyGranted: saved.achievementWasNew,
+          }
+        : null;
+    const reward: QuizCompletion["reward"] =
+      saved.rewardWasNew && rewardDefinition
+        ? createRewardPresentation(rewardDefinition, true)
+        : null;
+
+    if (rewardDefinition?.kind === "coupon") {
+      revalidatePath("/coupons");
+      revalidatePath(`/coupons/${rewardDefinition.targetId}`);
+    }
+
+    revalidatePath("/quiz");
+    revalidatePath("/achievements");
 
     return {
       status: "success",
-      message: "Answer archived.",
+      message: "Examination complete.",
       isCorrect,
       feedback: isCorrect
         ? question.feedback.correct
         : question.feedback.incorrect,
       currentScore,
       answeredCount: answers.length,
-      completed: false,
+      completed: true,
+      completion: {
+        score: currentScore,
+        totalQuestions: quizQuestions.length,
+        bestScore,
+        attempts,
+        result: getQuizResult(currentScore),
+        achievement,
+        reward,
+        rewardClaimed: quizCouponRewardRule
+          ? state.claimedRewardIds.includes(quizCouponRewardRule.rewardId) ||
+            saved.rewardWasNew
+          : false,
+      },
+    };
+  } catch (error) {
+    reportPersistenceFailure("submit quiz answer", error);
+    return {
+      status: "error",
+      message: persistenceFailureMessage("This answer"),
     };
   }
-
-  const attempts = state.attempts + 1;
-  const bestScore = Math.max(state.bestScore, currentScore);
-  let unlockedAchievementIds = state.unlockedAchievementIds;
-  let claimedRewardIds = state.claimedRewardIds;
-  let achievement: QuizCompletion["achievement"] = null;
-  let reward: QuizCompletion["reward"] = null;
-
-  if (quizAchievementRule && currentScore >= quizAchievementRule.threshold) {
-    const achievementId = quizAchievementRule.achievement.id;
-    const alreadyUnlocked = unlockedAchievementIds.includes(achievementId);
-    achievement = {
-      ...quizAchievementRule.achievement,
-      newlyGranted: !alreadyUnlocked,
-    };
-
-    if (!alreadyUnlocked) {
-      unlockedAchievementIds = [...unlockedAchievementIds, achievementId];
-    }
-  }
-
-  if (
-    quizCouponRewardRule &&
-    currentScore >= quizCouponRewardRule.threshold &&
-    !claimedRewardIds.includes(quizCouponRewardRule.rewardId)
-  ) {
-    const rewardDefinition = getExperienceReward(quizCouponRewardRule.rewardId);
-
-    if (!rewardDefinition) {
-      return { status: "error", message: "The quiz reward is unavailable." };
-    }
-
-    reward = await grantExperienceReward(rewardDefinition);
-    claimedRewardIds = [...claimedRewardIds, quizCouponRewardRule.rewardId];
-    revalidatePath("/coupons");
-
-    if (rewardDefinition.kind === "coupon") {
-      revalidatePath(`/coupons/${rewardDefinition.targetId}`);
-    }
-  }
-
-  await repository.save({
-    version: 1,
-    bestScore,
-    attempts,
-    unlockedAchievementIds,
-    claimedRewardIds,
-    activeAttempt: null,
-  });
-
-  revalidatePath("/quiz");
-  revalidatePath("/achievements");
-
-  return {
-    status: "success",
-    message: "Examination complete.",
-    isCorrect,
-    feedback: isCorrect
-      ? question.feedback.correct
-      : question.feedback.incorrect,
-    currentScore,
-    answeredCount: answers.length,
-    completed: true,
-    completion: {
-      score: currentScore,
-      totalQuestions: quizQuestions.length,
-      bestScore,
-      attempts,
-      result: getQuizResult(currentScore),
-      achievement,
-      reward,
-      rewardClaimed: quizCouponRewardRule
-        ? claimedRewardIds.includes(quizCouponRewardRule.rewardId)
-        : false,
-    },
-  };
 }

@@ -1,9 +1,24 @@
 import "server-only";
 
-import type { ChallengeProgressState } from "@/features/challenges/types";
+import type {
+  ChallengeProgress,
+  ChallengeProgressState,
+} from "@/features/challenges/types";
 
-/** Server-owned persistence boundary; ready for a future Supabase adapter. */
+export interface ChallengeResultInput {
+  readonly challengeId: string;
+  readonly score: number;
+  readonly completed: boolean;
+  readonly rewardCouponId: string;
+  readonly recordedAt: string;
+}
+
+export interface SavedChallengeResult {
+  readonly progress: ChallengeProgress;
+  readonly couponUnlocked: boolean;
+}
+
 export interface ChallengeStateRepository {
   get(): Promise<ChallengeProgressState>;
-  save(state: ChallengeProgressState): Promise<void>;
+  recordResult(input: ChallengeResultInput): Promise<SavedChallengeResult>;
 }

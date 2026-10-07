@@ -14,7 +14,7 @@ import { Sticker } from "@/components/design-system";
 import { coupons, getCoupon } from "@/data/coupons";
 import { RedemptionControl } from "@/features/coupons/components/redemption-control";
 import { resolveCoupon } from "@/features/coupons/lib/coupon-domain";
-import { getCouponStateRepository } from "@/features/coupons/repositories/get-coupon-state-repository";
+import { loadCouponState } from "@/features/coupons/repositories/get-coupon-state-repository";
 import type { CouponRarity } from "@/features/coupons/types";
 import { cn } from "@/lib/cn";
 
@@ -39,7 +39,7 @@ export async function generateMetadata({
   const coupon = getCoupon((await params).id);
   if (!coupon) return { title: "Coupon not found" };
 
-  const walletState = await getCouponStateRepository().get();
+  const walletState = await loadCouponState();
   const resolvedCoupon = resolveCoupon(coupon, walletState);
 
   return {
@@ -62,7 +62,7 @@ export default async function CouponPage({ params }: CouponPageProps) {
   const coupon = getCoupon((await params).id);
   if (!coupon) notFound();
 
-  const walletState = await getCouponStateRepository().get();
+  const walletState = await loadCouponState();
   const resolvedCoupon = resolveCoupon(coupon, walletState);
   if (resolvedCoupon.status === "undiscovered") notFound();
   const isDark =

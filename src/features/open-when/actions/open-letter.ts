@@ -4,14 +4,14 @@ import { revalidatePath } from "next/cache";
 
 import { getOpenWhenLetter, openWhenLetters } from "@/data/open-when";
 import { getExperienceReward } from "@/data/rewards";
-import {
-  isLetterOpened,
-  isRewardClaimed,
-} from "@/features/open-when/lib/open-when-domain";
 import { getOpenWhenStateRepository } from "@/features/open-when/repositories/get-open-when-state-repository";
-import { grantExperienceReward } from "@/features/rewards/lib/grant-reward";
+import { createRewardPresentation } from "@/features/rewards/lib/reward-domain";
 import type { GrantedExperienceReward } from "@/features/rewards/types";
 import { hasValidAccessSession } from "@/lib/auth/session";
+import {
+  persistenceFailureMessage,
+  reportPersistenceFailure,
+} from "@/lib/persistence/persistence-error";
 
 export interface OpenLetterResult {
   readonly status: "success" | "error";
@@ -31,57 +31,51 @@ export async function openLetter(slug: string): Promise<OpenLetterResult> {
     return { status: "error", message: "That envelope does not exist." };
   }
 
-  const repository = getOpenWhenStateRepository();
-  const state = await repository.get();
-  const alreadyOpened = isLetterOpened(slug, state);
-  const validOpenedLetters = state.openedLetters.filter((openedLetter) =>
-    openWhenLetters.some((item) => item.slug === openedLetter.slug),
-  );
-  const openedAt =
-    state.openedLetters.find((item) => item.slug === slug)?.openedAt ??
-    new Date().toISOString();
-  let reward: GrantedExperienceReward | undefined;
-  let claimedRewards = state.claimedRewards;
+  try {
+    const repository = getOpenWhenStateRepository();
+    const state = await repository.get();
+    const validOpenedCount = state.openedLetters.filter((openedLetter) =>
+      openWhenLetters.some((item) => item.slug === openedLetter.slug),
+    ).length;
+    const rewardDefinition = letter.rewardId
+      ? getExperienceReward(letter.rewardId)
+      : undefined;
 
-  if (letter.rewardId) {
-    const definition = getExperienceReward(letter.rewardId);
-    if (!definition) {
+    if (letter.rewardId && !rewardDefinition) {
       return { status: "error", message: "The hidden reward is unavailable." };
     }
 
-    reward = await grantExperienceReward(definition);
+    const saved = await repository.open({
+      slug,
+      openedAt: new Date().toISOString(),
+      rewardId: rewardDefinition?.id ?? null,
+      rewardCouponId:
+        rewardDefinition?.kind === "coupon" ? rewardDefinition.targetId : null,
+    });
+    const reward: GrantedExperienceReward | undefined = rewardDefinition
+      ? createRewardPresentation(rewardDefinition, saved.rewardWasNew)
+      : undefined;
 
-    if (!isRewardClaimed(definition.id, state)) {
-      claimedRewards = [
-        ...claimedRewards,
-        { rewardId: definition.id, claimedAt: new Date().toISOString() },
-      ];
-    }
-
-    if (definition.kind === "coupon") {
+    if (rewardDefinition?.kind === "coupon") {
       revalidatePath("/coupons");
-      revalidatePath(`/coupons/${definition.targetId}`);
+      revalidatePath(`/coupons/${rewardDefinition.targetId}`);
     }
+
+    revalidatePath("/open-when");
+    revalidatePath(`/open-when/${slug}`);
+
+    return {
+      status: "success",
+      message: saved.letterWasNew ? "Envelope opened." : "Letter reopened.",
+      openedAt: saved.openedAt,
+      openedCount: validOpenedCount + (saved.letterWasNew ? 1 : 0),
+      reward,
+    };
+  } catch (error) {
+    reportPersistenceFailure("open letter", error);
+    return {
+      status: "error",
+      message: persistenceFailureMessage("This letter"),
+    };
   }
-
-  const openedLetters = alreadyOpened
-    ? validOpenedLetters
-    : [...validOpenedLetters, { slug, openedAt }];
-
-  await repository.save({
-    version: 1,
-    openedLetters,
-    claimedRewards,
-  });
-
-  revalidatePath("/open-when");
-  revalidatePath(`/open-when/${slug}`);
-
-  return {
-    status: "success",
-    message: alreadyOpened ? "Letter reopened." : "Envelope opened.",
-    openedAt,
-    openedCount: openedLetters.length,
-    reward,
-  };
 }

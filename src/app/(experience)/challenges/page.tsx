@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { arcadeChallenges } from "@/data/challenges";
 import { getChallengeProgress } from "@/features/challenges/lib/challenge-domain";
-import { getChallengeStateRepository } from "@/features/challenges/repositories/get-challenge-state-repository";
+import { loadChallengeState } from "@/features/challenges/repositories/get-challenge-state-repository";
 
 export const metadata: Metadata = {
   title: "Impossible Coupon Challenge",
@@ -16,7 +16,7 @@ function formatScore(score: number): string {
 }
 
 export default async function ChallengesPage() {
-  const state = await getChallengeStateRepository().get();
+  const state = await loadChallengeState();
 
   return (
     <div className="arcade-surface min-h-[calc(100svh-7rem)] text-white">

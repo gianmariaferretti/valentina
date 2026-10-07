@@ -10,7 +10,7 @@ import {
 import { FadeIn } from "@/components/motion/fade-in";
 import { openWhenLetters } from "@/data/open-when";
 import { Envelope } from "@/features/open-when/components/envelope";
-import { getOpenWhenStateRepository } from "@/features/open-when/repositories/get-open-when-state-repository";
+import { loadOpenWhenState } from "@/features/open-when/repositories/get-open-when-state-repository";
 
 export const metadata: Metadata = {
   title: "Open when",
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 export default async function OpenWhenPage() {
-  const state = await getOpenWhenStateRepository().get();
+  const state = await loadOpenWhenState();
   const openedSlugs = new Set(state.openedLetters.map((letter) => letter.slug));
   const openedCount = openWhenLetters.filter((letter) =>
     openedSlugs.has(letter.slug),

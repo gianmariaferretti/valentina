@@ -1,11 +1,8 @@
-import type { ExperienceProgress } from "@/types/progress";
+import "server-only";
 
-/**
- * Storage boundary for interactive progress. A future Supabase repository can
- * implement this contract without changing feature components.
- */
+import type { SiteProgressState } from "@/types/progress";
+
 export interface ProgressRepository {
-  get(): Promise<ExperienceProgress>;
-  save(progress: ExperienceProgress): Promise<void>;
-  clear(): Promise<void>;
+  get(): Promise<SiteProgressState>;
+  setMemoriesDiscovered(count: number): Promise<void>;
 }

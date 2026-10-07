@@ -2,8 +2,20 @@ import "server-only";
 
 import type { OpenWhenState } from "@/features/open-when/types";
 
-/** Replace this adapter with a Supabase implementation without changing pages. */
+export interface OpenLetterStateInput {
+  readonly slug: string;
+  readonly openedAt: string;
+  readonly rewardId: string | null;
+  readonly rewardCouponId: string | null;
+}
+
+export interface SavedLetterState {
+  readonly openedAt: string;
+  readonly letterWasNew: boolean;
+  readonly rewardWasNew: boolean;
+}
+
 export interface OpenWhenStateRepository {
   get(): Promise<OpenWhenState>;
-  save(state: OpenWhenState): Promise<void>;
+  open(input: OpenLetterStateInput): Promise<SavedLetterState>;
 }
