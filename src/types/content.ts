@@ -14,15 +14,6 @@ export interface ExperienceSection {
   readonly tone: "ink" | "paper" | "rust";
 }
 
-export interface Coupon {
-  readonly id: string;
-  readonly code: string;
-  readonly title: string;
-  readonly description: string;
-  readonly category: "date" | "care" | "wildcard";
-  readonly isImpossible?: boolean;
-}
-
 export interface Challenge {
   readonly slug: string;
   readonly title: string;

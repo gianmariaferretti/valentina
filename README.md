@@ -75,6 +75,8 @@ This is an application-level privacy gate, not a replacement for deployment acce
 
 Persistent feature state is accessed through the `ProgressRepository` interface in `src/lib/persistence`. The initial browser implementation uses local storage and keeps the prototype usable without infrastructure. A later Supabase adapter can implement the same contract and be selected by a repository factory without coupling components to a database client.
 
+Coupons use the same adapter principle with a stricter server-owned boundary. `CouponStateRepository` currently resolves to a signed, HTTP-only cookie adapter; redemption is validated in a Server Action before state is written. A future Supabase adapter can replace the repository factory while the wallet, ticket routes, and redemption controls remain unchanged. Challenge coupons are modeled explicitly and route into `/challenges/[game]` instead of passing through direct redemption.
+
 Suggested next step: add a Supabase server/client package, implement `ProgressRepository`, and migrate access throttling and user progress into database-backed records protected by Row Level Security.
 
 ### Content model

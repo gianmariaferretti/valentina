@@ -1,6 +1,6 @@
 const progressItems = [
   { label: "Memories discovered", shortLabel: "Memories", value: "04" },
-  { label: "Coupons discovered", shortLabel: "Coupons", value: "03" },
+  { label: "Coupons discovered", shortLabel: "Coupons", value: "12" },
   { label: "Achievements", shortLabel: "Awards", value: "00" },
 ] as const;
 

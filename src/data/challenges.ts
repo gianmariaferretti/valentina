@@ -14,6 +14,13 @@ export const challenges = [
     description: "Decide which version of events has been creatively improved.",
     format: "Round-based",
   },
+  {
+    slug: "final-verdict",
+    title: "The final verdict",
+    description:
+      "An unnecessarily serious trial by memory, logic and relationship jurisprudence.",
+    format: "Impossible mode",
+  },
 ] as const satisfies readonly Challenge[];
 
 export function getChallenge(slug: string) {
