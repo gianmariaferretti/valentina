@@ -1,65 +1,50 @@
 import { ArrowRight } from "lucide-react";
-import Image from "next/image";
 
 import { FadeIn } from "@/components/motion/fade-in";
 import { LinkButton } from "@/components/ui/button";
-import { Eyebrow } from "@/components/ui/eyebrow";
 
 export default function EntryPage() {
   return (
-    <main className="min-h-svh p-3 sm:p-5">
-      <div className="mx-auto grid min-h-[calc(100svh-1.5rem)] max-w-[100rem] overflow-hidden rounded-[2rem] border border-[var(--line)] bg-white/25 lg:grid-cols-[minmax(0,1.05fr)_minmax(26rem,0.95fr)] sm:min-h-[calc(100svh-2.5rem)]">
-        <section className="flex min-h-[44rem] flex-col p-7 sm:p-12 lg:p-16 xl:p-20">
-          <FadeIn>
-            <div className="flex items-center justify-between">
-              <p className="font-display text-2xl tracking-[-0.04em]">
-                V<span className="text-[var(--rust)]">&</span>G
-              </p>
-              <p className="text-[0.6rem] font-semibold tracking-[0.2em] text-[var(--muted)] uppercase">
-                Private edition · 01
-              </p>
-            </div>
-          </FadeIn>
+    <main className="relative isolate min-h-svh overflow-hidden bg-[var(--ink)] text-[var(--paper-white)]">
+      <div
+        aria-hidden="true"
+        className="absolute -top-[28rem] left-1/2 size-[52rem] -translate-x-1/2 rounded-full bg-[var(--oxblood)]/45 blur-[130px]"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-6 top-6 bottom-6 border border-white/8 sm:inset-x-10 sm:top-10 sm:bottom-10"
+      />
 
-          <FadeIn className="my-auto py-16" delay={0.08}>
-            <Eyebrow>One year, properly archived</Eyebrow>
-            <h1 className="mt-6 max-w-4xl font-display text-[clamp(4rem,10vw,9rem)] leading-[0.78] tracking-[-0.065em]">
-              Year
-              <br />
-              <span className="ml-[0.52em] italic text-[var(--rust)]">
-                One.
-              </span>
-            </h1>
-            <p className="mt-9 max-w-lg text-base leading-7 text-[var(--muted)] sm:text-lg">
-              A private digital archive of flights, photographs, excellent
-              decisions and a few events both parties remember differently.
+      <div className="relative mx-auto flex min-h-svh w-full max-w-[100rem] flex-col px-8 py-9 sm:px-14 sm:py-12 lg:px-20 lg:py-16">
+        <FadeIn>
+          <p className="font-display text-2xl tracking-[-0.04em] sm:text-3xl">
+            V <span className="text-[var(--red-muted)]">+</span> G
+          </p>
+        </FadeIn>
+
+        <div className="my-auto py-20 text-center">
+          <FadeIn delay={0.08}>
+            <p className="text-[0.6rem] font-semibold tracking-[0.38em] text-white/45 uppercase sm:text-[0.68rem]">
+              04.10.2025 — 04.10.2026
             </p>
-            <LinkButton className="mt-8" href="/access">
-              Knock properly
-              <ArrowRight aria-hidden="true" size={15} />
-            </LinkButton>
           </FadeIn>
-
-          <FadeIn delay={0.16}>
-            <div className="flex items-end justify-between gap-6 border-t border-[var(--line)] pt-5 text-[0.62rem] tracking-[0.16em] text-[var(--muted)] uppercase">
-              <span>04.10.2025 — 04.10.2026</span>
-              <span className="text-right">For Valentina, obviously</span>
-            </div>
+          <FadeIn delay={0.14}>
+            <h1 className="mt-6 font-display text-[clamp(4.5rem,17vw,13rem)] leading-[0.72] tracking-[-0.075em]">
+              YEAR ONE
+            </h1>
           </FadeIn>
-        </section>
+          <FadeIn delay={0.22}>
+            <p className="mx-auto mt-9 max-w-sm font-display text-xl leading-7 italic text-white/62 sm:text-2xl">
+              A private place for two people.
+            </p>
+          </FadeIn>
+        </div>
 
-        <FadeIn className="relative min-h-[38rem] overflow-hidden" delay={0.12}>
-          <Image
-            alt="Abstract Year One artwork in oxblood, ink and parchment"
-            className="object-cover"
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 48vw"
-            src="/images/year-one-cover.svg"
-          />
-          <div className="absolute top-6 right-6 rounded-full border border-white/25 bg-black/10 px-4 py-2 text-[0.6rem] tracking-[0.16em] text-white/75 uppercase backdrop-blur-md">
-            Not for public consumption
-          </div>
+        <FadeIn className="flex justify-center sm:justify-end" delay={0.3}>
+          <LinkButton className="min-w-36" href="/access" variant="light">
+            Enter
+            <ArrowRight aria-hidden="true" size={15} />
+          </LinkButton>
         </FadeIn>
       </div>
     </main>

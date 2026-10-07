@@ -19,7 +19,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Set `SITE_ACCESS_CODE` and a long random `AUTH_SECRET` in `.env.local`. Development has safe local fallbacks so the app can be built before secrets are provisioned; production deliberately fails access verification if either secret is missing.
+Set `SITE_ACCESS_CODE` and a long random `AUTH_SECRET` in `.env.local`. The access code has no client-side or development fallback: verification remains unavailable until `SITE_ACCESS_CODE` is configured. Production also requires `AUTH_SECRET` to sign sessions.
 
 Run the complete local quality gate with:
 
@@ -66,6 +66,8 @@ Navigation is driven by `src/data/navigation.ts`, so future sections can be adde
 ### Access and privacy
 
 The access code is verified in a Server Action and never shipped in the client bundle. Successful verification creates an HTTP-only, same-site session cookie signed with HMAC. The `(experience)` layout verifies that cookie on the server before rendering private routes.
+
+The first complete journey is `/` → `/access` → `/home`. The landing page intentionally omits application navigation, the access screen returns rotating server-authored rejection messages, and successful verification briefly confirms the identity before opening the authenticated dashboard. The private shell includes a compact global progress indicator with placeholder values ready to be connected to persistence.
 
 This is an application-level privacy gate, not a replacement for deployment access controls. For a truly private deployment, also configure platform-level protection and rotate secrets before launch.
 

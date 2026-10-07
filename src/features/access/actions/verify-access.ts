@@ -2,21 +2,24 @@
 
 import { timingSafeEqual } from "node:crypto";
 
-import { redirect } from "next/navigation";
-
 import { setAccessSession } from "@/lib/auth/session";
 
 export interface AccessActionState {
-  status: "idle" | "error";
+  status: "idle" | "error" | "success";
   message?: string;
+  attempts: number;
 }
 
 function getAccessCode(): string | null {
-  if (process.env.SITE_ACCESS_CODE) return process.env.SITE_ACCESS_CODE;
-  if (process.env.NODE_ENV !== "production") return "041025";
-
-  return null;
+  return process.env.SITE_ACCESS_CODE ?? null;
 }
+
+const rejectionMessages = [
+  "That’s awkward.",
+  "Valentina, seriously?",
+  "Should I call Gianmaria?",
+  "Identity verification failed. Girlfriend status under review.",
+] as const;
 
 function matchesAccessCode(candidate: string, expected: string): boolean {
   const candidateBuffer = Buffer.from(candidate);
@@ -29,7 +32,7 @@ function matchesAccessCode(candidate: string, expected: string): boolean {
 }
 
 export async function verifyAccess(
-  _previousState: AccessActionState,
+  previousState: AccessActionState,
   formData: FormData,
 ): Promise<AccessActionState> {
   const expectedCode = getAccessCode();
@@ -39,16 +42,24 @@ export async function verifyAccess(
     return {
       status: "error",
       message: "The private entrance is not configured yet.",
+      attempts: previousState.attempts,
     };
   }
 
   if (!matchesAccessCode(candidate, expectedCode)) {
     return {
       status: "error",
-      message: "That is not it. This is already a little embarrassing.",
+      message:
+        rejectionMessages[previousState.attempts % rejectionMessages.length],
+      attempts: previousState.attempts + 1,
     };
   }
 
   await setAccessSession();
-  redirect("/home");
+
+  return {
+    status: "success",
+    message: "Welcome back, amor.",
+    attempts: previousState.attempts,
+  };
 }

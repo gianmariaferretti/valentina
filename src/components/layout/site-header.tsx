@@ -3,7 +3,7 @@
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 
 import { Icon } from "@/components/ui/icon";
 import { primaryNavigation, secondaryNavigation } from "@/data/navigation";
@@ -15,7 +15,7 @@ function isCurrentPath(pathname: string, href: string) {
   );
 }
 
-export function SiteHeader() {
+export function SiteHeader({ progress }: { progress: ReactNode }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -71,8 +71,10 @@ export function SiteHeader() {
         </button>
       </div>
 
+      {progress}
+
       {isOpen ? (
-        <nav className="absolute inset-x-0 top-full max-h-[calc(100svh-4.5rem)] overflow-y-auto border-b border-[var(--line)] bg-[var(--paper)] px-5 py-6 shadow-2xl shadow-black/10 lg:hidden">
+        <nav className="absolute inset-x-0 top-full max-h-[calc(100svh-7.25rem)] overflow-y-auto border-b border-[var(--line)] bg-[var(--paper)] px-5 py-6 shadow-2xl shadow-black/10 lg:hidden">
           <p className="mb-3 text-[0.6rem] font-semibold tracking-[0.18em] text-[var(--muted)] uppercase">
             The essentials
           </p>
