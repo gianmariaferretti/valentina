@@ -84,6 +84,8 @@ Open When follows the same pattern through `OpenWhenStateRepository`. The curren
 
 The V&G Awards are configured entirely in `src/data/awards.ts`. Each typed entry owns its category, nominees, winner, copy, media, optional evidence, sticker treatment, prize, and presentation size. The route remains a Server Component while each ceremony envelope uses a small Client Component for the nominee and winner reveal sequence. Ceremony styling is scoped to the feature with a CSS Module.
 
+The relationship quiz keeps its replaceable question bank in `src/data/quiz-questions.ts` and its result bands and reward thresholds in `src/data/quiz.ts`. Correct answer keys stay in a server-only module. Each answer is validated in sequence by a Server Action against a signed active attempt; the client receives only the selected answer result. `QuizStateRepository` persists best score, completed attempts, achievement IDs, claimed reward IDs, and the active attempt in an HTTP-only signed cookie. Perfect-score coupon grants pass through the shared reward executor and are idempotent.
+
 ### Geographic maps
 
 `/map` and `/map/[place]` use MapLibre GL JS with real vector map data. The typed destination registry in `src/data/places.ts` stores coordinates in MapLibre’s `[longitude, latitude]` order alongside editorial content, image placeholders, sticker metadata, notes, and a deliberately non-chronological atlas order.
@@ -110,9 +112,9 @@ Placeholder content lives in typed registries under `src/data`. Feature work sho
 
 The reusable primitives under `src/components/design-system` combine editorial typography with tactile travel-journal objects. `Sticker` provides deterministic variants, rotations, sizes, and position presets; supporting components cover tape, paper surfaces, tickets, polaroids, postage, passport stamps, luggage tags, handwriting, arrows, and small doodles. The `/design-system` route is the canonical visual review surface.
 
-Map photographs currently use source-controlled editorial SVG placeholders under `public/images/map`. Replace the image paths in the destination registry when personal photographs are ready; the route components already use `next/image` and retain authored alternative text and captions.
+All photographic metadata lives in the typed `src/data/media.ts` registry. Gallery, Map, and Awards resolve their images from that canonical source, while surface tags make the same records available to Home and the Secret Area without duplicating `src`, alternative text, captions, dates, or locations. The current source-controlled SVG placeholders under `public/images` can be replaced one record at a time when personal photographs are ready; consumers already use `next/image` with stable dimensions and responsive sizing.
 
-Awards photographs use source-controlled editorial SVG placeholders under `public/images/awards`. Replace each `photo.src` and `photo.alt` in the awards registry as personal images are selected; the reveal cards already use `next/image` with stable responsive media frames.
+`/gallery` renders that media registry as an asymmetric editorial scrapbook with data-driven category and favourites filters, polaroid and photo-strip treatments, deterministic annotations, and an accessible keyboard-controlled lightbox. Gallery presentation metadata remains optional, so shared media can participate in Map or Awards without appearing in the scrapbook.
 
 ## Product direction
 

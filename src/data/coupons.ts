@@ -324,21 +324,25 @@ export const coupons = [
   {
     id: "classified-fourteen",
     code: "GV-014",
-    title: "Year Two Preview",
-    shortDescription: "An object from the future. Probably safe.",
+    title: "Your Choice, No Follow-Up Questions",
+    shortDescription: "One request. No suspicious cross-examination.",
     description:
-      "This coupon remains sealed until its discovery condition is met.",
+      "Valentina may make one entirely reasonable request and Gianmaria will agree without opening a committee hearing about the details.",
     category: "romantic",
-    rarity: "impossible",
+    rarity: "legendary",
     type: "standard",
     status: "undiscovered",
     redeemable: false,
     challengeId: null,
-    unlockCondition: "Reach the end of Year One.",
+    unlockCondition: "Score 10/10 on The Boyfriend Exam.",
     secret: true,
     createdAt: "2025-10-18T18:00:00.000Z",
     redeemedAt: null,
-    terms: ["Terms remain classified."],
+    terms: [
+      "The request must remain legal, safe and physically possible.",
+      "No follow-up questions means no cross-examination, not zero logistics.",
+      "The perfect quiz score will be cited as supporting evidence.",
+    ],
   },
 ] as const satisfies readonly Coupon[];
 

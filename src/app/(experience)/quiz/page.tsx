@@ -1,17 +1,34 @@
 import type { Metadata } from "next";
 
-import { RouteScaffold } from "@/components/ui/route-scaffold";
+import { quizAchievementRule, quizCouponRewardRule } from "@/data/quiz";
+import { getQuizQuestionViews } from "@/data/quiz-questions";
+import { RelationshipQuiz } from "@/features/quiz/components/relationship-quiz";
+import { getQuizStateRepository } from "@/features/quiz/repositories/get-quiz-state-repository";
 
-export const metadata: Metadata = { title: "Quiz" };
+export const metadata: Metadata = {
+  title: "The Boyfriend Exam",
+  description:
+    "Ten questions to determine whether Valentina actually knows her boyfriend.",
+};
 
-export default function QuizPage() {
+export default async function QuizPage() {
+  const state = await getQuizStateRepository().get();
+
   return (
-    <RouteScaffold
-      description="Five questions, several traps and a scoring system that may not survive legal review."
-      eyebrow="One relationship on the line"
-      icon="quiz"
-      note="The question model and progress repository are ready for the final boyfriend exam content."
-      title="Do you actually know your boyfriend?"
+    <RelationshipQuiz
+      initialStats={{
+        bestScore: state.bestScore,
+        attempts: state.attempts,
+        achievementUnlocked: quizAchievementRule
+          ? state.unlockedAchievementIds.includes(
+              quizAchievementRule.achievement.id,
+            )
+          : false,
+        rewardClaimed: quizCouponRewardRule
+          ? state.claimedRewardIds.includes(quizCouponRewardRule.rewardId)
+          : false,
+      }}
+      questions={getQuizQuestionViews()}
     />
   );
 }

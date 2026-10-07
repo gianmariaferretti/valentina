@@ -13,6 +13,18 @@ export const experienceRewards = [
       actionLabel: "View the new coupon",
     },
   },
+  {
+    id: "quiz-perfect-score-coupon",
+    kind: "coupon",
+    targetId: "classified-fourteen",
+    reveal: {
+      eyebrow: "Perfect score detected.",
+      title: "Secret coupon unlocked",
+      description:
+        "GV-014 has been declassified. Apparently knowing far too much has practical benefits.",
+      actionLabel: "Inspect the evidence",
+    },
+  },
 ] as const satisfies readonly ExperienceRewardDefinition[];
 
 export function getExperienceReward(id: string) {

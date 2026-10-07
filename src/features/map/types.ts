@@ -1,3 +1,5 @@
+import type { MediaAsset } from "@/features/media/types";
+
 export type LongitudeLatitude = readonly [longitude: number, latitude: number];
 
 export interface DestinationDateRange {
@@ -6,11 +8,7 @@ export interface DestinationDateRange {
   readonly label: string;
 }
 
-export interface DestinationImage {
-  readonly src: string;
-  readonly alt: string;
-  readonly caption: string;
-}
+export type DestinationImage = MediaAsset;
 
 export interface DestinationSticker {
   readonly id: string;

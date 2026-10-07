@@ -1,10 +1,5 @@
+import { getMediaAsset } from "@/data/media";
 import type { Destination } from "@/features/map/types";
-
-const imagePlaceholders = {
-  city: "/images/map/city-placeholder.svg",
-  detail: "/images/map/detail-placeholder.svg",
-  transit: "/images/map/transit-placeholder.svg",
-} as const;
 
 export const places = [
   {
@@ -20,27 +15,11 @@ export const places = [
       "This London page is ready for the real version of the story: where the day started, what almost went to plan and which tiny detail became the one worth keeping.",
       "For now, the structure preserves the shape of the memory without inventing it. Replace this copy when the photographs and exact dates join the archive.",
     ],
-    coverImage: {
-      src: imagePlaceholders.city,
-      alt: "Editorial placeholder for a future London photograph",
-      caption: "London cover photograph reserved",
-    },
+    coverImage: getMediaAsset("london-cover"),
     galleryImages: [
-      {
-        src: imagePlaceholders.detail,
-        alt: "Placeholder for a detail photographed in London",
-        caption: "The detail we will remember",
-      },
-      {
-        src: imagePlaceholders.transit,
-        alt: "Placeholder for a London travel photograph",
-        caption: "In transit, allegedly organised",
-      },
-      {
-        src: imagePlaceholders.city,
-        alt: "Placeholder for a second London city photograph",
-        caption: "One more frame for the evidence file",
-      },
+      getMediaAsset("london-detail"),
+      getMediaAsset("london-transit"),
+      getMediaAsset("london-second-frame"),
     ],
     stickers: [
       { id: "london-code", kind: "airport-code", text: "LON", rotation: -3 },
@@ -92,27 +71,11 @@ export const places = [
       "Rome already supplies the scenery; this page is deliberately waiting for the part only Valentina and Gianmaria can provide. The real route, the unplanned pause and the photo that survived selection all belong here.",
       "The layout is complete, but the memory stays honest: no invented itinerary, no borrowed romance and no suspiciously perfect travel copy.",
     ],
-    coverImage: {
-      src: imagePlaceholders.city,
-      alt: "Editorial placeholder for a future Rome photograph",
-      caption: "Rome cover photograph reserved",
-    },
+    coverImage: getMediaAsset("rome-cover"),
     galleryImages: [
-      {
-        src: imagePlaceholders.transit,
-        alt: "Placeholder for a Rome arrival photograph",
-        caption: "Arrival, with confidence",
-      },
-      {
-        src: imagePlaceholders.detail,
-        alt: "Placeholder for a small Rome memory",
-        caption: "The thing we almost walked past",
-      },
-      {
-        src: imagePlaceholders.city,
-        alt: "Placeholder for a second Rome city photograph",
-        caption: "Evidence from somewhere beautiful",
-      },
+      getMediaAsset("rome-arrival"),
+      getMediaAsset("rome-detail"),
+      getMediaAsset("rome-city-frame"),
     ],
     stickers: [
       { id: "rome-code", kind: "airport-code", text: "ROM", rotation: 3 },
@@ -164,27 +127,11 @@ export const places = [
       "Paris does not need a generic love story, and neither does this archive. This section is prepared for the exact version: the neighbourhood, the running joke and the moment that escaped the camera.",
       "Until those details arrive, the page stays intentionally editorial rather than pretending a stock itinerary was ours.",
     ],
-    coverImage: {
-      src: imagePlaceholders.city,
-      alt: "Editorial placeholder for a future Paris photograph",
-      caption: "Paris cover photograph reserved",
-    },
+    coverImage: getMediaAsset("paris-cover"),
     galleryImages: [
-      {
-        src: imagePlaceholders.detail,
-        alt: "Placeholder for a Paris detail photograph",
-        caption: "Small detail, unfairly photogenic",
-      },
-      {
-        src: imagePlaceholders.city,
-        alt: "Placeholder for a Paris street photograph",
-        caption: "A street we will identify later",
-      },
-      {
-        src: imagePlaceholders.transit,
-        alt: "Placeholder for a Paris transit photograph",
-        caption: "Two tickets, one questionable route",
-      },
+      getMediaAsset("paris-detail"),
+      getMediaAsset("paris-street"),
+      getMediaAsset("paris-transit"),
     ],
     stickers: [
       { id: "paris-code", kind: "airport-code", text: "PAR", rotation: -4 },
@@ -236,27 +183,11 @@ export const places = [
       "Hamburg gets a quieter chapter in the atlas: strong lines, cool colour and room for the memory to do the work. The real account can be added without changing the design around it.",
       "No chronology is assumed here. This is an editorial pin, ready for exact dates and the version of events approved by both parties.",
     ],
-    coverImage: {
-      src: imagePlaceholders.city,
-      alt: "Editorial placeholder for a future Hamburg photograph",
-      caption: "Hamburg cover photograph reserved",
-    },
+    coverImage: getMediaAsset("hamburg-cover"),
     galleryImages: [
-      {
-        src: imagePlaceholders.city,
-        alt: "Placeholder for a Hamburg city photograph",
-        caption: "Northern light, eventually",
-      },
-      {
-        src: imagePlaceholders.transit,
-        alt: "Placeholder for a Hamburg travel photograph",
-        caption: "The efficient-looking part",
-      },
-      {
-        src: imagePlaceholders.detail,
-        alt: "Placeholder for a Hamburg detail photograph",
-        caption: "A detail filed for later",
-      },
+      getMediaAsset("hamburg-city-frame"),
+      getMediaAsset("hamburg-transit"),
+      getMediaAsset("hamburg-detail"),
     ],
     stickers: [
       { id: "hamburg-code", kind: "airport-code", text: "HAM", rotation: 2 },
@@ -308,27 +239,11 @@ export const places = [
       "Brussels closes the first edition of this atlas, though not a timeline. Its page is ready for the real photographs, dates and the snack ranking that will inevitably require formal review.",
       "Everything personal remains configurable in data, so the final memory can be specific without being hard-coded into the interface.",
     ],
-    coverImage: {
-      src: imagePlaceholders.city,
-      alt: "Editorial placeholder for a future Brussels photograph",
-      caption: "Brussels cover photograph reserved",
-    },
+    coverImage: getMediaAsset("brussels-cover"),
     galleryImages: [
-      {
-        src: imagePlaceholders.detail,
-        alt: "Placeholder for a Brussels detail photograph",
-        caption: "Evidence, probably edible",
-      },
-      {
-        src: imagePlaceholders.city,
-        alt: "Placeholder for a Brussels city photograph",
-        caption: "A compact city, properly framed",
-      },
-      {
-        src: imagePlaceholders.transit,
-        alt: "Placeholder for a Brussels travel photograph",
-        caption: "Departure time: optimistically precise",
-      },
+      getMediaAsset("brussels-detail"),
+      getMediaAsset("brussels-city-frame"),
+      getMediaAsset("brussels-transit"),
     ],
     stickers: [
       { id: "brussels-code", kind: "airport-code", text: "BRU", rotation: -3 },

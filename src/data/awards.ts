@@ -1,3 +1,4 @@
+import { getMediaAsset } from "@/data/media";
 import type { Award } from "@/features/awards/types";
 
 export const awards = [
@@ -29,11 +30,7 @@ export const awards = [
       },
     ],
     winnerId: "london",
-    photo: {
-      src: "/images/awards/city-night-placeholder.svg",
-      alt: "Editorial placeholder for the winning trip photograph",
-      position: "50% 45%",
-    },
+    photo: getMediaAsset("award-city-night"),
     evidence: { label: "Jury note", value: "Won by one dramatic umbrella." },
     sticker: { variant: "trophy", text: "Grand tour", rotation: -3 },
     presentation: "wide",
@@ -61,10 +58,7 @@ export const awards = [
       },
     ],
     winnerId: "no-timetable",
-    photo: {
-      src: "/images/awards/golden-hour-placeholder.svg",
-      alt: "Warm editorial placeholder for the winning date photograph",
-    },
+    photo: getMediaAsset("award-golden-hour"),
     sticker: { variant: "jury", text: "Unanimous-ish", rotation: 2 },
     presentation: "standard",
   },
@@ -91,10 +85,7 @@ export const awards = [
       },
     ],
     winnerId: "roman-table",
-    photo: {
-      src: "/images/awards/table-for-two-placeholder.svg",
-      alt: "Editorial placeholder showing a table set for two",
-    },
+    photo: getMediaAsset("award-table-for-two"),
     evidence: {
       label: "Material evidence",
       value: "One menu kept as a souvenir.",
@@ -129,10 +120,7 @@ export const awards = [
       },
     ],
     winnerId: "paris-platform",
-    photo: {
-      src: "/images/awards/instant-film-placeholder.svg",
-      alt: "Instant-film style placeholder for the winning photograph",
-    },
+    photo: getMediaAsset("award-instant-film"),
     evidence: {
       label: "Camera roll",
       value: "47 near-identical alternatives rejected.",
@@ -163,10 +151,7 @@ export const awards = [
       },
     ],
     winnerId: "nearly-spoiled",
-    photo: {
-      src: "/images/awards/jury-evidence-placeholder.svg",
-      alt: "Classified evidence placeholder for the winning surprise",
-    },
+    photo: getMediaAsset("award-jury-evidence"),
     sticker: { variant: "classified", text: "Still classified", rotation: -4 },
     presentation: "standard",
   },
@@ -193,11 +178,7 @@ export const awards = [
       },
     ],
     winnerId: "decorative-portions",
-    photo: {
-      src: "/images/awards/table-for-two-placeholder.svg",
-      alt: "Restaurant table placeholder entered as culinary evidence",
-      position: "70% 50%",
-    },
+    photo: { ...getMediaAsset("award-table-for-two"), position: "70% 50%" },
     evidence: { label: "Final verdict", value: "We ordered pizza afterwards." },
     sticker: { variant: "jury", text: "Zero stars", rotation: 2 },
     presentation: "standard",
@@ -225,10 +206,7 @@ export const awards = [
       },
     ],
     winnerId: "map-upside-down",
-    photo: {
-      src: "/images/awards/jury-evidence-placeholder.svg",
-      alt: "Case-file placeholder for the most pointless argument",
-    },
+    photo: getMediaAsset("award-jury-evidence"),
     evidence: {
       label: "Duration",
       value: "Eleven minutes that belong to history now.",
@@ -259,11 +237,7 @@ export const awards = [
       },
     ],
     winnerId: "gianmaria-cold",
-    photo: {
-      src: "/images/awards/golden-hour-placeholder.svg",
-      alt: "Spotlit portrait placeholder for best dramatic performance",
-      position: "35% 50%",
-    },
+    photo: { ...getMediaAsset("award-golden-hour"), position: "35% 50%" },
     evidence: {
       label: "Jury citation",
       value: "Asked if he would ever recover.",
@@ -294,11 +268,7 @@ export const awards = [
       },
     ],
     winnerId: "gianmaria-navigation",
-    photo: {
-      src: "/images/awards/city-night-placeholder.svg",
-      alt: "City street placeholder for worst navigation skills",
-      position: "75% 50%",
-    },
+    photo: { ...getMediaAsset("award-city-night"), position: "75% 50%" },
     evidence: {
       label: "Distance added",
       value: "1.8 km, described as ‘basically here’.",
@@ -329,11 +299,7 @@ export const awards = [
       },
     ],
     winnerId: "valentina-ready",
-    photo: {
-      src: "/images/awards/instant-film-placeholder.svg",
-      alt: "Dressing-room style placeholder for longest getting ready",
-      position: "65% 50%",
-    },
+    photo: { ...getMediaAsset("award-instant-film"), position: "65% 50%" },
     evidence: {
       label: "Official delay",
       value: "Enough time for Gianmaria to sit down again.",
@@ -368,11 +334,7 @@ export const awards = [
       },
     ],
     winnerId: "gianmaria-asleep",
-    photo: {
-      src: "/images/awards/golden-hour-placeholder.svg",
-      alt: "Soft evening placeholder for most likely to fall asleep",
-      position: "80% 40%",
-    },
+    photo: { ...getMediaAsset("award-golden-hour"), position: "80% 40%" },
     sticker: {
       variant: "boyfriend-certified",
       text: "Still awake",
@@ -403,10 +365,7 @@ export const awards = [
       },
     ],
     winnerId: "train-early",
-    photo: {
-      src: "/images/awards/jury-evidence-placeholder.svg",
-      alt: "Official evidence placeholder for best excuse",
-    },
+    photo: getMediaAsset("award-jury-evidence"),
     evidence: {
       label: "Legal status",
       value: "Appeal rejected without comment.",
@@ -437,11 +396,7 @@ export const awards = [
       },
     ],
     winnerId: "valentina-taste",
-    photo: {
-      src: "/images/awards/table-for-two-placeholder.svg",
-      alt: "Luxury editorial placeholder for most expensive taste",
-      position: "30% 50%",
-    },
+    photo: { ...getMediaAsset("award-table-for-two"), position: "30% 50%" },
     evidence: {
       label: "Prize value",
       value: "Classified for budgetary stability.",
@@ -472,11 +427,7 @@ export const awards = [
       },
     ],
     winnerId: "gianmaria-what",
-    photo: {
-      src: "/images/awards/instant-film-placeholder.svg",
-      alt: "Candid-style placeholder for the most annoying award",
-      position: "40% 50%",
-    },
+    photo: { ...getMediaAsset("award-instant-film"), position: "40% 50%" },
     evidence: {
       label: "Public response",
       value: "Valentina did not require deliberation.",
@@ -507,10 +458,7 @@ export const awards = [
       },
     ],
     winnerId: "valentina-mvp",
-    photo: {
-      src: "/images/awards/golden-hour-placeholder.svg",
-      alt: "Golden spotlight placeholder for the Relationship MVP portrait",
-    },
+    photo: getMediaAsset("award-golden-hour"),
     evidence: {
       label: "Jury decision",
       value: "Unanimous. Gianmaria abstained under protest.",
