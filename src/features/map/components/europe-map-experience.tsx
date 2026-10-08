@@ -220,7 +220,7 @@ export function EuropeMapExperience({
     <section className="map-experience" aria-label="V and G destination atlas">
       <div className="map-experience__stage">
         <div
-          aria-label="Interactive map of five V and G destinations in Europe"
+          aria-label="Interactive map of V and G destinations in Europe"
           className="size-full"
           ref={mapContainerRef}
           role="region"
@@ -287,7 +287,7 @@ export function EuropeMapExperience({
       <aside className="map-destination-index" aria-label="Destination index">
         <div className="map-destination-index__intro">
           <p>Accessible destination index</p>
-          <h2>Five pins. No timeline.</h2>
+          <h2>Ten pins. No timeline.</h2>
           <span>
             Atlas order is editorial only and does not imply a travel route.
           </span>
