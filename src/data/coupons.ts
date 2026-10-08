@@ -780,6 +780,30 @@ export const coupons = [
       "Subject to mutual availability, safety and common sense.",
     ],
   },
+  {
+    id: "evening-your-way",
+    code: "GV-036",
+    title: "An Evening, Your Way",
+    shortDescription:
+      "Premium clearance. You choose the evening; Gianmaria arranges it.",
+    description:
+      "One properly planned evening, built around your choice of dinner and an activity together. Gianmaria handles the arrangements. The defence department has temporarily closed.",
+    category: "dates",
+    rarity: "premium",
+    type: "challenge",
+    status: "locked",
+    redeemable: false,
+    challengeId: "break-defences",
+    unlockCondition: "Clear all 80 bricks in Break My Defences.",
+    secret: false,
+    createdAt: "2025-10-31T19:00:00.000Z",
+    redeemedAt: null,
+    terms: [
+      "Valid once after a verified, saved victory.",
+      "Choose a date together; subject to mutual availability and an agreed budget.",
+      "Dinner and the activity are decided together. Common sense remains in force.",
+    ],
+  },
 ] as const satisfies readonly Coupon[];
 
 export function getCoupon(id: string): Coupon | undefined {

@@ -3,7 +3,6 @@
 
 # next.js
 /.next/
-/public/vendor/monogatari/
 /out/
 
 # production

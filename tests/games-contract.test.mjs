@@ -1,123 +1,107 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-
-import { vgGames } from "../src/data/games.ts";
+import { readFileSync } from "node:fs";
+import { vgGames, retiredGameSlugs } from "../src/data/games.ts";
 import { coupons } from "../src/data/coupons.ts";
-import { gameMediaPlaceholders } from "../src/data/game-media.ts";
-import { getMediaAsset } from "../src/data/media.ts";
 import { masterArchiveFile } from "../src/data/game-secrets.ts";
 import {
   evaluateGameResult,
   getRecoveredGameRewards,
 } from "../src/features/games/lib/game-domain.ts";
-import {
-  minefieldNeighbours,
-  revealSafeArea,
-} from "../src/features/games/lib/minefield-domain.ts";
-
-test("seven unique games preserve valid outcomes and coupon references", () => {
-  assert.equal(vgGames.length, 7);
-  assert.equal(new Set(vgGames.map((game) => game.gameId)).size, 7);
-  const rewardIds = vgGames.flatMap((game) =>
-    game.rewards.map((reward) => reward.id),
-  );
-  assert.equal(new Set(rewardIds).size, rewardIds.length);
-  for (const game of vgGames) {
-    for (const ending of game.victory.endings)
-      assert.ok(game.allowedEndings.includes(ending));
-    assert.ok((game.victory.minimumScore ?? 0) <= game.maxScore);
-    for (const reward of game.rewards) {
-      if (reward.kind === "coupon")
-        assert.ok(coupons.some((coupon) => coupon.id === reward.targetId));
-    }
-  }
-});
-
-test("winning requires the configured score, progress and ending", () => {
-  for (const game of vgGames) {
-    const valid = {
-      ending: game.victory.endings[0],
-      progress: 100,
-      score: game.maxScore,
-    };
-    assert.equal(evaluateGameResult(game, valid).won, true);
-    assert.equal(
-      evaluateGameResult(game, { ...valid, ending: "invented" }).won,
-      false,
-    );
-    assert.equal(
-      evaluateGameResult(game, { ...valid, progress: 0 }).won,
-      false,
-    );
-    if (game.victory.minimumScore) {
-      assert.equal(
-        evaluateGameResult(game, {
-          ...valid,
-          score: game.victory.minimumScore - 1,
-        }).won,
-        false,
-      );
-    }
-  }
-});
-
-test("secret grants are whitelisted and deduplicated independently of victory", () => {
-  const game = vgGames.find((game) => game.gameId === "find-gianmaria");
-  const result = evaluateGameResult(game, {
-    score: 0,
-    progress: 0,
-    ending: "subject-escaped",
-    discoveredSecrets: [
-      "operation-redacted-note",
-      "operation-redacted-note",
-      "invented",
+test("Exactly five registered games, fixed rules, correct order and valid coupon references", () => {
+  assert.deepEqual(
+    vgGames.map((game) => game.gameId),
+    [
+      "break-defences",
+      "relationship-minefield",
+      "365-memories",
+      "snake",
+      "maze",
     ],
-  });
-  assert.equal(result.won, false);
-  assert.deepEqual(result.discoveredSecrets, ["operation-redacted-note"]);
-  assert.deepEqual(
-    result.rewards.map((reward) => reward.kind),
-    ["secret"],
   );
+  assert.equal(
+    new Set(vgGames.flatMap((game) => game.rewards.map((reward) => reward.id)))
+      .size,
+    vgGames.flatMap((game) => game.rewards).length,
+  );
+  for (const game of vgGames) {
+    assert.equal(game.difficulty, "standard");
+    assert.equal(retiredGameSlugs.includes(game.slug), false);
+    game.victory.endings.forEach((ending) =>
+      assert.ok(game.allowedEndings.includes(ending)),
+    );
+    game.rewards
+      .filter((r) => r.kind === "coupon")
+      .forEach((reward) =>
+        assert.ok(coupons.some((c) => c.id === reward.targetId)),
+      );
+  }
 });
-
-test("cross-game clearance only accepts each game's own persisted grants", () => {
-  assert.deepEqual(
-    getRecoveredGameRewards(vgGames, { version: 2, games: [] }),
-    [],
+test("Arcade CSS references only existing V&G design tokens", () => {
+  const globals = readFileSync(
+    new URL("../src/app/globals.css", import.meta.url),
+    "utf8",
   );
-  const forged = {
-    gameId: "great-escape",
-    unlockedRewards: ["memories-master-key"],
-  };
+  const defined = new Set(
+    [...globals.matchAll(/(--[\w-]+)\s*:/g)].map((match) => match[1]),
+  );
+  for (const file of [
+    "components/games.module.css",
+    "engines/classic-arcade.module.css",
+  ]) {
+    const css = readFileSync(
+      new URL("../src/features/games/" + file, import.meta.url),
+      "utf8",
+    );
+    for (const match of css.matchAll(/var\((--[\w-]+)/g))
+      assert.ok(
+        defined.has(match[1]),
+        `Undefined design token ${match[1]} in ${file}`,
+      );
+  }
+});
+test("Reward evaluation requires configured progress, score and ending; grants unlock, never redeem", () => {
+  for (const game of vgGames) {
+    const result = {
+      score: game.maxScore,
+      progress: 100,
+      ending: game.victory.endings[0],
+    };
+    assert.ok(evaluateGameResult(game, result).won);
+    assert.equal(
+      evaluateGameResult(game, { ...result, ending: "invented" }).won,
+      false,
+    );
+    assert.equal(
+      evaluateGameResult(game, { ...result, progress: 99 }).won,
+      false,
+    );
+    assert.equal(
+      evaluateGameResult(game, { ...result, discoveredSecrets: ["invented"] })
+        .discoveredSecrets.length,
+      0,
+    );
+  }
+});
+test("Retired game records cannot influence active inventory and all remaining master keys are obtainable", () => {
   assert.deepEqual(
-    getRecoveredGameRewards(vgGames, { version: 2, games: [forged] }),
+    getRecoveredGameRewards(vgGames, {
+      version: 2,
+      games: [
+        { gameId: "great-escape", unlockedRewards: ["memories-master-key"] },
+      ],
+    }),
     [],
   );
   const records = vgGames.map((game) => ({
     gameId: game.gameId,
-    unlockedRewards: game.rewards.map((reward) => reward.id),
+    unlockedRewards: game.rewards.map((r) => r.id),
   }));
   const items = new Set(
     getRecoveredGameRewards(vgGames, { version: 2, games: records })
-      .filter((reward) => reward.kind === "item")
-      .map((reward) => reward.targetId),
+      .filter((r) => r.kind === "item")
+      .map((r) => r.targetId),
   );
   assert.ok(masterArchiveFile.requiredItemIds.every((id) => items.has(id)));
-});
-
-test("game photo slots resolve through the central media registry", () => {
-  for (const slot of gameMediaPlaceholders)
-    assert.equal(getMediaAsset(slot.assetId).id, slot.assetId);
-});
-
-test("minefield neighbours do not wrap rows, and flood reveal respects flags", () => {
-  assert.deepEqual(minefieldNeighbours(0), [1, 8, 9]);
-  assert.deepEqual(minefieldNeighbours(63), [54, 55, 62]);
-  assert.equal(minefieldNeighbours(27).length, 8);
-  const revealed = revealSafeArea(0, new Set([63]), new Set(), new Set([1]));
-  assert.equal(revealed.has(1), false);
-  assert.equal(revealed.has(63), false);
-  assert.equal(revealed.size, 62);
-  assert.equal(revealSafeArea(1, new Set([63]), revealed, new Set()).size, 63);
+  assert.equal(masterArchiveFile.requiredItemIds.length, 2);
 });

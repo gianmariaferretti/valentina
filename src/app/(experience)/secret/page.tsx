@@ -8,7 +8,7 @@ import {
   Tape,
 } from "@/components/design-system";
 import { PageIntro } from "@/components/ui/page-intro";
-import { gameSecretNotes, masterArchiveFile } from "@/data/game-secrets";
+import { masterArchiveFile } from "@/data/game-secrets";
 import { vgGames } from "@/data/games";
 import { loadChallengeState } from "@/features/challenges/repositories/get-challenge-state-repository";
 import { getRecoveredGameRewards } from "@/features/games/lib/game-domain";
@@ -84,9 +84,7 @@ export default async function SecretPage() {
                   variant="classified"
                 />
                 <h3 className="mt-5 font-display text-2xl">{reward.title}</h3>
-                <p className="mt-3 text-sm leading-7">
-                  {gameSecretNotes[reward.targetId] ?? reward.description}
-                </p>
+                <p className="mt-3 text-sm leading-7">{reward.description}</p>
               </PaperCard>
             ))}
           </div>
@@ -100,7 +98,7 @@ export default async function SecretPage() {
         <h2 className="mt-6 font-display text-3xl sm:text-5xl">
           {clearance
             ? masterArchiveFile.title
-            : "The final file needs three keys."}
+            : "The final file needs two keys."}
         </h2>
         {clearance ? (
           masterArchiveFile.paragraphs.map((paragraph) => (
@@ -110,8 +108,8 @@ export default async function SecretPage() {
           ))
         ) : (
           <p className="mt-5 max-w-xl text-sm leading-7">
-            The Great Escape, Break My Defences and 365 Memories each hold a
-            piece of the clearance. Bring all three back to this desk.
+            Break My Defences and 365 Memories each hold a piece of the
+            clearance. Bring both back to this desk.
           </p>
         )}
       </PaperCard>

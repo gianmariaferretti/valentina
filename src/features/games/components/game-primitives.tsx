@@ -1,124 +1,18 @@
 "use client";
-
-import {
-  ArrowDown,
-  ArrowLeft,
-  ArrowRight,
-  ArrowUp,
-  RotateCcw,
-  Trophy,
-  X,
-} from "lucide-react";
-import { useEffect, useId, useRef } from "react";
-
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
+import { useCallback, useEffect, useRef } from "react";
 import type { GameDirection } from "@/features/challenges/types";
-import type { GameRunResult } from "@/features/games/types";
 import { cn } from "@/lib/cn";
-
 import styles from "./games.module.css";
-
-export function GameHud({
-  details,
-  progress,
-  score,
-}: {
-  readonly details?: readonly { label: string; value: string | number }[];
-  readonly progress: number;
-  readonly score: number;
-}) {
-  return (
-    <div className={styles.gameHud}>
-      <dl>
-        <div>
-          <dt>Score</dt>
-          <dd>{score.toLocaleString("en-GB")}</dd>
-        </div>
-        {(details ?? []).map((detail) => (
-          <div key={detail.label}>
-            <dt>{detail.label}</dt>
-            <dd>{detail.value}</dd>
-          </div>
-        ))}
-      </dl>
-      <div className={styles.progressTrack}>
-        <span style={{ width: `${Math.max(0, Math.min(100, progress))}%` }} />
-      </div>
-    </div>
-  );
-}
-
 export function GamePausedOverlay() {
   return (
     <div className={styles.pauseOverlay} role="status">
-      <span>File temporarily sealed</span>
       <strong>Paused</strong>
-      <p>Resume when the real world has stopped interrupting.</p>
+      <p>Resume to continue.</p>
     </div>
   );
 }
-
-export function GameOutcome({
-  result,
-  onRestart,
-  successTitle,
-  failureTitle,
-  successCopy,
-  failureCopy,
-}: {
-  readonly result: GameRunResult;
-  readonly onRestart: () => void;
-  readonly successTitle: string;
-  readonly failureTitle: string;
-  readonly successCopy: string;
-  readonly failureCopy: string;
-}) {
-  const won = result.progress >= 100;
-  const titleId = useId();
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  useEffect(() => {
-    headingRef.current?.focus({ preventScroll: true });
-    headingRef.current?.scrollIntoView({
-      block: "center",
-      behavior: "instant",
-    });
-  }, []);
-
-  return (
-    <div
-      className={styles.outcomeOverlay}
-      data-outcome={won ? "won" : "lost"}
-      aria-labelledby={titleId}
-      role="region"
-    >
-      <div>
-        <span className={styles.outcomeMark}>
-          {won ? <Trophy aria-hidden="true" /> : <X aria-hidden="true" />}
-        </span>
-        <p>{won ? "Case closed" : "Case remains open"}</p>
-        <h2 id={titleId} ref={headingRef} tabIndex={-1}>
-          {won ? successTitle : failureTitle}
-        </h2>
-        <span>{won ? successCopy : failureCopy}</span>
-        <dl>
-          <div>
-            <dt>Score</dt>
-            <dd>{result.score.toLocaleString("en-GB")}</dd>
-          </div>
-          <div>
-            <dt>Ending</dt>
-            <dd>{result.ending.replaceAll("-", " ")}</dd>
-          </div>
-        </dl>
-        <button onClick={onRestart} type="button">
-          <RotateCcw aria-hidden="true" size={16} />
-          Replay case
-        </button>
-      </div>
-    </div>
-  );
-}
-
-const dPadControls = [
+const controls = [
   {
     direction: "up",
     label: "Move up",
@@ -144,7 +38,6 @@ const dPadControls = [
     className: styles.dPadRight,
   },
 ] as const;
-
 export function GameDPad({
   disabled,
   onDirection,
@@ -152,29 +45,52 @@ export function GameDPad({
   readonly disabled?: boolean;
   readonly onDirection: (direction: GameDirection) => void;
 }) {
+  const timer = useRef<number | null>(null);
+  const stop = useCallback(() => {
+    if (timer.current !== null) clearInterval(timer.current);
+    timer.current = null;
+  }, []);
+  useEffect(() => {
+    if (disabled) stop();
+    return stop;
+  }, [disabled, stop]);
   return (
-    <div aria-label="Directional controls" className={styles.dPad} role="group">
-      {dPadControls.map(({ direction, label, Icon, className }) => (
+    <div className={styles.dPad} role="group" aria-label="Directional controls">
+      {controls.map(({ direction, label, Icon, className }) => (
         <button
-          aria-label={label}
-          className={cn(styles.dPadButton, className)}
-          disabled={disabled}
           key={direction}
-          onClick={() => onDirection(direction)}
           type="button"
+          disabled={disabled}
+          className={cn(styles.dPadButton, className)}
+          aria-label={label}
+          onPointerDown={(event) => {
+            event.preventDefault();
+            stop();
+            event.currentTarget.setPointerCapture(event.pointerId);
+            onDirection(direction);
+            timer.current = window.setInterval(
+              () => onDirection(direction),
+              160,
+            );
+          }}
+          onPointerUp={stop}
+          onPointerCancel={stop}
+          onLostPointerCapture={stop}
+          onClick={(event) => {
+            if (event.detail === 0) onDirection(direction);
+          }}
         >
-          <Icon aria-hidden="true" size={20} />
+          <Icon size={20} aria-hidden="true" />
         </button>
       ))}
     </div>
   );
 }
-
 export function GameEngineLoading() {
   return (
     <div className={styles.engineLoading} role="status">
       <span aria-hidden="true" />
-      <p>Opening sealed game file…</p>
+      <p>Loading game…</p>
     </div>
   );
 }

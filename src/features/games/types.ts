@@ -6,13 +6,11 @@ export type GameRewardKind =
 export type GameRewardTrigger =
   "completion" | "victory" | "secret" | "collection";
 export type GameEngineKind =
-  | "great-escape"
-  | "find-gianmaria"
-  | "survive-relationship"
   | "break-defences"
-  | "build-year"
   | "relationship-minefield"
-  | "365-memories";
+  | "365-memories"
+  | "snake"
+  | "maze";
 
 export interface GameRewardDefinition {
   readonly id: string;
@@ -48,6 +46,7 @@ export interface VgGameDefinition {
   readonly instructions: readonly string[];
   readonly controls: readonly string[];
   readonly maxScore: number;
+  readonly metric?: "score" | "time";
   readonly victory: GameVictoryRule;
   readonly allowedEndings: readonly string[];
   readonly permittedSecrets?: readonly string[];
@@ -55,6 +54,10 @@ export interface VgGameDefinition {
 }
 
 export interface GameProgress {
+  readonly lastResult?: string | null;
+  readonly lastPlayedAt?: string | null;
+  readonly bestTimeMs?: number | null;
+  readonly fewestMoves?: number | null;
   readonly gameId: string;
   readonly bestScore: number;
   readonly latestScore: number;
@@ -77,11 +80,20 @@ export interface GameProgressState {
 }
 
 export interface GameRunResult {
+  readonly durationMs?: number;
+  readonly moves?: number;
+  readonly evidence?: GameEvidence;
   readonly score: number;
   readonly progress: number;
   readonly ending: string;
   readonly discoveredSecrets?: readonly string[];
-  readonly storyChoices?: readonly string[];
+}
+
+/** Deterministic input transcript. Rewards never accept a client's victory boolean. */
+export interface GameEvidence {
+  readonly seed: number;
+  readonly inputs: readonly number[];
+  readonly times?: readonly number[];
 }
 
 export interface GameRewardReceipt {
@@ -94,6 +106,8 @@ export interface GameRewardReceipt {
 }
 
 export interface GameEngineProps {
+  readonly seed: number;
+  readonly bestScore?: number;
   readonly difficulty: GameDifficulty;
   readonly paused: boolean;
   readonly reduceMotion: boolean;

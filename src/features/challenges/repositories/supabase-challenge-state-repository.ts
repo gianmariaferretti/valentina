@@ -1,11 +1,9 @@
 import "server-only";
 
 import type {
-  ChallengeResultInput,
   ChallengeStateRepository,
   GameRunFinishInput,
   GameRunStartInput,
-  SavedChallengeResult,
   SavedGameRun,
 } from "@/features/challenges/repositories/challenge-state-repository";
 import type {
@@ -25,7 +23,7 @@ export class SupabaseChallengeStateRepository implements ChallengeStateRepositor
     const { data, error } = await client
       .from("challenge_scores")
       .select(
-        "challenge_id, best_score, latest_score, attempts, started_at, completed_at, duration_ms, difficulty, progress, ending, wins, losses, unlocked_rewards, discovered_secrets",
+        "challenge_id, best_score, latest_score, attempts, started_at, completed_at, duration_ms, difficulty, progress, ending, wins, losses, unlocked_rewards, discovered_secrets, best_time_ms, fewest_moves, last_result, last_played_at",
       )
       .eq("user_id", userId);
 
@@ -37,47 +35,9 @@ export class SupabaseChallengeStateRepository implements ChallengeStateRepositor
     };
   }
 
-  async recordResult(
-    input: ChallengeResultInput,
-  ): Promise<SavedChallengeResult> {
-    const { client, userId } = getSupabaseServerContext();
-    const { data, error } = await client.rpc("record_challenge_result", {
-      p_user_id: userId,
-      p_challenge_id: input.challengeId,
-      p_score: input.score,
-      p_completed: input.completed,
-      p_reward_coupon_id: input.rewardCouponId,
-      p_recorded_at: input.recordedAt,
-    });
-
-    assertSupabaseResult("Unable to save challenge score.", error);
-    const saved = data?.[0];
-    if (!saved) throw new PersistenceError("Challenge score was not saved.");
-
-    return {
-      progress: {
-        gameId: saved.challenge_id,
-        bestScore: saved.best_score,
-        latestScore: input.score,
-        attempts: saved.attempts,
-        startedAt: null,
-        completedAt: saved.completed_at,
-        durationMs: 0,
-        difficulty: "daring",
-        progress: input.completed ? 100 : 0,
-        ending: input.completed ? "legacy-complete" : "legacy-failed",
-        wins: input.completed ? 1 : 0,
-        losses: input.completed ? 0 : 1,
-        unlockedRewards: [],
-        discoveredSecrets: [],
-      },
-      couponUnlocked: saved.coupon_unlocked,
-    };
-  }
-
   async beginRun(input: GameRunStartInput): Promise<ChallengeProgress> {
     const { client, userId } = getSupabaseServerContext();
-    const { data, error } = await client.rpc("begin_game_run", {
+    const { data, error } = await client.rpc("begin_arcade_run", {
       p_run_id: input.runId,
       p_user_id: userId,
       p_game_id: input.gameId,
@@ -88,17 +48,18 @@ export class SupabaseChallengeStateRepository implements ChallengeStateRepositor
     assertSupabaseResult("Unable to begin game run.", error);
     const saved = data?.[0];
     if (!saved) throw new PersistenceError("Game run was not started.");
-    return mapGameProgressFromFunction(saved);
+    return mapGameProgress(saved);
   }
 
   async finishRun(input: GameRunFinishInput): Promise<SavedGameRun> {
     const { client, userId } = getSupabaseServerContext();
-    const { data, error } = await client.rpc("finish_game_run", {
+    const { data, error } = await client.rpc("finish_arcade_run", {
       p_run_id: input.runId,
       p_user_id: userId,
       p_game_id: input.gameId,
       p_score: input.score,
       p_duration_ms: input.durationMs,
+      ...(input.moves !== undefined ? { p_moves: input.moves } : {}),
       p_difficulty: input.difficulty,
       p_progress: input.progress,
       p_ending: input.ending,
@@ -131,6 +92,10 @@ function normalizeDifficulty(value: string): GameDifficulty {
 function mapGameProgress(row: {
   challenge_id: string;
   best_score: number;
+  best_time_ms: number | null;
+  fewest_moves: number | null;
+  last_result: string | null;
+  last_played_at: string | null;
   latest_score: number;
   attempts: number;
   started_at: string | null;
@@ -147,6 +112,10 @@ function mapGameProgress(row: {
   return {
     gameId: row.challenge_id,
     bestScore: row.best_score,
+    bestTimeMs: row.best_time_ms,
+    fewestMoves: row.fewest_moves,
+    lastResult: row.last_result,
+    lastPlayedAt: row.last_played_at,
     latestScore: row.latest_score,
     attempts: row.attempts,
     startedAt: row.started_at,
@@ -165,6 +134,10 @@ function mapGameProgress(row: {
 function mapGameProgressFromFunction(row: {
   game_id: string;
   best_score: number;
+  best_time_ms: number | null;
+  fewest_moves: number | null;
+  last_result: string | null;
+  last_played_at: string | null;
   latest_score: number;
   attempts: number;
   started_at: string | null;
@@ -181,6 +154,10 @@ function mapGameProgressFromFunction(row: {
   return mapGameProgress({
     challenge_id: row.game_id,
     best_score: row.best_score,
+    best_time_ms: row.best_time_ms,
+    fewest_moves: row.fewest_moves,
+    last_result: row.last_result,
+    last_played_at: row.last_played_at,
     latest_score: row.latest_score,
     attempts: row.attempts,
     started_at: row.started_at,

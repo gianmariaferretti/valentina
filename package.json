@@ -6,10 +6,6 @@
     "node": ">=22.18.0"
   },
   "scripts": {
-    "prepare:novel": "node scripts/prepare-novel-engine.mjs",
-    "predev": "npm run prepare:novel",
-    "prebuild": "npm run prepare:novel",
-    "pretest:games": "npm run prepare:novel",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -18,10 +14,9 @@
     "test:games": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/*.test.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run build"
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test:games && npm run build"
   },
   "dependencies": {
-    "@monogatari/core": "2.6.0",
     "@supabase/supabase-js": "^2.117.3",
     "lucide-react": "^1.52.0",
     "maplibre-gl": "^6.13.0",
@@ -31,17 +26,11 @@
     "react-dom": "^19.3.0",
     "server-only": "^0.0.1"
   },
-  "overrides": {
-    "@monogatari/core": {
-      "esbuild": "^0.25.0"
-    }
-  },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.6.4",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "esbuild": "0.25.12",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.4.0",
     "prettier": "^3.9.9",

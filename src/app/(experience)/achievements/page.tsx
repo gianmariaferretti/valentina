@@ -27,7 +27,7 @@ export default async function AchievementsPage() {
       description="Milestones awarded for long-distance logistics, elite snack theft and other measurable relationship excellence."
       eyebrow="Progress, gamified unnecessarily"
       icon="achievements"
-      note="Achievements are granted once and archived across devices. Game badges and four visual-novel milestones are hidden inside V&G Games."
+      note="Achievements are granted once and archived across devices. Five game badges are earned inside the V&G Arcade."
       title="Badges for surviving us."
     >
       <section className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
