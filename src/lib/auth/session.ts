@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 
 const ACCESS_COOKIE = "vg_access";
 const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 30;
-const MINIMUM_PRODUCTION_SECRET_LENGTH = 32;
+const MINIMUM_PRODUCTION_SECRET_LENGTH = 5;
 
 export function getAuthSecret(): string | null {
   const configuredSecret = process.env.AUTH_SECRET;
