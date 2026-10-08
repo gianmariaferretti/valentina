@@ -54,7 +54,7 @@ function EnvelopeFace({
       <span aria-hidden="true" className="envelope__stamp">
         <small>YEAR</small>
         <strong>ONE</strong>
-        <i>04·10</i>
+        <i>31·10</i>
       </span>
       <span aria-hidden="true" className="envelope__postmark" />
       <span aria-hidden="true" className="envelope__seal">
