@@ -1,266 +1,280 @@
 "use client";
-
-import { Images, RotateCw } from "lucide-react";
+import {
+  Anchor,
+  Bike,
+  BookOpen,
+  Camera,
+  Coffee,
+  Compass,
+  Flower2,
+  Gift,
+  KeyRound,
+  Moon,
+  Mountain,
+  Music,
+  Plane,
+  Shell,
+  Sun,
+  TrainFront,
+  TreePine,
+  Umbrella,
+} from "lucide-react";
 import Image from "next/image";
-import { type KeyboardEvent, useCallback, useRef, useState } from "react";
-
-import { memoryPairDefinitions } from "@/data/game-content";
-import { gameMediaPlaceholders } from "@/data/game-media";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ARCADE } from "@/data/arcade-config";
+import { arcadeMemories } from "@/data/arcade-memories";
 import { getMediaAsset } from "@/data/media";
 import {
-  GameHud,
-  GameOutcome,
-  GamePausedOverlay,
-} from "@/features/games/components/game-primitives";
+  ArcadeResult,
+  ArcadeStats,
+} from "@/features/games/components/arcade-primitives";
 import { useGameSound } from "@/features/games/hooks/use-game-sound";
+import { formatGameTime } from "@/features/games/lib/arcade-random";
 import {
-  useGameCountdown,
-  useGameDelay,
-} from "@/features/games/hooks/use-game-clock";
+  createMemoryState,
+  flipMemory,
+  tickMemory,
+} from "@/features/games/lib/memory-domain";
 import type { GameEngineProps, GameRunResult } from "@/features/games/types";
-
-import styles from "../components/games.module.css";
-
-const shuffleOrder = [
-  5, 12, 1, 9, 14, 3, 7, 10, 0, 15, 6, 2, 11, 4, 13, 8,
-] as const;
-
-interface MemoryCard {
-  readonly cardId: string;
-  readonly pairId: string;
-  readonly label: string;
-  readonly stamp: string;
-  readonly src: string;
-}
-
-const mediaSlotsById = new Map(
-  gameMediaPlaceholders.map((slot) => [slot.id, slot]),
-);
-const unshuffledCards = memoryPairDefinitions.flatMap((pair) => {
-  const slot = mediaSlotsById.get(pair.mediaId);
-  if (!slot) return [];
-  const media = getMediaAsset(slot.assetId);
-  return [0, 1].map((copy) => ({
-    cardId: `${pair.id}-${copy}`,
-    pairId: pair.id,
-    label: pair.label,
-    stamp: pair.stamp,
-    src: media.src,
-  }));
-});
-const memoryCards = shuffleOrder.map((index) => unshuffledCards[index]);
-
-export function MemoriesGame({
-  difficulty,
-  paused,
-  reduceMotion,
-  soundEnabled,
-  onFinish,
-  onRestart,
-  onProgressChange,
-  onScoreChange,
-}: GameEngineProps) {
-  const cards = memoryCards;
-  const [flipped, setFlipped] = useState<readonly string[]>([]);
-  const [matchedPairs, setMatchedPairs] = useState<Set<string>>(new Set());
-  const [moves, setMoves] = useState(0);
-  const [score, setScore] = useState(0);
-  const [result, setResult] = useState<GameRunResult | null>(null);
-  const finishedRef = useRef(false);
-  const playSound = useGameSound(soundEnabled);
-
-  const finish = useCallback(
-    (nextResult: GameRunResult) => {
-      if (finishedRef.current) return;
-      finishedRef.current = true;
-      setResult(nextResult);
-      onScoreChange(nextResult.score);
-      onProgressChange(nextResult.progress);
-      playSound(nextResult.progress === 100 ? "victory" : "wrong");
-      onFinish(nextResult);
-    },
-    [onFinish, onProgressChange, onScoreChange, playSound],
-  );
-
-  const { secondsLeft } = useGameCountdown(
-    difficulty === "story" ? 150 : difficulty === "daring" ? 70 : 100,
-    !paused && !result && matchedPairs.size < memoryPairDefinitions.length,
-    () =>
-      finish({
-        score,
-        progress: Math.min(
-          99,
-          Math.round((matchedPairs.size / memoryPairDefinitions.length) * 100),
-        ),
-        ending: "archive-timed-out",
-      }),
-  );
-
-  useGameDelay(
-    !paused && !result && flipped.length === 2,
-    reduceMotion ? 160 : 720,
-    () => {
-      if (matchedPairs.size === memoryPairDefinitions.length) {
-        finish({
-          score: Math.min(1_600, score + secondsLeft * 5),
-          progress: 100,
-          ending: "archive-complete",
-        });
-        return;
-      }
-      setFlipped([]);
-    },
-  );
-
-  const selectCard = useCallback(
-    (card: MemoryCard) => {
-      if (
-        paused ||
-        result ||
-        flipped.length >= 2 ||
-        flipped.includes(card.cardId) ||
-        matchedPairs.has(card.pairId)
-      ) {
-        return;
-      }
-
-      playSound("move");
-      if (flipped.length === 0) {
-        setFlipped([card.cardId]);
-        return;
-      }
-
-      const firstCard = cards.find((item) => item.cardId === flipped[0]);
-      setFlipped([flipped[0], card.cardId]);
-      setMoves((value) => value + 1);
-      if (firstCard?.pairId === card.pairId) {
-        const nextPairs = new Set(matchedPairs).add(card.pairId);
-        const nextScore = score + 100;
-        const nextProgress = Math.round(
-          (nextPairs.size / memoryPairDefinitions.length) * 100,
-        );
-        setMatchedPairs(nextPairs);
-        setScore(nextScore);
-        onScoreChange(nextScore);
-        onProgressChange(nextProgress);
-        playSound("correct");
-      } else {
-        playSound("wrong");
-      }
-    },
-    [
-      cards,
-      flipped,
-      matchedPairs,
-      onProgressChange,
-      onScoreChange,
-      paused,
-      playSound,
-      result,
-      score,
-    ],
-  );
-
-  function handleCardKeyDown(
-    event: KeyboardEvent<HTMLButtonElement>,
-    index: number,
-  ) {
-    const columns = window.matchMedia("(min-width: 768px)").matches ? 8 : 4;
-    const offsets: Record<string, number | undefined> = {
-      ArrowLeft: -1,
-      ArrowRight: 1,
-      ArrowUp: -columns,
-      ArrowDown: columns,
+import styles from "./classic-arcade.module.css";
+const symbols = [
+  Plane,
+  TrainFront,
+  Camera,
+  Compass,
+  KeyRound,
+  Coffee,
+  Moon,
+  Sun,
+  Mountain,
+  Umbrella,
+  Music,
+  BookOpen,
+  Anchor,
+  Flower2,
+  Shell,
+  Bike,
+  TreePine,
+  Gift,
+];
+export function MemoriesGame(props: GameEngineProps) {
+  const { onFinish, seed, paused } = props;
+  const [snapshot, setSnapshot] = useState(() => createMemoryState(seed)),
+    [result, setResult] = useState<GameRunResult | null>(null);
+  const model = useRef({
+    ...snapshot,
+    open: [...snapshot.open],
+    matched: new Set(snapshot.matched),
+  });
+  const transcript = useRef<number[]>([]),
+    times = useRef<number[]>([]),
+    finished = useRef(false),
+    boardRef = useRef<HTMLDivElement>(null);
+  const sound = useGameSound(props.soundEnabled);
+  const publish = useCallback(() => {
+    const state = model.current;
+    setSnapshot({
+      ...state,
+      open: [...state.open],
+      matched: new Set(state.matched),
+    });
+    if (finished.current || (state.status !== "WON" && state.status !== "LOST"))
+      return;
+    finished.current = true;
+    const next: GameRunResult = {
+      score: (state.matched.size / 2) * 100,
+      progress:
+        state.status === "WON"
+          ? 100
+          : Math.min(99, Math.floor((state.matched.size / 36) * 100)),
+      ending: state.status === "WON" ? "archive-complete" : "archive-timed-out",
+      durationMs: state.elapsedMs,
+      moves: state.attempts,
+      evidence: {
+        seed: seed,
+        inputs: transcript.current,
+        times: times.current,
+      },
     };
-    const offset = offsets[event.key];
-    if (offset === undefined) return;
-    const next = index + offset;
-    if (next < 0 || next >= cards.length) return;
-    event.preventDefault();
-    const buttons =
-      event.currentTarget.parentElement?.querySelectorAll("button");
-    buttons?.[next]?.focus();
-  }
-
+    setResult(next);
+    onFinish(next);
+    sound(state.status === "WON" ? "victory" : "wrong");
+  }, [onFinish, seed, sound]);
+  useEffect(() => {
+    if (
+      snapshot.status === "READY" ||
+      snapshot.status === "WON" ||
+      snapshot.status === "LOST"
+    )
+      return;
+    const tick = () => {
+      tickMemory(model.current, Math.floor(performance.now()));
+      publish();
+    };
+    const timer = window.setInterval(tick, 100);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", tick);
+    };
+  }, [publish, snapshot.status]);
+  const select = useCallback(
+    (index: number) => {
+      const state = model.current;
+      if (paused || finished.current) return;
+      const now = Math.floor(performance.now()),
+        before = state.matched.size;
+      if (flipMemory(state, index, now)) {
+        transcript.current.push(index);
+        times.current.push(now - state.startedAt!);
+        sound(state.matched.size > before ? "correct" : "move");
+      }
+      publish();
+    },
+    [paused, publish, sound],
+  );
   return (
-    <section className={styles.memoriesGame} aria-label="365 Memories game">
-      <GameHud
-        details={[
-          { label: "Pairs", value: `${matchedPairs.size}/8` },
-          { label: "Moves", value: moves },
-          { label: "Time", value: `${secondsLeft}s` },
+    <section className={styles.stage}>
+      <ArcadeStats
+        urgent={snapshot.elapsedMs > 55_000}
+        items={[
+          {
+            label: "Time remaining",
+            value: formatGameTime(ARCADE.memory.limitMs - snapshot.elapsedMs),
+          },
+          { label: "Pairs", value: `${snapshot.matched.size / 2} / 18` },
+          { label: "Attempts", value: snapshot.attempts },
         ]}
-        progress={result?.progress ?? (matchedPairs.size / 8) * 100}
-        score={result?.score ?? score}
       />
-      <div className={styles.memoryTable}>
-        <header>
-          <Images aria-hidden="true" />
-          <div>
-            <p>Year One · contact sheet 365</p>
-            <h2>Match the archive fragments.</h2>
-          </div>
-        </header>
-        <div
-          className={styles.memoryGrid}
-          role="group"
-          aria-label="Memory cards"
-        >
-          {cards.map((card, index) => {
-            const visible =
-              flipped.includes(card.cardId) || matchedPairs.has(card.pairId);
-            return (
-              <button
-                aria-label={
-                  visible
-                    ? `${card.label}, ${matchedPairs.has(card.pairId) ? "matched" : "revealed"} memory card`
-                    : `Sealed memory card ${index + 1}`
-                }
-                aria-pressed={visible}
-                data-matched={matchedPairs.has(card.pairId)}
-                data-visible={visible}
-                disabled={
-                  paused || Boolean(result) || (!visible && flipped.length >= 2)
-                }
-                key={card.cardId}
-                onClick={() => selectCard(card)}
-                onKeyDown={(event) => handleCardKeyDown(event, index)}
-                type="button"
-              >
-                <span aria-hidden="true" className={styles.memoryCardBack}>
-                  <strong>V&amp;G</strong>
-                  <RotateCw aria-hidden="true" />
-                  <i>{String(index + 1).padStart(2, "0")}</i>
+      <div
+        className={styles.memoryGrid}
+        ref={boardRef}
+        onKeyDown={(event) => {
+          const offsets: Record<string, number> = {
+            ArrowRight: 1,
+            ArrowLeft: -1,
+            ArrowDown: 6,
+            ArrowUp: -6,
+          };
+          const offset = offsets[event.key],
+            buttons = [
+              ...boardRef.current!.querySelectorAll<HTMLButtonElement>(
+                "button[data-card]",
+              ),
+            ];
+          if (
+            offset === undefined ||
+            !(event.target instanceof HTMLButtonElement)
+          )
+            return;
+          event.preventDefault();
+          const index = buttons.indexOf(event.target);
+          let next = index + offset;
+          while (next >= 0 && next < 36 && buttons[next].disabled)
+            next += offset;
+          if (next >= 0 && next < 36)
+            buttons[next].focus({ preventScroll: true });
+        }}
+      >
+        {snapshot.deck.map((card, index) => {
+          const memoryIndex = arcadeMemories.findIndex(
+              (memory) => memory.id === card.memoryId,
+            ),
+            memory = arcadeMemories[memoryIndex],
+            Icon = symbols[memoryIndex];
+          const matched = snapshot.matched.has(index),
+            open = matched || snapshot.open.includes(index),
+            mediaId =
+              card.variant === 1
+                ? (memory.matchingImage ?? memory.image)
+                : memory.image;
+          const media = open && mediaId ? getMediaAsset(mediaId) : null;
+          return (
+            <button
+              key={card.instanceId}
+              className={styles.memoryCard}
+              type="button"
+              data-card={index}
+              data-open={open}
+              data-matched={matched}
+              disabled={paused || matched || Boolean(result)}
+              aria-label={
+                open
+                  ? `${memory.title}${matched ? ", matched" : ", face up"}`
+                  : `Face-down card ${index + 1}`
+              }
+              onClick={() => select(index)}
+            >
+              <span className={styles.cardInner} aria-hidden="true">
+                <span className={styles.cardBack}>V+G</span>
+                <span className={styles.cardFace}>
+                  {open ? (
+                    <>
+                      {media ? (
+                        <Image
+                          src={media.src}
+                          alt=""
+                          fill
+                          sizes="(max-width: 600px) 64px, 96px"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <Icon />
+                      )}
+                      <span>{memory.title}</span>
+                    </>
+                  ) : null}
                 </span>
-                <span aria-hidden="true" className={styles.memoryCardFace}>
-                  <span>
-                    <Image
-                      alt=""
-                      fill
-                      sizes="(max-width: 719px) 28vw, 10rem"
-                      src={card.src}
-                    />
-                  </span>
-                  <strong>{card.label}</strong>
-                  <i>{card.stamp}</i>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {paused ? <GamePausedOverlay /> : null}
+              </span>
+            </button>
+          );
+        })}
         {result ? (
-          <GameOutcome
-            failureCopy="The index resealed itself. The memories are safe; your score is less fortunate."
-            failureTitle="Archive timed out."
-            onRestart={onRestart}
+          <ArcadeResult
             result={result}
-            successCopy="Eight pairs restored. The final index is complete and deeply over-organised."
-            successTitle="365 remembered."
+            title={
+              snapshot.status === "WON"
+                ? "ALL MEMORIES MATCHED"
+                : "TIME EXPIRED"
+            }
+            onRestart={props.onRestart}
+            details={
+              snapshot.status === "WON"
+                ? [
+                    {
+                      label: "Completion",
+                      value: `${(snapshot.elapsedMs / 1000).toFixed(1)}s`,
+                    },
+                    {
+                      label: "Time left",
+                      value: formatGameTime(
+                        ARCADE.memory.limitMs - snapshot.elapsedMs,
+                      ),
+                    },
+                    { label: "Attempts", value: snapshot.attempts },
+                    {
+                      label: "Accuracy",
+                      value: `${Math.round((18 / snapshot.attempts) * 100)}%`,
+                    },
+                  ]
+                : [
+                    {
+                      label: "Pairs",
+                      value: `${snapshot.matched.size / 2} / 18`,
+                    },
+                    { label: "Attempts", value: snapshot.attempts },
+                    { label: "Elapsed", value: "75s" },
+                  ]
+            }
           />
         ) : null}
       </div>
+      <p className={styles.caption}>
+        {snapshot.status === "READY"
+          ? "First flip starts the clock."
+          : "The clock keeps running in other tabs."}{" "}
+        No preview. No extra time.
+      </p>
     </section>
   );
 }

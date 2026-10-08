@@ -1,102 +1,33 @@
-import { Gamepad2, Timer } from "lucide-react";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-
-import { RouteScaffold } from "@/components/ui/route-scaffold";
-import {
-  challenges,
-  getArcadeChallenge,
-  getChallenge,
-} from "@/data/challenges";
-import { getVgGame, vgGames } from "@/data/games";
-import { ChallengeArcade } from "@/features/challenges/components/challenge-arcade";
+import { notFound, redirect } from "next/navigation";
+import { getVgGame, retiredGameSlugs, vgGames } from "@/data/games";
 import { getChallengeProgress } from "@/features/challenges/lib/challenge-domain";
 import { loadChallengeState } from "@/features/challenges/repositories/get-challenge-state-repository";
 import { GameExperience } from "@/features/games/components/game-experience";
-
-interface ChallengePageProps {
-  params: Promise<{ game: string }>;
+interface Props {
+  readonly params: Promise<{ game: string }>;
 }
-
 export function generateStaticParams() {
-  return [...vgGames, ...challenges].map((challenge) => ({
-    game: challenge.slug,
-  }));
+  return vgGames.map((game) => ({ game: game.slug }));
 }
-
-export async function generateMetadata({
-  params,
-}: ChallengePageProps): Promise<Metadata> {
-  const game = (await params).game;
-  const challenge = getVgGame(game) ?? getChallenge(game);
-  return { title: challenge?.title ?? "Game" };
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  return { title: getVgGame((await params).game)?.title ?? "Arcade" };
 }
-
-export default async function ChallengePage({ params }: ChallengePageProps) {
-  const game = (await params).game;
-  const vgGame = getVgGame(game);
-  if (vgGame) {
-    const state = await loadChallengeState();
-    return (
-      <GameExperience
-        game={vgGame}
-        key={vgGame.gameId}
-        initialProgress={getChallengeProgress(
-          vgGame.gameId,
-          state,
-          vgGame.difficulty,
-        )}
-      />
-    );
-  }
-
-  const challenge = getChallenge(game);
-  if (!challenge) notFound();
-
-  const arcadeChallenge = getArcadeChallenge(game);
-  if (arcadeChallenge) {
-    const state = await loadChallengeState();
-    return (
-      <ChallengeArcade
-        challenge={arcadeChallenge}
-        initialProgress={getChallengeProgress(arcadeChallenge.slug, state)}
-      />
-    );
-  }
-
+export default async function ChallengePage({ params }: Props) {
+  const slug = (await params).game;
+  if ((retiredGameSlugs as readonly string[]).includes(slug))
+    redirect("/challenges");
+  const game = getVgGame(slug);
+  if (!game) notFound();
   return (
-    <RouteScaffold
-      description={challenge.description}
-      eyebrow={`Challenge · ${challenge.format}`}
-      icon="challenges"
-      note="Question sets, scoring rules, animation states and persistence will live in this feature boundary."
-      title={challenge.title}
-    >
-      <section className="mt-8 grid min-h-96 overflow-hidden rounded-[2rem] border border-[var(--line)] bg-white/30 sm:mt-12 lg:grid-cols-[1fr_18rem]">
-        <div className="grid place-items-center p-8 text-center">
-          <div className="max-w-lg">
-            <span className="mx-auto grid size-16 place-items-center rounded-full bg-[var(--ink)] text-[var(--paper)]">
-              <Gamepad2 aria-hidden="true" size={24} />
-            </span>
-            <h2 className="mt-6 font-display text-4xl tracking-[-0.035em]">
-              Game engine reserved.
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-              The route, typed challenge registry and progress contract are in
-              place. Final questions are intentionally not invented here.
-            </p>
-          </div>
-        </div>
-        <aside className="flex flex-col justify-between border-t border-[var(--line)] bg-[var(--paper-deep)] p-7 lg:border-t-0 lg:border-l">
-          <Timer aria-hidden="true" size={20} />
-          <div>
-            <p className="text-[0.6rem] tracking-[0.15em] text-[var(--muted)] uppercase">
-              Status
-            </p>
-            <p className="mt-2 font-display text-3xl">Content pending</p>
-          </div>
-        </aside>
-      </section>
-    </RouteScaffold>
+    <GameExperience
+      game={game}
+      key={game.gameId}
+      initialProgress={getChallengeProgress(
+        game.gameId,
+        await loadChallengeState(),
+        game.difficulty,
+      )}
+    />
   );
 }

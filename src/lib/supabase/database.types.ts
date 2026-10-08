@@ -46,6 +46,7 @@ export type Database = {
           active_run_id: string | null;
           attempts: number;
           best_score: number;
+          best_time_ms: number | null;
           challenge_id: string;
           completed_at: string | null;
           created_at: string;
@@ -53,7 +54,10 @@ export type Database = {
           discovered_secrets: string[];
           duration_ms: number;
           ending: string | null;
+          fewest_moves: number | null;
           last_finished_run_id: string | null;
+          last_played_at: string | null;
+          last_result: string | null;
           latest_score: number;
           losses: number;
           progress: number;
@@ -67,6 +71,7 @@ export type Database = {
           active_run_id?: string | null;
           attempts?: number;
           best_score?: number;
+          best_time_ms?: number | null;
           challenge_id: string;
           completed_at?: string | null;
           created_at?: string;
@@ -74,7 +79,10 @@ export type Database = {
           discovered_secrets?: string[];
           duration_ms?: number;
           ending?: string | null;
+          fewest_moves?: number | null;
           last_finished_run_id?: string | null;
+          last_played_at?: string | null;
+          last_result?: string | null;
           latest_score?: number;
           losses?: number;
           progress?: number;
@@ -88,6 +96,7 @@ export type Database = {
           active_run_id?: string | null;
           attempts?: number;
           best_score?: number;
+          best_time_ms?: number | null;
           challenge_id?: string;
           completed_at?: string | null;
           created_at?: string;
@@ -95,7 +104,10 @@ export type Database = {
           discovered_secrets?: string[];
           duration_ms?: number;
           ending?: string | null;
+          fewest_moves?: number | null;
           last_finished_run_id?: string | null;
+          last_played_at?: string | null;
+          last_result?: string | null;
           latest_score?: number;
           losses?: number;
           progress?: number;
@@ -256,6 +268,46 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      begin_arcade_run: {
+        Args: {
+          p_difficulty: string;
+          p_game_id: string;
+          p_run_id: string;
+          p_started_at: string;
+          p_user_id: string;
+        };
+        Returns: {
+          active_run_id: string | null;
+          attempts: number;
+          best_score: number;
+          best_time_ms: number | null;
+          challenge_id: string;
+          completed_at: string | null;
+          created_at: string;
+          difficulty: string;
+          discovered_secrets: string[];
+          duration_ms: number;
+          ending: string | null;
+          fewest_moves: number | null;
+          last_finished_run_id: string | null;
+          last_played_at: string | null;
+          last_result: string | null;
+          latest_score: number;
+          losses: number;
+          progress: number;
+          started_at: string | null;
+          unlocked_rewards: string[];
+          updated_at: string;
+          user_id: string;
+          wins: number;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "challenge_scores";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
       begin_game_run: {
         Args: {
           p_difficulty: string;
@@ -296,6 +348,44 @@ export type Database = {
           achievement_was_new: boolean;
           coupon_was_new: boolean;
           reward_was_new: boolean;
+        }[];
+      };
+      finish_arcade_run: {
+        Args: {
+          p_difficulty: string;
+          p_discovered_secrets: string[];
+          p_duration_ms: number;
+          p_ending: string;
+          p_finished_at: string;
+          p_game_id: string;
+          p_moves?: number;
+          p_progress: number;
+          p_reward_grants: Json;
+          p_run_id: string;
+          p_score: number;
+          p_user_id: string;
+          p_won: boolean;
+        };
+        Returns: {
+          attempts: number;
+          best_score: number;
+          best_time_ms: number;
+          completed_at: string;
+          difficulty: string;
+          discovered_secrets: string[];
+          duration_ms: number;
+          ending: string;
+          fewest_moves: number;
+          game_id: string;
+          last_played_at: string;
+          last_result: string;
+          latest_score: number;
+          losses: number;
+          newly_granted_reward_ids: string[];
+          progress: number;
+          started_at: string;
+          unlocked_rewards: string[];
+          wins: number;
         }[];
       };
       finish_game_run: {

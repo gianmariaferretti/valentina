@@ -1,281 +1,283 @@
 "use client";
-
-import { Flag, HeartCrack, ShieldCheck } from "lucide-react";
+import { Flag, CircleX } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ARCADE } from "@/data/arcade-config";
 import {
-  type KeyboardEvent,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-
-import {
-  GameHud,
-  GameOutcome,
-  GamePausedOverlay,
-} from "@/features/games/components/game-primitives";
+  ArcadeResult,
+  ArcadeStats,
+} from "@/features/games/components/arcade-primitives";
 import { useGameSound } from "@/features/games/hooks/use-game-sound";
+import { formatGameTime } from "@/features/games/lib/arcade-random";
 import {
-  MINEFIELD_SIZE as SIZE,
-  minefieldNeighbours as neighbours,
-  revealSafeArea,
-} from "@/features/games/lib/minefield-domain";
+  actMine,
+  createMineState,
+  generateMineBoard,
+  MINE_CELLS,
+  tickMineClock,
+} from "@/features/games/lib/classic-minefield";
 import type { GameEngineProps, GameRunResult } from "@/features/games/types";
-
-import styles from "../components/games.module.css";
-
-const seededMineOrder = [10, 45, 27, 52, 6, 38, 59, 17, 33, 2, 49, 21] as const;
-
-export function RelationshipMinefieldGame({
-  difficulty,
-  paused,
-  soundEnabled,
-  onFinish,
-  onRestart,
-  onProgressChange,
-  onScoreChange,
-}: GameEngineProps) {
-  const mineCount =
-    difficulty === "story" ? 8 : difficulty === "daring" ? 12 : 10;
-  const mines = useMemo(
-    () => new Set<number>(seededMineOrder.slice(0, mineCount)),
-    [mineCount],
-  );
-  const totalSafe = SIZE * SIZE - mines.size;
-  const [mode, setMode] = useState<"reveal" | "flag">("reveal");
-  const [revealed, setRevealed] = useState<Set<number>>(new Set());
-  const [flags, setFlags] = useState<Set<number>>(new Set());
-  const [exploded, setExploded] = useState<Set<number>>(new Set());
-  const [lives, setLives] = useState(3);
-  const [score, setScore] = useState(0);
-  const [result, setResult] = useState<GameRunResult | null>(null);
-  const finishedRef = useRef(false);
-  const playSound = useGameSound(soundEnabled);
-
-  const finish = useCallback(
-    (nextResult: GameRunResult) => {
-      if (finishedRef.current) return;
-      finishedRef.current = true;
-      setResult(nextResult);
-      onScoreChange(nextResult.score);
-      onProgressChange(nextResult.progress);
-      playSound(nextResult.progress === 100 ? "victory" : "wrong");
-      onFinish(nextResult);
-    },
-    [onFinish, onProgressChange, onScoreChange, playSound],
-  );
-
-  const toggleFlag = useCallback(
-    (index: number) => {
-      if (paused || result || revealed.has(index) || exploded.has(index))
-        return;
-      const next = new Set(flags);
-      if (next.has(index)) next.delete(index);
-      else next.add(index);
-      setFlags(next);
-      playSound("move");
-    },
-    [exploded, flags, paused, playSound, result, revealed],
-  );
-
-  const revealCell = useCallback(
-    (index: number) => {
-      if (
-        paused ||
-        result ||
-        flags.has(index) ||
-        revealed.has(index) ||
-        exploded.has(index)
-      )
-        return;
-      if (mines.has(index)) {
-        const nextLives = lives - 1;
-        setLives(nextLives);
-        setExploded((current) => new Set(current).add(index));
-        playSound("wrong");
-        if (nextLives <= 0) {
-          const progress = Math.min(
-            99,
-            Math.round((revealed.size / totalSafe) * 100),
-          );
-          finish({ score, progress, ending: "avoidable-argument" });
-        }
-        return;
-      }
-
-      const nextRevealed = revealSafeArea(index, mines, revealed, flags);
-      const newlyRevealed = nextRevealed.size - revealed.size;
-      const nextScore = score + newlyRevealed * 10;
-      const nextProgress = Math.round((nextRevealed.size / totalSafe) * 100);
-      setRevealed(nextRevealed);
-      setScore(nextScore);
-      onScoreChange(nextScore);
-      onProgressChange(nextProgress);
-      playSound("collect");
-      if (nextRevealed.size === totalSafe) {
-        finish({
-          score: nextScore,
-          progress: 100,
-          ending: "field-cleared",
-          discoveredSecrets: lives === 3 ? ["minefield-perfect-route"] : [],
-        });
-      }
-    },
-    [
-      finish,
-      exploded,
-      flags,
-      lives,
-      mines,
-      onProgressChange,
-      onScoreChange,
-      paused,
-      playSound,
-      result,
-      revealed,
-      score,
-      totalSafe,
-    ],
-  );
-
-  function activateCell(index: number) {
-    if (mode === "flag") toggleFlag(index);
-    else revealCell(index);
-  }
-
-  function handleCellKeyDown(
-    event: KeyboardEvent<HTMLButtonElement>,
-    index: number,
-  ) {
-    const offsets: Record<string, number | undefined> = {
-      ArrowLeft: -1,
-      ArrowRight: 1,
-      ArrowUp: -SIZE,
-      ArrowDown: SIZE,
-    };
-    const offset = offsets[event.key];
-    if (offset === undefined) return;
-    const nextIndex = index + offset;
-    if (
-      nextIndex < 0 ||
-      nextIndex >= SIZE * SIZE ||
-      (event.key === "ArrowLeft" && index % SIZE === 0) ||
-      (event.key === "ArrowRight" && index % SIZE === SIZE - 1)
-    ) {
+import styles from "./classic-arcade.module.css";
+export function RelationshipMinefieldGame(props: GameEngineProps) {
+  const { onFinish, seed, paused } = props;
+  const [snapshot, setSnapshot] = useState(createMineState),
+    [flagMode, setFlagMode] = useState(false),
+    [fit, setFit] = useState(false),
+    [generating, setGenerating] = useState(false),
+    [result, setResult] = useState<GameRunResult | null>(null);
+  const model = useRef({
+    ...snapshot,
+    revealed: new Set(snapshot.revealed),
+    flags: new Set(snapshot.flags),
+  });
+  const grid = useRef<HTMLDivElement>(null),
+    firstAt = useRef<number | null>(null),
+    finished = useRef(false),
+    transcript = useRef<number[]>([]);
+  const press = useRef<{
+      timer: number;
+      x: number;
+      y: number;
+      fired: boolean;
+    } | null>(null),
+    generationTimer = useRef<number | null>(null);
+  const sound = useGameSound(props.soundEnabled);
+  const publish = useCallback(() => {
+    const state = model.current;
+    setSnapshot({
+      ...state,
+      revealed: new Set(state.revealed),
+      flags: new Set(state.flags),
+    });
+    if (finished.current || (state.status !== "won" && state.status !== "lost"))
       return;
-    }
-    event.preventDefault();
-    const buttons =
-      event.currentTarget.parentElement?.querySelectorAll("button");
-    buttons?.[nextIndex]?.focus();
-  }
-
+    finished.current = true;
+    const safe = state.revealed.size - (state.detonated !== null ? 1 : 0);
+    const next: GameRunResult = {
+      score: safe,
+      progress:
+        state.status === "won"
+          ? 100
+          : Math.min(99, Math.floor((safe / 201) * 100)),
+      ending: state.status === "won" ? "field-cleared" : "mine-detonated",
+      durationMs: state.elapsedMs,
+      evidence: { seed: seed, inputs: transcript.current },
+    };
+    setResult(next);
+    onFinish(next);
+    sound(state.status === "won" ? "victory" : "wrong");
+  }, [onFinish, seed, sound]);
+  useEffect(() => {
+    if (snapshot.status !== "playing") return;
+    const timer = window.setInterval(() => {
+      const state = model.current;
+      if (state.status === "playing" && firstAt.current !== null) {
+        tickMineClock(state, firstAt.current, performance.now());
+        publish();
+      }
+    }, 250);
+    return () => clearInterval(timer);
+  }, [publish, snapshot.status]);
+  useEffect(
+    () => () => {
+      if (press.current) clearTimeout(press.current.timer);
+      if (generationTimer.current !== null)
+        clearTimeout(generationTimer.current);
+    },
+    [],
+  );
+  const action = useCallback(
+    (index: number, kind: number) => {
+      const state = model.current;
+      if (paused || finished.current || generating) return;
+      if (!state.board && kind !== 0) return;
+      if (!state.board) {
+        setGenerating(true);
+        generationTimer.current = window.setTimeout(() => {
+          state.board = generateMineBoard(seed, index);
+          state.status = "playing";
+          firstAt.current = performance.now();
+          transcript.current.push(index * 3);
+          actMine(state, index, 0);
+          setGenerating(false);
+          publish();
+        }, 0);
+        return;
+      }
+      tickMineClock(state, firstAt.current!, performance.now());
+      transcript.current.push(index * 3 + kind);
+      actMine(state, index, kind);
+      sound(kind === 1 ? "move" : "collect");
+      publish();
+    },
+    [paused, generating, seed, sound, publish],
+  );
+  const cancelPress = () => {
+    if (press.current) clearTimeout(press.current.timer);
+  };
   return (
-    <section
-      className={styles.minefieldGame}
-      aria-label="Relationship Minefield game"
-    >
-      <GameHud
-        details={[
-          { label: "Safe", value: `${revealed.size}/${totalSafe}` },
-          { label: "Flags", value: `${flags.size}/${mines.size}` },
-          { label: "Lives", value: lives },
+    <section className={styles.stage}>
+      <ArcadeStats
+        items={[
+          { label: "Time", value: formatGameTime(snapshot.elapsedMs) },
+          { label: "Flags", value: snapshot.flags.size },
+          {
+            label: "Mines remaining",
+            value: ARCADE.mines.count - snapshot.flags.size,
+          },
         ]}
-        progress={result?.progress ?? (revealed.size / totalSafe) * 100}
-        score={score}
       />
-      <div className={styles.minefieldDocument}>
-        <header>
-          <div>
-            <ShieldCheck aria-hidden="true" />
-            <p>Relationship hazard assessment</p>
-          </div>
-          <div
-            className={styles.minefieldModes}
-            role="group"
-            aria-label="Cell action"
-          >
-            <button
-              aria-pressed={mode === "reveal"}
-              onClick={() => setMode("reveal")}
-              type="button"
-            >
-              Reveal
-            </button>
-            <button
-              aria-pressed={mode === "flag"}
-              onClick={() => setMode("flag")}
-              type="button"
-            >
-              Flag
-            </button>
-          </div>
-        </header>
+      <div className={styles.canvasWrap}>
         <div
-          className={styles.minefieldGrid}
-          role="group"
-          aria-label="8 by 8 minefield"
+          className={styles.mineViewport}
+          aria-label="Minefield; pan inside the board to explore magnified cells"
         >
-          {Array.from({ length: SIZE * SIZE }, (_, index) => {
-            const isRevealed = revealed.has(index);
-            const isMine = mines.has(index);
-            const isExploded = exploded.has(index);
-            const adjacentMines = neighbours(index).filter((item) =>
-              mines.has(item),
-            ).length;
-            const isFlagged = flags.has(index);
-            return (
-              <button
-                aria-label={
-                  isExploded
-                    ? "Triggered red flag"
-                    : isRevealed
-                      ? adjacentMines > 0
-                        ? `${adjacentMines} adjacent red flags`
-                        : "Clear square"
-                      : isFlagged
-                        ? "Flagged square"
-                        : `Hidden square ${index + 1}`
-                }
-                data-exploded={isExploded}
-                data-revealed={isRevealed}
-                disabled={paused || Boolean(result)}
-                key={index}
-                onClick={() => activateCell(index)}
-                onContextMenu={(event) => {
-                  event.preventDefault();
-                  toggleFlag(index);
-                }}
-                onKeyDown={(event) => handleCellKeyDown(event, index)}
-                type="button"
-              >
-                {isExploded && isMine ? (
-                  <HeartCrack aria-hidden="true" />
-                ) : isFlagged ? (
-                  <Flag aria-hidden="true" fill="currentColor" />
-                ) : isRevealed && adjacentMines > 0 ? (
-                  adjacentMines
-                ) : null}
-              </button>
-            );
-          })}
+          <div
+            className={styles.mineGrid}
+            data-fit={fit}
+            ref={grid}
+            role="group"
+            aria-label="16 by 16 minefield"
+            onKeyDown={(event) => {
+              const cell =
+                event.target instanceof HTMLButtonElement
+                  ? Number(event.target.dataset.cell)
+                  : -1;
+              if (cell < 0) return;
+              const delta: Record<string, number> = {
+                ArrowUp: -16,
+                ArrowDown: 16,
+                ArrowLeft: -1,
+                ArrowRight: 1,
+              };
+              if (event.key in delta) {
+                event.preventDefault();
+                const next = Math.max(
+                  0,
+                  Math.min(255, cell + delta[event.key]),
+                );
+                grid
+                  .current!.querySelector<HTMLButtonElement>(
+                    `[data-cell="${next}"]`,
+                  )
+                  ?.focus();
+              }
+              if (event.key.toLowerCase() === "f") {
+                event.preventDefault();
+                action(cell, 1);
+              }
+            }}
+          >
+            {Array.from({ length: MINE_CELLS }, (_, index) => {
+              const revealed = snapshot.revealed.has(index),
+                flagged = snapshot.flags.has(index),
+                mine = snapshot.detonated === index,
+                count = snapshot.board?.counts[index] ?? 0;
+              return (
+                <button
+                  key={index}
+                  type="button"
+                  className={styles.mineCell}
+                  data-cell={index}
+                  data-revealed={revealed}
+                  data-count={revealed ? count : undefined}
+                  data-mine={mine}
+                  disabled={Boolean(result) || paused || generating}
+                  aria-label={`Row ${Math.floor(index / 16) + 1}, column ${(index % 16) + 1}: ${mine ? "detonated mine" : revealed ? (count === 0 ? "empty" : `${count} adjacent mines`) : flagged ? "flagged" : "covered"}`}
+                  onClick={() => {
+                    if (press.current?.fired) {
+                      press.current = null;
+                      return;
+                    }
+                    action(index, flagMode ? 1 : revealed ? 2 : 0);
+                  }}
+                  onContextMenu={(event) => {
+                    event.preventDefault();
+                    if (press.current?.fired) return;
+                    action(index, 1);
+                  }}
+                  onPointerDown={(event) => {
+                    if (event.pointerType !== "touch" || result || generating)
+                      return;
+                    cancelPress();
+                    const info = {
+                      x: event.clientX,
+                      y: event.clientY,
+                      fired: false,
+                      timer: 0,
+                    };
+                    info.timer = window.setTimeout(() => {
+                      info.fired = true;
+                      action(index, 1);
+                    }, 450);
+                    press.current = info;
+                  }}
+                  onPointerMove={(event) => {
+                    if (
+                      press.current &&
+                      Math.hypot(
+                        event.clientX - press.current.x,
+                        event.clientY - press.current.y,
+                      ) > 8
+                    ) {
+                      cancelPress();
+                      press.current.fired = true;
+                    }
+                  }}
+                  onPointerUp={cancelPress}
+                  onPointerCancel={() => {
+                    cancelPress();
+                    press.current = null;
+                  }}
+                >
+                  {mine ? (
+                    <CircleX aria-hidden="true" />
+                  ) : flagged ? (
+                    <Flag aria-hidden="true" />
+                  ) : revealed && count > 0 ? (
+                    count
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
         </div>
-        <p className={styles.minefieldNote}>
-          Right-click to flag on desktop · use the mode switch on touch screens
-        </p>
-
-        {paused ? <GamePausedOverlay /> : null}
         {result ? (
-          <GameOutcome
-            failureCopy="Three avoidable arguments were located by stepping directly on them."
-            failureTitle="Hazard triggered."
-            onRestart={onRestart}
+          <ArcadeResult
             result={result}
-            successCopy="Every red flag was handled with logic, restraint and very little collateral damage."
-            successTitle="Field cleared."
+            title={snapshot.status === "won" ? "CASE SURVIVED" : "GAME OVER"}
+            onRestart={props.onRestart}
+            details={[
+              { label: "Time", value: formatGameTime(snapshot.elapsedMs) },
+              { label: "Safe cells", value: `${result.score} / 201` },
+            ]}
           />
         ) : null}
       </div>
+      <div className={styles.controls}>
+        <button
+          aria-pressed={flagMode}
+          type="button"
+          onClick={() => setFlagMode((value) => !value)}
+        >
+          Flag mode {flagMode ? "ON" : "OFF"}
+        </button>
+        <button
+          aria-pressed={fit}
+          type="button"
+          onClick={() => setFit((value) => !value)}
+        >
+          {fit ? "Magnify cells" : "Fit board"}
+        </button>
+      </div>
+      <p className={styles.caption} role="status">
+        {generating
+          ? "Checking a safe opening…"
+          : snapshot.board
+            ? snapshot.board.verified
+              ? "This board was verified solvable by logical deductions."
+              : "Safe opening verified. This board may require guesses."
+            : "First reveal starts the timer. Pan the board; long-press or use Flag mode."}
+      </p>
     </section>
   );
 }

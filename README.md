@@ -23,7 +23,7 @@ npm run dev
 
 Set `SITE_ACCESS_CODE`, a long random `AUTH_SECRET`, and the server-only Supabase variables documented below in `.env.local`. The access code has no client-side or development fallback: verification remains unavailable until `SITE_ACCESS_CODE` is configured. Production also requires `AUTH_SECRET` to sign sessions.
 
-Use Node 22.18+ (Node 24 recommended). `predev` and `prebuild` prepare the pinned Monogatari headless action runtime automatically; no CDN, Yarn, default Monogatari UI or localStorage is required.
+Use Node 22.18+ (Node 24 recommended). Games use native TypeScript, React and Canvas; no external game engine preparation is required.
 
 Run the complete local quality gate with:
 
@@ -59,8 +59,7 @@ The current route foundation includes:
 
 - `/`, `/access`, `/home`
 - `/coupons`, `/coupons/[id]`
-- `/challenges` and seven V&G game routes under `/challenges/[game]`
-- `/challenges/snake` and `/challenges/maze` remain available in the legacy annex
+- `/challenges` and five routes: `/challenges/break-defences`, `/challenges/relationship-minefield`, `/challenges/365-memories`, `/challenges/snake`, `/challenges/maze`
 - `/map`, `/map/[place]`
 - `/open-when`, `/open-when/[slug]`
 - `/awards`, `/quiz`, `/gallery`, `/achievements`, `/secret`, `/year-two`
@@ -123,57 +122,51 @@ Repository reads are request-memoized to avoid duplicate state queries when both
 
 4. Configure the same values in the deployment provider’s encrypted environment settings, then restart or redeploy the application. Visit `/coupons`, `/challenges`, `/quiz`, and `/open-when` from two devices to confirm the shared state.
 
-Database changes should be added as new migration files and deployed with `supabase db push`; do not edit the production schema manually after migration tracking begins. The additive `20261008152552_expand_vg_games_state.sql` migration extends the existing challenge table and adds atomic `begin_game_run` / `finish_game_run` functions; it does not create a competing game-state store. Both migrations are applied to the existing V&G project. Their filenames now match its migration history; the original migration SQL was verified identical before renaming. See the [Supabase migration workflow](https://supabase.com/docs/guides/deployment/database-migrations) and [server secret guidance](https://supabase.com/docs/guides/getting-started/api-keys).
+Database changes should be added as new migration files and deployed with `supabase db push`; do not edit the production schema manually after migration tracking begins. The additive `20261008152552_expand_vg_games_state.sql` migration extends the existing challenge table and adds atomic `begin_game_run` / `finish_game_run` functions; it does not create a competing game-state store. The original migrations are applied to the existing V&G project. Their filenames now match its migration history; the original migration SQL was verified identical before renaming. See the [Supabase migration workflow](https://supabase.com/docs/guides/deployment/database-migrations) and [server secret guidance](https://supabase.com/docs/guides/getting-started/api-keys).
 
-### V&G Games
+### V&G Arcade
 
-`/challenges` is a shared collection rather than seven embedded demos. The typed registry in `src/data/games.ts` owns each game’s identity, instructions, difficulty, victory rules, legal endings, score boundary and reward rules. Replaceable scenario/timeline/memory content lives separately in `src/data/game-content.ts`. Route files only resolve a definition and pass durable state into the shared `GameExperience` shell.
+The collection contains exactly five working games: **Break My Defences**, **Relationship Minefield**, **365 Memories**, **Snake**, and **Maze**, in that order. The hub counts only those definitions toward `X / 5`. Retired game URLs redirect to the hub; historical Supabase records and the original migrations remain intact.
 
-The seven playable files are:
+`src/data/games.ts` owns identity, instructions, legal outcomes and rewards. `src/data/arcade-config.ts` owns the single fixed mode per game. Pure TypeScript domains under `src/features/games/lib` and `break-defences` are independent of presentation and reused by the server verifier. `GameExperience` dynamically imports only the selected engine, registers an attempt, provides shared sound/restart/loading/persistence controls, and displays confirmed reward receipts.
 
-1. V&G: The Great Escape
-2. Operation: Find Gianmaria
-3. Survive 24 Hours with Gianmaria
-4. Break My Defences
-5. Build Our Year
-6. Relationship Minefield
-7. 365 Memories
+| Game                   | Rules and controls                                                                                                                                                                                                                                                                  | Durable reward                                                   |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Break My Defences      | One wall of 80 unlabeled bricks, 1/2/3-hit durability, narrow paddle, three lives; fixed 120Hz physics with bounded speed, angle-dependent rebounds and restrained particles. Mouse, arrows and touch drag. No boss, power-ups or assistance.                                       | Premium **An Evening, Your Way**; an unlock, never a redemption. |
+| Relationship Minefield | 16×16, 55 mines, safe first-click neighborhood; recursive reveal, flags and chording. Right-click, long press, flag toggle and keyboard. Generation tests at most 16 candidates using direct/subset logical inference; a clearly labeled safe-opening fallback may require guesses. | Configured Secret Coupon and achievement.                        |
+| 365 Memories           | 6×6, 18 pairs, 75 real elapsed seconds from the first flip. Fisher–Yates shuffle, finite input states, no preview/hints/pause. Hidden labels do not disclose identities.                                                                                                            | Configured coupon, achievement and archive key.                  |
+| Snake                  | Recovered in-house grid rules: food, growth, walls/self collision, no reverse turns, increasing fixed-step speed; keyboard, swipe and direction controls. 50 foods wins.                                                                                                            | 50-food achievement and **Coupon With No Rules**.                |
+| Maze                   | Recovered procedural DFS strategy expanded to a seeded 33×33 maze, three numbered keys/gates, limited visibility, moving hazards and an eight-minute active timer. A key-mask solver validates a safe route avoiding every possible hazard position.                                | Maze achievement and existing Mystery Date coupon.               |
 
-Every engine is dynamically imported after its briefing, so Canvas and interaction code are excluded from the collection’s initial client bundle. `GameExperience` supplies the shared loading, start, difficulty, sound, pause, restart, replay, persistence and reward surfaces. Engines own only their game rules and report a typed score/progress/ending result. Keyboard, pointer, swipe or on-screen controls are provided where appropriate; hidden-page pause and effect cleanup prevent abandoned loops from continuing after navigation.
+Snake keeps historical persistence units (10 points per food); the UI shows food counts, so 500 archived points corresponds to the new 50-food target. The obsolete Snake coupon ID did not exist in the typed wallet and is now mapped to GV-035. New minimum-time records are deliberately not backfilled from incompatible earlier board modes.
 
-Game rules, the legacy Snake, the original Midnight Circuit maze and all narrative content were implemented in-house. The visual novel integrates the MIT-licensed Monogatari function-action cycle through a small headless adapter. There are no commercial game assets, copied characters or sound packs. See `THIRD_PARTY_NOTICES.md` for verified licenses and the integration strategy.
+Breakout, Snake and Maze pause on request or when the page is hidden. **Memory and Minesweeper cannot pause**: their monotonic clocks include background time, with input-time checks preventing late moves. Result clocks freeze immediately. Canvas backing stores resize without changing game state; loops, timers, input listeners, audio contexts and observers are cleaned up on navigation. Reduced motion removes decorative/interpolation effects, not game difficulty.
 
-The server derives victory and eligible rewards from the trusted static definition rather than accepting reward claims from the browser. The atomic finish function can grant achievements, coupon unlocks, discoveries, secret records and cross-game items idempotently. Progress reads fail safely to an empty record; a database outage never prevents a game from being played, although the interface clearly reports that the result was not saved.
+The original rules and Web Audio tones are in-house. No new dependency or commercial artwork was added. The memory reference repository was inspected, but no license permitting reuse was found; none of its code or assets was copied. Monogatari and its now-unused build integration were removed with the retired novel. See `THIRD_PARTY_NOTICES.md`.
 
-Server-issued run UUIDs make finish retries idempotent and reject results from attempts superseded on another device. A failed write keeps the result in memory with an explicit **Retry saving result** action; retry before navigating away or replaying. Scores originate in a trusted player's browser: server range/ending/reward validation is not an anti-cheat engine and is unsuitable for competitive or financial prizes. The migration also fixes a pre-existing ambiguous conflict target in the legacy Snake/Maze result function without changing those games' rules.
+#### Trusted results, retries and records
 
-`/secret` displays durable recovered notes and the cross-game inventory. Completing The Great Escape, Break My Defences and 365 Memories supplies three distinct keys that reveal the final archive file. Secret copy and required item IDs live in `src/data/game-secrets.ts`; locked final copy is not sent to the game client.
+Every authenticated finish action replays a bounded seeded input transcript rather than trusting a client victory boolean, score or reward ID. Breakout reconstructs every collision; Minesweeper reconstructs board/actions; Memory reconstructs flips and times; Snake reconstructs ticks/food; Maze reconstructs movement, keys, hazards and exit. Invalid, unfinished or contradictory paths receive no write or reward.
 
-Run `npm run test:games` on Node 22.18+ for the dependency-free registry, rewards, inventory, media and minefield contract tests. `supabase/tests/game_state.sql` verifies atomic grants, retry idempotence, stale-run rejection and legacy challenge compatibility using an ephemeral fixture UUID and a full rollback. Execute it after both migrations; it creates no permanent progress. Browser QA covers all seven engines at 320, 375, 430, 768 and 1440px. Real-device iOS/Safari testing remains a release recommendation beyond viewport simulation.
+This is **consistency verification, not authoritative anti-cheat**. An authorized browser can construct a valid simulated path, choose a seed or fabricate wall-clock timestamps. Minesweeper completion time is browser-reported and bounded; Memory timestamps prove consistency with its deadline, not human interaction. Do not use these games for competitive or financial prizes.
 
-Each game record supports `gameId`, `attempts`, `startedAt`, `completedAt`, `bestScore`, `latestScore`, `duration`, `difficulty`, `progress`, `ending`, `wins`, `losses`, `unlockedRewards` and `discoveredSecrets`. The single-user private-session and server-only Supabase boundary remain unchanged.
+Server-issued run UUIDs, active-run row locking and atomic finish functions reject superseded attempts and make retries idempotent. A failed save retains the complete result/transcript in memory with **Retry saving result**; replaying requires explicit confirmation before discarding an unsaved result. Leaving/reloading the page loses that unsaved in-memory result. Rewards, completion counters and the durable hub update only after confirmed writes. There is no localStorage progress store and no client coupon mutation.
+
+The additive `20261008195014_five_game_arcade_records.sql` migration adds only `best_time_ms`, `fewest_moves`, `last_result` and `last_played_at` to the existing `challenge_scores` table. `begin_arcade_run` / `finish_arcade_run` preserve the earlier atomic reward functions while keeping minimum successful time/moves and maximum score. Duplicate/lost/slower results cannot overwrite better records; existing coupon redemption timestamps remain untouched. All three committed migrations are applied to the existing project; browser roles remain denied and only server credentials can call the functions.
+
+The existing record still supports gameId, attempts, startedAt, completedAt, bestScore, latestScore, duration, difficulty, progress, ending, wins, losses, unlockedRewards and discoveredSecrets. The new optional fields supplement it rather than creating a parallel store.
+
+`/secret` now requires the two remaining attainable game keys (Breakout and Memory). Its editorial copy remains server-rendered. Removed games no longer gate rewards or completion; historical records are not deleted.
+
+Run `npm run test:games` for deterministic game, transcript and reward tests. Run `supabase/tests/game_state.sql` after migrations for ephemeral, fully rolled-back tests of atomic grants, stale runs, min/max records, duplicate retries, access denial and legacy compatibility. The Server Action body limit is 2MB to accommodate bounded Breakout transcripts (180,000 physics ticks, approximately 25 active minutes). Longer runs remain playable but cannot be verified/saved; other transcript budgets are documented in the verifier.
+
+See [Arcade QA and limitations](docs/arcade-qa.md) for executed checks and what still requires a real device or configured local database. The relationship began **31 October 2025**.
 
 Open When content remains in the typed `src/data/open-when.ts` registry, while rewards live in `src/data/rewards.ts`. The discriminated reward model can accept additional reward kinds without coupling them to `Envelope`, `Letter`, or route components.
 
 The V&G Awards are configured entirely in `src/data/awards.ts`. Each typed entry owns its category, nominees, winner, copy, media, optional evidence, sticker treatment, prize, and presentation size. The route remains a Server Component while each ceremony envelope uses a small Client Component for the nominee and winner reveal sequence. Ceremony styling is scoped to the feature with a CSS Module.
 
 The relationship quiz keeps its replaceable question bank in `src/data/quiz-questions.ts` and its result bands and reward thresholds in `src/data/quiz.ts`. Correct answer keys stay in a server-only module. Each answer is validated in sequence by a Server Action against the active Supabase attempt; the client receives only the selected answer result. Completed attempts determine the persisted best score, while achievement and reward inserts are idempotent.
-
-### Survive 24 Hours with Gianmaria
-
-`/challenges/survive-relationship` is a branching novel, not an answer-scoring quiz. `src/data/relationship-story.ts` contains 36 unconditional decisions, three conditional scenes, six timed chapters, dialogue variations and two hidden fifth responses. Original fictional dialogue alternates between sincere and absurd; Gianmaria can replace personal details there. The relationship began **31 October 2025**.
-
-The pure domain under `src/features/games/visual-novel` clamps six hidden metrics to 0–100. Trust, patience, remembered clues and broken promises affect later reactions and responses. Only the final sealed report reveals metric values. Ten accumulated-state endings, including one difficult secret ending and the explicitly non-canon ending, live in `src/data/relationship-endings.ts`.
-
-At completion the authenticated Server Action independently replays the complete choice transcript. It discards client-supplied score, ending and secret claims for this game. Incomplete, impossible or out-of-order transcripts are rejected before database writes. This verifies story consistency, not that a human spent a particular amount of time playing it.
-
-The existing `challenge_scores.discovered_secrets` field stores the cumulative ending archive; no duplicate table or local progress store is introduced. First completion, perfect ending, secret ending and all ten endings have data-driven achievement rules. The server loads previous durable endings before deriving the collection grant; the existing active-run row lock and idempotent finish transaction protect concurrent/retried writes. An unsuccessful narrative ending still records completion time, while wins/losses remain distinct. The archive updates only after a confirmed save. An unfinished day is intentionally held in memory and does not resume on another device.
-
-`monogatari-adapter.ts` lazily imports the MIT Monogatari 2.6.0 function-action runtime prepared from the locked npm dependency. The generated runtime is approximately 36KB, has four source modules and no default UI/CSS, localStorage, global keyboard manager, particles, commercial assets or timers. Its complete licenses are distributed alongside it. Loading failures have a retry action, inputs pause on hidden pages, effects are cleaned up, sound is optional and reduced motion is respected.
-
-Run `npm run test:games`: a seeded 18,000-day deterministic simulation validates all ten reachable endings, all conditional scenes/hidden choices, 0–100 bounds, state-dependent dialogue, rejection of forged/incomplete paths and collection rewards. `supabase/tests/game_state.sql` additionally exercises ten replayed endings, four achievements, completion timestamps, atomic grants, duplicate-save rejection and legacy Snake compatibility inside a full rollback. No test progress is left in production.
-
-Artwork placeholders are named in the chapter registry (`morning-kitchen`, `lunch-street`, `incident-cafe`, `shopping-window`, `dinner-table`, `night-sofa`). Map those slots to real background/character media through `src/data/relationship-artwork.ts`; image metadata remains in the central `src/data/media.ts` registry. Until supplied, the novel shows explicit V/G paper monograms rather than invented personal photos.
 
 ### Geographic maps
 
@@ -207,7 +200,7 @@ All photographic metadata lives in the typed `src/data/media.ts` registry. Galle
 
 ## Quality and accessibility
 
-The authenticated route group has branded loading, error, and transition boundaries. Disclosure navigation and dialogs support Escape, focus management, focus return, and accessible current-page state. The gallery viewer adds trapped focus and arrow-key navigation; game canvases support keyboard, swipe, and on-screen controls and pause automatically when the page is hidden. Canvas animation frames run only while a game is active.
+The authenticated route group has branded loading, error, and transition boundaries. Disclosure navigation and dialogs support Escape, focus management, focus return, and accessible current-page state. The gallery viewer adds trapped focus and arrow-key navigation; game canvases support keyboard, swipe, and on-screen controls. Action games pause when hidden, while timed Memory/Minesweeper retain real elapsed time. Canvas animation frames stop when a game is paused or completed.
 
 Layout sizing is mobile-first and reviewed at 320, 375, 430, 768, and 1440 CSS pixels. Headline clamps, 44px minimum interactive targets, non-obstructive stickers, cooperative map gestures, and `prefers-reduced-motion` handling protect the experience across those widths.
 
@@ -217,18 +210,18 @@ The current engineering review and handoff inventory are documented in [`docs/te
 
 Gianmaria can finish the private content without changing presentation components:
 
-| Content                                                       | Edit here                                      |
-| ------------------------------------------------------------- | ---------------------------------------------- |
-| Photograph files and shared metadata                          | `public/images/` and `src/data/media.ts`       |
-| City stories, dates, notes, coordinates, and image references | `src/data/places.ts`                           |
-| Coupon copy, terms, rarity, and unlock configuration          | `src/data/coupons.ts`                          |
-| Open When letters                                             | `src/data/open-when.ts`                        |
-| Award nominees, winners, evidence, and prizes                 | `src/data/awards.ts`                           |
-| Personal quiz prompts, answers, and feedback                  | `src/data/quiz-questions.ts`                   |
-| Quiz thresholds and rewards                                   | `src/data/quiz.ts` and `src/data/rewards.ts`   |
-| Game rules, thresholds and rewards                            | `src/data/games.ts`                            |
-| Game scenarios and Year One timeline cards                    | `src/data/game-content.ts`                     |
-| Game photograph replacement slots                             | `src/data/game-media.ts` → `src/data/media.ts` |
+| Content                                                       | Edit here                                                     |
+| ------------------------------------------------------------- | ------------------------------------------------------------- |
+| Photograph files and shared metadata                          | `public/images/` and `src/data/media.ts`                      |
+| City stories, dates, notes, coordinates, and image references | `src/data/places.ts`                                          |
+| Coupon copy, terms, rarity, and unlock configuration          | `src/data/coupons.ts`                                         |
+| Open When letters                                             | `src/data/open-when.ts`                                       |
+| Award nominees, winners, evidence, and prizes                 | `src/data/awards.ts`                                          |
+| Personal quiz prompts, answers, and feedback                  | `src/data/quiz-questions.ts`                                  |
+| Quiz thresholds and rewards                                   | `src/data/quiz.ts` and `src/data/rewards.ts`                  |
+| Game rules, thresholds and rewards                            | `src/data/games.ts`                                           |
+| Fixed Arcade settings                                         | `src/data/arcade-config.ts`                                   |
+| 18 memory identities and paired photograph references         | `src/data/arcade-memories.ts` → canonical `src/data/media.ts` |
 
 Keep the media IDs stable when replacing placeholders so Map, Awards, Gallery, Home, and Secret Area continue to share the same records.
 

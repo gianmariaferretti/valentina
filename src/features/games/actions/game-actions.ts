@@ -8,14 +8,14 @@ import { getCoupon } from "@/data/coupons";
 import { getVgGame } from "@/data/games";
 import { getChallengeStateRepository } from "@/features/challenges/repositories/get-challenge-state-repository";
 import { evaluateGameResult } from "@/features/games/lib/game-domain";
-import { replayRelationshipStory } from "@/features/games/visual-novel/story-domain";
+import { verifyArcadeResult } from "@/features/games/lib/verify-arcade-result";
 import type {
   GameDifficulty,
+  GameEvidence,
   GameProgress,
   GameRewardDefinition,
   GameRewardReceipt,
 } from "@/features/games/types";
-import { gameDifficulties } from "@/features/games/types";
 import { hasValidAccessSession } from "@/lib/auth/session";
 import {
   persistenceFailureMessage,
@@ -38,7 +38,8 @@ export interface FinishGameRunInput {
   readonly progress: number;
   readonly ending: string;
   readonly discoveredSecrets: readonly string[];
-  readonly storyChoices?: readonly string[];
+  readonly evidence?: GameEvidence;
+  readonly moves?: number;
 }
 
 export interface FinishGameRunResponse {
@@ -58,7 +59,7 @@ export async function beginVgGameRun(
   }
 
   const game = getVgGame(gameId);
-  if (!game || !gameDifficulties.includes(difficulty)) {
+  if (!game || difficulty !== game.difficulty) {
     return { status: "error", message: "This game file could not be opened." };
   }
 
@@ -119,25 +120,41 @@ export async function finishVgGameRun(
   }
 
   const game = getVgGame(input.gameId);
-  if (game?.engine === "survive-relationship") {
-    try {
-      const verified = replayRelationshipStory(input.storyChoices ?? []);
-      input = {
-        ...input,
-        score: verified.score,
-        progress: verified.progress,
-        ending: verified.ending,
-        discoveredSecrets: verified.discoveredSecrets,
-      };
-    } catch {
-      return {
-        status: "error",
-        message:
-          "This story transcript could not be verified. Complete a legitimate day before filing the report.",
-        won: false,
-        rewards: [],
-      };
-    }
+  if (
+    !game ||
+    !Number.isInteger(input.durationMs) ||
+    input.durationMs < 0 ||
+    input.durationMs > 21_600_000
+  )
+    return {
+      status: "error",
+      message: "Invalid game result.",
+      won: false,
+      rewards: [],
+    };
+  try {
+    const verified = verifyArcadeResult(
+      game.gameId,
+      input.evidence,
+      input.durationMs,
+    );
+    input = {
+      ...input,
+      score: verified.score,
+      progress: verified.progress,
+      ending: verified.ending,
+      durationMs: verified.durationMs ?? input.durationMs,
+      moves: verified.moves,
+      discoveredSecrets: verified.discoveredSecrets ?? [],
+    };
+  } catch {
+    return {
+      status: "error",
+      message:
+        "The input transcript could not be verified. This result has not been saved or rewarded.",
+      won: false,
+      rewards: [],
+    };
   }
   const score = input.score;
   const durationMs = input.durationMs;
@@ -154,7 +171,7 @@ export async function finishVgGameRun(
     !Number.isInteger(progress) ||
     progress < 0 ||
     progress > 100 ||
-    !gameDifficulties.includes(input.difficulty) ||
+    input.difficulty !== game.difficulty ||
     !game.allowedEndings.includes(input.ending)
   ) {
     return {
@@ -165,28 +182,7 @@ export async function finishVgGameRun(
     };
   }
 
-  // The active-run lock in finishRun prevents a second device from merging a superseded day.
-  let archivedSecrets: readonly string[] = [];
-  try {
-    if (game.engine === "survive-relationship")
-      archivedSecrets =
-        (await getChallengeStateRepository().get()).games.find(
-          (record) => record.gameId === game.gameId,
-        )?.discoveredSecrets ?? [];
-  } catch (error) {
-    reportPersistenceFailure("load ending archive", error);
-    return {
-      status: "error",
-      message: persistenceFailureMessage("This ending"),
-      won: false,
-      rewards: [],
-    };
-  }
-  const { won, discoveredSecrets, rewards } = evaluateGameResult(
-    game,
-    input,
-    archivedSecrets,
-  );
+  const { won, discoveredSecrets, rewards } = evaluateGameResult(game, input);
 
   for (const reward of rewards) {
     if (reward.kind === "coupon" && !getCoupon(reward.targetId)) {
@@ -205,6 +201,7 @@ export async function finishVgGameRun(
       gameId: game.gameId,
       score,
       durationMs,
+      moves: input.moves,
       difficulty: input.difficulty,
       progress,
       ending: input.ending,

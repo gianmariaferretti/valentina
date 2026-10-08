@@ -17,6 +17,8 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // Bounded deterministic paddle transcripts can exceed the default 1MB.
+  experimental: { serverActions: { bodySizeLimit: "2mb" } },
   async headers() {
     return [
       {

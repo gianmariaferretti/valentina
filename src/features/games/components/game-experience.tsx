@@ -1,8 +1,6 @@
 "use client";
-
 import {
   ArrowLeft,
-  Clock3,
   Pause,
   Play,
   RotateCcw,
@@ -12,15 +10,15 @@ import {
 import { useReducedMotion } from "motion/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useModalDialog } from "@/hooks/use-modal-dialog";
 import {
   type ComponentType,
   useCallback,
   useEffect,
+  useEffectEvent,
   useRef,
   useState,
 } from "react";
-
-import { PaperCard, Sticker, Tape } from "@/components/design-system";
 import {
   beginVgGameRun,
   finishVgGameRun,
@@ -28,93 +26,43 @@ import {
 } from "@/features/games/actions/game-actions";
 import { GameEngineLoading } from "@/features/games/components/game-primitives";
 import { GameRewardReceipts } from "@/features/games/components/game-reward-receipts";
-import { EndingsArchive } from "@/features/games/visual-novel/endings-archive";
+import { formatGameTime } from "@/features/games/lib/arcade-random";
 import type {
-  GameDifficulty,
   GameEngineProps,
   GameProgress,
   GameRewardReceipt,
   GameRunResult,
   VgGameDefinition,
 } from "@/features/games/types";
-
 import styles from "./games.module.css";
-
-const GreatEscapeGame = dynamic(
-  () =>
-    import("@/features/games/engines/great-escape-game").then(
-      (module) => module.GreatEscapeGame,
-    ),
-  { loading: GameEngineLoading },
-);
-const FindGianmariaGame = dynamic(
-  () =>
-    import("@/features/games/engines/find-gianmaria-game").then(
-      (module) => module.FindGianmariaGame,
-    ),
-  { loading: GameEngineLoading },
-);
-const SurviveRelationshipGame = dynamic(
-  () =>
-    import("@/features/games/engines/survive-relationship-game").then(
-      (module) => module.SurviveRelationshipGame,
-    ),
-  { loading: GameEngineLoading },
-);
-const BreakDefencesGame = dynamic(
-  () =>
-    import("@/features/games/engines/break-defences-game").then(
-      (module) => module.BreakDefencesGame,
-    ),
-  { loading: GameEngineLoading },
-);
-const BuildYearGame = dynamic(
-  () =>
-    import("@/features/games/engines/build-year-game").then(
-      (module) => module.BuildYearGame,
-    ),
-  { loading: GameEngineLoading },
-);
-const RelationshipMinefieldGame = dynamic(
-  () =>
-    import("@/features/games/engines/relationship-minefield-game").then(
-      (module) => module.RelationshipMinefieldGame,
-    ),
-  { loading: GameEngineLoading },
-);
-const MemoriesGame = dynamic(
-  () =>
-    import("@/features/games/engines/memories-game").then(
-      (module) => module.MemoriesGame,
-    ),
-  { loading: GameEngineLoading },
-);
-
-const gameEngines: Record<
+const engines: Record<
   VgGameDefinition["engine"],
   ComponentType<GameEngineProps>
 > = {
-  "great-escape": GreatEscapeGame,
-  "find-gianmaria": FindGianmariaGame,
-  "survive-relationship": SurviveRelationshipGame,
-  "break-defences": BreakDefencesGame,
-  "build-year": BuildYearGame,
-  "relationship-minefield": RelationshipMinefieldGame,
-  "365-memories": MemoriesGame,
+  "break-defences": dynamic(
+    () =>
+      import("../engines/break-defences-game").then((m) => m.BreakDefencesGame),
+    { loading: GameEngineLoading },
+  ),
+  "relationship-minefield": dynamic(
+    () =>
+      import("../engines/relationship-minefield-game").then(
+        (m) => m.RelationshipMinefieldGame,
+      ),
+    { loading: GameEngineLoading },
+  ),
+  "365-memories": dynamic(
+    () => import("../engines/memories-game").then((m) => m.MemoriesGame),
+    { loading: GameEngineLoading },
+  ),
+  snake: dynamic(
+    () => import("../engines/snake-game").then((m) => m.SnakeGame),
+    { loading: GameEngineLoading },
+  ),
+  maze: dynamic(() => import("../engines/maze-game").then((m) => m.MazeGame), {
+    loading: GameEngineLoading,
+  }),
 };
-
-const difficultyCopy: Record<GameDifficulty, string> = {
-  story: "A gentler route through the file.",
-  standard: "The intended amount of avoidable pressure.",
-  daring: "Less patience, more paperwork.",
-};
-
-function formatDuration(durationMs: number): string {
-  const seconds = Math.max(0, Math.floor(durationMs / 1_000));
-  const minutes = Math.floor(seconds / 60);
-  return `${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
-}
-
 export function GameExperience({
   game,
   initialProgress,
@@ -122,432 +70,317 @@ export function GameExperience({
   readonly game: VgGameDefinition;
   readonly initialProgress: GameProgress;
 }) {
-  const reduceMotion = Boolean(useReducedMotion());
-  const [view, setView] = useState<"briefing" | "running">("briefing");
-  const [difficulty, setDifficulty] = useState<GameDifficulty>(game.difficulty);
-  const [progressState, setProgressState] = useState(initialProgress);
-  const [currentScore, setCurrentScore] = useState(0);
-  const [currentProgress, setCurrentProgress] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const pausedRef = useRef(false);
-  const [soundEnabled, setSoundEnabled] = useState(false);
-  const [runKey, setRunKey] = useState(0);
-  const [starting, setStarting] = useState(false);
-  const [completedRun, setCompletedRun] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
-  const [rewards, setRewards] = useState<readonly GameRewardReceipt[]>([]);
-  const [pendingSave, setPendingSave] = useState<FinishGameRunInput | null>(
-    null,
-  );
-  const runIdRef = useRef<string | null>(null);
-  const operationPendingRef = useRef(false);
-  const startTimeRef = useRef(0);
-  const pauseStartedAtRef = useRef<number | null>(null);
-  const pausedDurationRef = useRef(0);
-  const finishedRef = useRef(false);
-
-  const startRun = useCallback(async () => {
-    if (operationPendingRef.current) return;
-    operationPendingRef.current = true;
-    setStarting(true);
-    setSaving(false);
-    setFeedback("Registering a new attempt…");
-    setRewards([]);
-    setPendingSave(null);
-    runIdRef.current = null;
-    let startMessage =
-      "This attempt could not be saved. You can still play and retry saving the result.";
-    try {
-      const response = await beginVgGameRun(game.gameId, difficulty);
-      if (response.progress) setProgressState(response.progress);
-      runIdRef.current = response.runId ?? null;
-      startMessage =
-        response.status === "success"
-          ? "Attempt registered · evidence recording active"
-          : `${response.message} You can still play this run.`;
-    } catch {
-      // Network failures must leave a playable local run with a visible retry path.
-    }
-
-    finishedRef.current = false;
-    setCompletedRun(false);
-    startTimeRef.current = performance.now();
-    pauseStartedAtRef.current = null;
-    pausedDurationRef.current = 0;
-    setCurrentScore(0);
-    setCurrentProgress(0);
-    setPaused(false);
-    pausedRef.current = false;
-    setRunKey((value) => value + 1);
-    setView("running");
-    setFeedback(startMessage);
-    setStarting(false);
-    operationPendingRef.current = false;
-  }, [difficulty, game.gameId]);
-
-  const saveResult = useCallback(
-    async (input: FinishGameRunInput) => {
-      if (operationPendingRef.current) return;
-      operationPendingRef.current = true;
-      setSaving(true);
-      setFeedback("Archiving the result and checking the reward drawer…");
-      let retryableInput = input;
+  const reduceMotion = Boolean(useReducedMotion()),
+    [progress, setProgress] = useState(initialProgress),
+    [paused, setPaused] = useState(false),
+    [sound, setSound] = useState(false),
+    [runKey, setRunKey] = useState(0),
+    [seed, setSeed] = useState(0),
+    [starting, setStarting] = useState(true),
+    [completed, setCompleted] = useState(false),
+    [confirmDiscard, setConfirmDiscard] = useState(false),
+    [saving, setSaving] = useState(false),
+    [feedback, setFeedback] = useState<string | null>(null),
+    [rewards, setRewards] = useState<readonly GameRewardReceipt[]>([]),
+    [pending, setPending] = useState<FinishGameRunInput | null>(null);
+  const runId = useRef<string | null>(null),
+    operation = useRef(false),
+    finished = useRef(false),
+    pendingRef = useRef<FinishGameRunInput | null>(null);
+  const clockNeverPauses =
+    game.engine === "365-memories" || game.engine === "relationship-minefield";
+  const restartButton = useRef<HTMLButtonElement>(null),
+    keepButton = useRef<HTMLButtonElement>(null);
+  const closeDiscard = useCallback(() => setConfirmDiscard(false), []);
+  const { dialogRef: discardDialogRef, onKeyDown: discardKeyDown } =
+    useModalDialog({
+      isOpen: confirmDiscard,
+      onClose: closeDiscard,
+      initialFocusRef: keepButton,
+      returnFocusRef: restartButton,
+    });
+  const startRun = useCallback(
+    async (discard = false) => {
+      if (operation.current) return;
+      if (pendingRef.current && finished.current && !discard) {
+        setConfirmDiscard(true);
+        return;
+      }
+      setConfirmDiscard(false);
+      operation.current = true;
+      setStarting(true);
+      setRewards([]);
+      setPending(null);
+      pendingRef.current = null;
+      runId.current = null;
+      let message =
+        "The archive is unavailable. You can play and retry saving your result.";
       try {
-        let runId = input.runId;
-        if (!runId) {
-          const started = await beginVgGameRun(game.gameId, input.difficulty);
-          if (!started.runId) {
-            setFeedback(started.message);
-            setPendingSave(input);
+        const response = await beginVgGameRun(game.gameId, game.difficulty);
+        if (response.progress) setProgress(response.progress);
+        runId.current = response.runId ?? null;
+        message =
+          response.status === "success"
+            ? "Attempt registered."
+            : `${response.message} You can still play.`;
+      } catch {
+        /* A network outage must not prevent play. */
+      }
+      setSeed(crypto.getRandomValues(new Uint32Array(1))[0]);
+      finished.current = false;
+      setCompleted(false);
+      setPaused(false);
+      setRunKey((value) => value + 1);
+      setFeedback(message);
+      setStarting(false);
+      operation.current = false;
+    },
+    [game.gameId, game.difficulty],
+  );
+  const initialStart = useEffectEvent(() => {
+    void startRun();
+  });
+  useEffect(() => {
+    const timer = window.setTimeout(() => initialStart(), 0);
+    return () => clearTimeout(timer);
+  }, []);
+  const save = useCallback(
+    async (input: FinishGameRunInput) => {
+      if (operation.current) return;
+      operation.current = true;
+      setSaving(true);
+      setFeedback("Saving result and checking rewards…");
+      let retry = input;
+      try {
+        if (!retry.runId) {
+          const response = await beginVgGameRun(game.gameId, game.difficulty);
+          if (!response.runId) {
+            setFeedback(response.message);
             return;
           }
-          runId = started.runId;
-          runIdRef.current = runId;
+          retry = { ...input, runId: response.runId };
+          runId.current = response.runId;
         }
-        retryableInput = { ...input, runId };
-        setPendingSave(retryableInput);
-        const response = await finishVgGameRun(retryableInput);
-        if (response.progress) setProgressState(response.progress);
+        pendingRef.current = retry;
+        setPending(retry);
+        const response = await finishVgGameRun(retry);
+        if (response.progress) setProgress(response.progress);
         setRewards(response.rewards);
         setFeedback(response.message);
-        if (response.status === "success") setPendingSave(null);
+        if (response.status === "success") {
+          pendingRef.current = null;
+          setPending(null);
+        }
       } catch {
-        setPendingSave(retryableInput);
         setFeedback(
-          "The archive is temporarily unreachable. Your result is still here; retry saving before leaving this page.",
+          "The archive is unreachable. Your completed result is retained here. Retry before leaving this page.",
         );
       } finally {
         setSaving(false);
-        operationPendingRef.current = false;
+        operation.current = false;
       }
     },
-    [game.gameId],
+    [game.gameId, game.difficulty],
   );
-
-  const finishRun = useCallback(
-    async (result: GameRunResult) => {
-      if (finishedRef.current) return;
-      finishedRef.current = true;
-      setCompletedRun(true);
-      const durationMs = Math.max(
-        0,
-        Math.floor(
-          performance.now() - startTimeRef.current - pausedDurationRef.current,
-        ),
-      );
-      setCurrentScore(result.score);
-      setCurrentProgress(result.progress);
+  const finish = useCallback(
+    (result: GameRunResult) => {
+      if (finished.current) return;
+      finished.current = true;
+      setCompleted(true);
       const input: FinishGameRunInput = {
-        runId: runIdRef.current ?? "",
+        runId: runId.current ?? "",
         gameId: game.gameId,
         score: result.score,
-        durationMs,
-        difficulty,
+        durationMs: Math.max(0, Math.round(result.durationMs ?? 0)),
+        difficulty: game.difficulty,
         progress: result.progress,
         ending: result.ending,
         discoveredSecrets: result.discoveredSecrets ?? [],
-        storyChoices: result.storyChoices,
+        moves: result.moves,
+        evidence: result.evidence,
       };
-      setPendingSave(input);
-      await saveResult(input);
+      pendingRef.current = input;
+      setPending(input);
+      void save(input);
     },
-    [difficulty, game.gameId, saveResult],
+    [game.gameId, game.difficulty, save],
   );
-
-  const togglePause = useCallback(() => {
-    if (finishedRef.current || view !== "running") return;
-    const next = !pausedRef.current;
-    pausedRef.current = next;
-    if (next) {
-      pauseStartedAtRef.current = performance.now();
-    } else if (pauseStartedAtRef.current !== null) {
-      pausedDurationRef.current +=
-        performance.now() - pauseStartedAtRef.current;
-      pauseStartedAtRef.current = null;
-    }
-    setPaused(next);
-  }, [view]);
-
+  const pause = useCallback(() => {
+    if (!clockNeverPauses && !completed && !starting)
+      setPaused((value) => !value);
+  }, [clockNeverPauses, completed, starting]);
   useEffect(() => {
-    function pauseWhenHidden() {
-      if (!document.hidden || view !== "running" || finishedRef.current) return;
-      if (pausedRef.current) return;
-      pausedRef.current = true;
-      pauseStartedAtRef.current = performance.now();
-      setPaused(true);
-    }
-
-    function handlePauseShortcut(event: KeyboardEvent) {
-      const target = event.target;
+    if (clockNeverPauses) return;
+    const hidden = () => {
+      if (document.hidden) setPaused(true);
+    };
+    const shortcut = (event: KeyboardEvent) => {
       if (
         event.key.toLowerCase() !== "p" ||
-        target instanceof HTMLInputElement ||
-        target instanceof HTMLTextAreaElement ||
-        (target instanceof HTMLElement && target.isContentEditable)
-      ) {
+        event.ctrlKey ||
+        event.metaKey ||
+        (event.target instanceof HTMLElement &&
+          event.target.matches("input,textarea,select,[contenteditable=true]"))
+      )
         return;
-      }
       event.preventDefault();
-      togglePause();
-    }
-
-    document.addEventListener("visibilitychange", pauseWhenHidden);
-    window.addEventListener("keydown", handlePauseShortcut);
-    return () => {
-      document.removeEventListener("visibilitychange", pauseWhenHidden);
-      window.removeEventListener("keydown", handlePauseShortcut);
+      pause();
     };
-  }, [togglePause, view]);
-
-  const engineProps: GameEngineProps = {
-    difficulty,
-    paused: paused || starting,
-    reduceMotion,
-    soundEnabled,
-    archivedSecrets: progressState.discoveredSecrets,
-    onFinish: finishRun,
-    onRestart: startRun,
-    onScoreChange: setCurrentScore,
-    onProgressChange: setCurrentProgress,
-  };
-  const Engine = gameEngines[game.engine];
-
+    document.addEventListener("visibilitychange", hidden);
+    window.addEventListener("keydown", shortcut);
+    return () => {
+      document.removeEventListener("visibilitychange", hidden);
+      window.removeEventListener("keydown", shortcut);
+    };
+  }, [clockNeverPauses, pause]);
+  const Engine = engines[game.engine];
+  const best =
+    game.metric === "time"
+      ? progress.bestTimeMs == null
+        ? "—"
+        : formatGameTime(progress.bestTimeMs)
+      : game.engine === "snake"
+        ? Math.floor(progress.bestScore / 10)
+        : progress.bestScore;
   return (
-    <div
-      className={styles.gameExperience}
-      data-accent={game.accent}
-      data-narrative={game.engine === "survive-relationship"}
-    >
-      <div className="page-container py-6 sm:py-10 lg:py-14">
+    <div className={styles.gameExperience}>
+      <div className={styles.playContainer}>
         <nav className={styles.gameBreadcrumb} aria-label="Game navigation">
           <Link href="/challenges">
-            <ArrowLeft aria-hidden="true" size={15} />
-            All games
+            <ArrowLeft size={15} aria-hidden="true" />
+            Arcade
           </Link>
-          <span>{game.number} / 07</span>
+          <span>{game.number} / 05</span>
         </nav>
-
         <header className={styles.gameHeader}>
-          <div>
-            <p>{game.dossierLabel}</p>
-            <h1>{game.title}</h1>
-          </div>
-          <div className={styles.gameHeaderStamp}>
-            <Sticker
-              rotation={-4}
-              size="sm"
-              text="Playable file"
-              variant="classified"
-            />
-            <span>
-              <Clock3 aria-hidden="true" size={14} />
-              {game.estimatedMinutes} min
-            </span>
-          </div>
+          <p>{game.dossierLabel}</p>
+          <h1>{game.title}</h1>
         </header>
-
-        {view === "briefing" ? (
-          <section className={styles.briefingGrid}>
-            <PaperCard
-              className={styles.briefingDocument}
-              elevated
-              texture="ruled"
+        <div className={styles.runtimeActions}>
+          {!clockNeverPauses ? (
+            <button
+              aria-label={paused ? "Resume game" : "Pause game"}
+              disabled={completed || starting}
+              onClick={() => pause()}
+              type="button"
             >
-              <Tape position="top" size="md" tone="cream" />
-              <p className={styles.documentCode}>
-                V&amp;G / GAME {game.number} / EYES ONLY
-              </p>
-              <h2>Mission briefing</h2>
-              <p>{game.description}</p>
-              <div className={styles.objectiveBox}>
-                <span>Objective</span>
-                <strong>{game.objective}</strong>
-              </div>
-              <ol className={styles.instructionList}>
-                {game.instructions.map((instruction, index) => (
-                  <li key={instruction}>
-                    <span>{String(index + 1).padStart(2, "0")}</span>
-                    {instruction}
-                  </li>
-                ))}
-              </ol>
-            </PaperCard>
-
-            <aside className={styles.briefingAside}>
-              {game.engine === "survive-relationship" ? (
-                <section>
-                  <p>Story mode</p>
-                  <p>
-                    No timer. No answer key. The secret ending is difficult
-                    because of the choices you accumulate, not faster controls.
-                  </p>
-                </section>
-              ) : (
-                <section>
-                  <p>Difficulty file</p>
-                  <div className={styles.difficultyPicker}>
-                    {(["story", "standard", "daring"] as const).map(
-                      (option) => (
-                        <button
-                          aria-pressed={difficulty === option}
-                          data-selected={difficulty === option}
-                          key={option}
-                          onClick={() => setDifficulty(option)}
-                          type="button"
-                        >
-                          <strong>{option}</strong>
-                          <span>{difficultyCopy[option]}</span>
-                        </button>
-                      ),
-                    )}
-                  </div>
-                </section>
-              )}
-              <section>
-                <p>Controls</p>
-                <ul>
-                  {game.controls.map((control) => (
-                    <li key={control}>{control}</li>
-                  ))}
-                </ul>
-              </section>
-              <button
-                className={styles.primaryGameAction}
-                disabled={starting}
-                onClick={() => void startRun()}
-                type="button"
-              >
-                {starting ? "Opening file…" : "Start operation"}
-              </button>
-              <button
-                aria-pressed={soundEnabled}
-                className={styles.soundPreference}
-                onClick={() => setSoundEnabled((value) => !value)}
-                type="button"
-              >
-                {soundEnabled ? (
-                  <Volume2 aria-hidden="true" />
-                ) : (
-                  <VolumeX aria-hidden="true" />
-                )}
-                Sound {soundEnabled ? "on" : "off"}
-              </button>
-            </aside>
-          </section>
-        ) : (
-          <>
-            <section
-              className={styles.runtimeBar}
-              aria-label="Current game status"
-            >
-              <dl>
-                <div>
-                  <dt>
-                    {game.engine === "survive-relationship" ? "File" : "Score"}
-                  </dt>
-                  <dd>
-                    {game.engine === "survive-relationship"
-                      ? "24h"
-                      : currentScore.toLocaleString("en-GB")}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Progress</dt>
-                  <dd>{currentProgress}%</dd>
-                </div>
-                <div>
-                  <dt>
-                    {game.engine === "survive-relationship"
-                      ? "Endings"
-                      : "Best"}
-                  </dt>
-                  <dd>
-                    {game.engine === "survive-relationship"
-                      ? `${progressState.discoveredSecrets.filter((id) => id.startsWith("relationship-ending:")).length}/10`
-                      : progressState.bestScore.toLocaleString("en-GB")}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Attempts</dt>
-                  <dd>{progressState.attempts}</dd>
-                </div>
-              </dl>
-              <div className={styles.runtimeActions}>
-                <button
-                  aria-label={paused ? "Resume game" : "Pause game"}
-                  disabled={completedRun || starting}
-                  onClick={togglePause}
-                  type="button"
-                >
-                  {paused ? (
-                    <Play aria-hidden="true" />
-                  ) : (
-                    <Pause aria-hidden="true" />
-                  )}
-                  <span>{paused ? "Resume" : "Pause"}</span>
-                </button>
-                <button
-                  aria-label="Restart game"
-                  disabled={starting || saving}
-                  onClick={() => void startRun()}
-                  type="button"
-                >
-                  <RotateCcw aria-hidden="true" />
-                  <span>Restart</span>
-                </button>
-                <button
-                  aria-label={soundEnabled ? "Turn sound off" : "Turn sound on"}
-                  aria-pressed={soundEnabled}
-                  onClick={() => setSoundEnabled((value) => !value)}
-                  type="button"
-                >
-                  {soundEnabled ? (
-                    <Volume2 aria-hidden="true" />
-                  ) : (
-                    <VolumeX aria-hidden="true" />
-                  )}
-                  <span>Sound</span>
-                </button>
-              </div>
-            </section>
-
-            <div className={styles.engineFrame} key={runKey}>
-              <Engine {...engineProps} />
-            </div>
-
-            <div className={styles.persistenceStatus} aria-live="polite">
-              <span data-active={saving}>{saving ? "Saving" : "Archive"}</span>
-              <p>{feedback}</p>
-              {pendingSave ? (
-                <button
-                  disabled={saving}
-                  onClick={() => void saveResult(pendingSave)}
-                  type="button"
-                >
-                  {saving ? "Saving…" : "Retry saving result"}
-                </button>
-              ) : null}
-            </div>
-            <GameRewardReceipts rewards={rewards} />
-          </>
-        )}
-
-        {game.engine === "survive-relationship" ? (
-          <EndingsArchive archivedSecrets={progressState.discoveredSecrets} />
-        ) : null}
-        <footer className={styles.gameRecordFooter}>
-          {game.engine !== "survive-relationship" ? (
-            <span>
-              Best score · {progressState.bestScore.toLocaleString("en-GB")}
-            </span>
+              {paused ? <Play size={16} /> : <Pause size={16} />}
+              {paused ? "Resume" : "Pause"}
+            </button>
           ) : null}
-          <span>Wins · {progressState.wins}</span>
-          <span>Losses · {progressState.losses}</span>
+          <button
+            ref={restartButton}
+            disabled={starting || saving}
+            onClick={() => void startRun()}
+            type="button"
+          >
+            <RotateCcw size={16} aria-hidden="true" />
+            Restart
+          </button>
+          <button
+            aria-pressed={sound}
+            aria-label={sound ? "Turn sound off" : "Turn sound on"}
+            onClick={() => setSound((value) => !value)}
+            type="button"
+          >
+            {sound ? <Volume2 size={16} /> : <VolumeX size={16} />}Sound{" "}
+            {sound ? "on" : "off"}
+          </button>
+          <span className={styles.bestRecord}>
+            Best {game.metric === "time" ? "time" : "score"} · {best}
+          </span>
+        </div>
+        <div className={styles.engineFrame} key={runKey}>
+          {runKey === 0 ? (
+            <GameEngineLoading />
+          ) : (
+            <Engine
+              bestScore={progress.bestScore}
+              seed={seed}
+              difficulty={game.difficulty}
+              paused={paused || starting}
+              reduceMotion={reduceMotion}
+              soundEnabled={sound}
+              archivedSecrets={progress.discoveredSecrets}
+              onFinish={finish}
+              onRestart={() => void startRun()}
+              onScoreChange={() => undefined}
+              onProgressChange={() => undefined}
+            />
+          )}
+        </div>
+        <details className={styles.instructions}>
+          <summary>Instructions &amp; controls</summary>
+          <p>{game.objective}</p>
+          <ul>
+            {game.instructions.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+          <p>{game.controls.join(" · ")}</p>
+        </details>
+        <div className={styles.persistenceStatus} aria-live="polite">
+          <span>{saving ? "Saving" : "Archive"}</span>
+          <p>{feedback}</p>
+          {pending ? (
+            <button
+              disabled={saving}
+              onClick={() => void save(pending)}
+              type="button"
+            >
+              {saving ? "Saving…" : "Retry saving result"}
+            </button>
+          ) : null}
+        </div>
+        <GameRewardReceipts rewards={rewards} />
+        <footer className={styles.gameRecordFooter}>
+          <span>Attempts · {progress.attempts}</span>
+          <span>Wins · {progress.wins}</span>
+          <span>Losses · {progress.losses}</span>
+          {progress.fewestMoves != null ? (
+            <span>Fewest moves · {progress.fewestMoves}</span>
+          ) : null}
           <span>
-            Last duration · {formatDuration(progressState.durationMs)}
+            Last played ·{" "}
+            {progress.lastPlayedAt
+              ? new Date(progress.lastPlayedAt).toLocaleDateString("en-GB", {
+                  timeZone: "Europe/Rome",
+                })
+              : "—"}
+          </span>
+          <span>
+            Last result · {progress.lastResult?.replaceAll("-", " ") ?? "—"}
           </span>
         </footer>
+        {confirmDiscard ? (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="discard-result-title"
+            aria-describedby="discard-result-copy"
+            ref={discardDialogRef}
+            onKeyDown={discardKeyDown}
+            tabIndex={-1}
+            className={styles.discardDialog}
+          >
+            <div>
+              <p>V&G / UNSAVED RESULT</p>
+              <h2 id="discard-result-title">Keep this result?</h2>
+              <p id="discard-result-copy">
+                Your result has not reached the archive. Keep it to retry
+                saving, or explicitly discard it before replaying.
+              </p>
+              <div>
+                <button type="button" ref={keepButton} onClick={closeDiscard}>
+                  Keep result
+                </button>
+                <button type="button" onClick={() => void startRun(true)}>
+                  Discard and replay
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

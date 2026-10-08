@@ -9,19 +9,6 @@ import type {
   GameRewardDefinition,
 } from "@/features/games/types";
 
-export interface ChallengeResultInput {
-  readonly challengeId: string;
-  readonly score: number;
-  readonly completed: boolean;
-  readonly rewardCouponId: string;
-  readonly recordedAt: string;
-}
-
-export interface SavedChallengeResult {
-  readonly progress: ChallengeProgress;
-  readonly couponUnlocked: boolean;
-}
-
 export interface GameRunStartInput {
   readonly runId: string;
   readonly gameId: string;
@@ -30,6 +17,7 @@ export interface GameRunStartInput {
 }
 
 export interface GameRunFinishInput {
+  readonly moves?: number;
   readonly runId: string;
   readonly gameId: string;
   readonly score: number;
@@ -50,7 +38,6 @@ export interface SavedGameRun {
 
 export interface ChallengeStateRepository {
   get(): Promise<ChallengeProgressState>;
-  recordResult(input: ChallengeResultInput): Promise<SavedChallengeResult>;
   beginRun(input: GameRunStartInput): Promise<ChallengeProgress>;
   finishRun(input: GameRunFinishInput): Promise<SavedGameRun>;
 }
