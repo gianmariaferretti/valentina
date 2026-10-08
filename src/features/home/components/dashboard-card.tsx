@@ -77,12 +77,13 @@ export function DashboardCard({
       </div>
 
       {sticker ? (
-        <Sticker
-          className="absolute top-24 right-5 sm:right-8"
-          rotation={featured ? 3 : -2}
-          size="sm"
-          variant={sticker}
-        />
+        <span className="pointer-events-none absolute top-24 right-5 z-10 sm:right-8">
+          <Sticker
+            rotation={featured ? 3 : -2}
+            size="sm"
+            variant={sticker}
+          />
+        </span>
       ) : null}
 
       <div className="relative mt-auto pt-14">
