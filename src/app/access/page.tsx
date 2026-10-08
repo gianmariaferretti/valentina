@@ -57,7 +57,7 @@ export default async function AccessPage() {
               <PassportStamp
                 className="mt-9 ml-auto hidden opacity-45 sm:flex"
                 code="V+G"
-                date="04 OCT 2025"
+                date="31 OCT 2025"
                 location="For her eyes only"
                 rotation={7}
               />
