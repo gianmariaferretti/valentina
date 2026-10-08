@@ -49,8 +49,8 @@ export class SupabaseOpenWhenStateRepository implements OpenWhenStateRepository 
       p_user_id: userId,
       p_letter_slug: input.slug,
       p_opened_at: input.openedAt,
-      p_reward_id: input.rewardId,
-      p_reward_coupon_id: input.rewardCouponId,
+      p_reward_id: input.rewardId ?? undefined,
+      p_reward_coupon_id: input.rewardCouponId ?? undefined,
     });
 
     assertSupabaseResult("Unable to save opened letter.", error);

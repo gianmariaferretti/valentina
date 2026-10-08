@@ -126,8 +126,16 @@ export default async function ChallengesPage() {
                   </span>
                   <dl>
                     <div>
-                      <dt>Best</dt>
-                      <dd>{record.bestScore.toLocaleString("en-GB")}</dd>
+                      <dt>
+                        {game.engine === "survive-relationship"
+                          ? "Endings"
+                          : "Best"}
+                      </dt>
+                      <dd>
+                        {game.engine === "survive-relationship"
+                          ? `${record.discoveredSecrets.filter((id) => id.startsWith("relationship-ending:")).length} / 10`
+                          : record.bestScore.toLocaleString("en-GB")}
+                      </dd>
                     </div>
                     <div>
                       <dt>Attempts</dt>

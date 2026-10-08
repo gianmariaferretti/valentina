@@ -16,12 +16,14 @@ A private, interactive first-anniversary experience created by Gianmaria for Val
 ## Getting started
 
 ```bash
-npm install
+npm ci
 cp .env.example .env.local
 npm run dev
 ```
 
 Set `SITE_ACCESS_CODE`, a long random `AUTH_SECRET`, and the server-only Supabase variables documented below in `.env.local`. The access code has no client-side or development fallback: verification remains unavailable until `SITE_ACCESS_CODE` is configured. Production also requires `AUTH_SECRET` to sign sessions.
+
+Use Node 22.18+ (Node 24 recommended). `predev` and `prebuild` prepare the pinned Monogatari headless action runtime automatically; no CDN, Yarn, default Monogatari UI or localStorage is required.
 
 Run the complete local quality gate with:
 
@@ -80,7 +82,7 @@ Every response also sends a restrictive privacy/security baseline: CSP, clickjac
 
 Persistent state is stored in Supabase Postgres through feature-owned repository contracts. Supabase clients exist only under `src/lib/supabase` and server-only repository modules; no database client, project secret, raw state mutation, or answer key is included in the browser bundle. The existing signed access session remains the application authorization boundary and maps every authorized request to the single configured `SUPABASE_PRIMARY_USER_ID`. Supabase Auth and multi-user social models are intentionally not part of this private site.
 
-The versioned migration at `supabase/migrations/20261007220000_create_private_progress.sql` creates only user-state tables:
+The versioned migration at `supabase/migrations/20261007225657_create_private_progress.sql` creates only user-state tables:
 
 | Table              | Stored state                                                                                       |
 | ------------------ | -------------------------------------------------------------------------------------------------- |
@@ -121,7 +123,7 @@ Repository reads are request-memoized to avoid duplicate state queries when both
 
 4. Configure the same values in the deployment provider’s encrypted environment settings, then restart or redeploy the application. Visit `/coupons`, `/challenges`, `/quiz`, and `/open-when` from two devices to confirm the shared state.
 
-Database changes should be added as new migration files and deployed with `supabase db push`; do not edit the production schema manually after migration tracking begins. The additive `20261008094720_expand_vg_games_state.sql` migration extends the existing challenge table and adds atomic `begin_game_run` / `finish_game_run` functions; it does not create a competing game-state store. See the [Supabase migration workflow](https://supabase.com/docs/guides/deployment/database-migrations) and [server secret guidance](https://supabase.com/docs/guides/getting-started/api-keys).
+Database changes should be added as new migration files and deployed with `supabase db push`; do not edit the production schema manually after migration tracking begins. The additive `20261008152552_expand_vg_games_state.sql` migration extends the existing challenge table and adds atomic `begin_game_run` / `finish_game_run` functions; it does not create a competing game-state store. Both migrations are applied to the existing V&G project. Their filenames now match its migration history; the original migration SQL was verified identical before renaming. See the [Supabase migration workflow](https://supabase.com/docs/guides/deployment/database-migrations) and [server secret guidance](https://supabase.com/docs/guides/getting-started/api-keys).
 
 ### V&G Games
 
@@ -131,7 +133,7 @@ The seven playable files are:
 
 1. V&G: The Great Escape
 2. Operation: Find Gianmaria
-3. Survive Our Relationship
+3. Survive 24 Hours with Gianmaria
 4. Break My Defences
 5. Build Our Year
 6. Relationship Minefield
@@ -139,7 +141,7 @@ The seven playable files are:
 
 Every engine is dynamically imported after its briefing, so Canvas and interaction code are excluded from the collection’s initial client bundle. `GameExperience` supplies the shared loading, start, difficulty, sound, pause, restart, replay, persistence and reward surfaces. Engines own only their game rules and report a typed score/progress/ending result. Keyboard, pointer, swipe or on-screen controls are provided where appropriate; hidden-page pause and effect cleanup prevent abandoned loops from continuing after navigation.
 
-All seven new engines, the legacy Snake, and the original Midnight Circuit maze chase were implemented in-house. They use DOM, Canvas, `requestAnimationFrame`, Web Audio oscillator tones and existing V&G placeholder art; there is no third-party game engine, gameplay code, branded character, copied sprite, commercial sound or copyrighted game asset.
+Game rules, the legacy Snake, the original Midnight Circuit maze and all narrative content were implemented in-house. The visual novel integrates the MIT-licensed Monogatari function-action cycle through a small headless adapter. There are no commercial game assets, copied characters or sound packs. See `THIRD_PARTY_NOTICES.md` for verified licenses and the integration strategy.
 
 The server derives victory and eligible rewards from the trusted static definition rather than accepting reward claims from the browser. The atomic finish function can grant achievements, coupon unlocks, discoveries, secret records and cross-game items idempotently. Progress reads fail safely to an empty record; a database outage never prevents a game from being played, although the interface clearly reports that the result was not saved.
 
@@ -156,6 +158,22 @@ Open When content remains in the typed `src/data/open-when.ts` registry, while r
 The V&G Awards are configured entirely in `src/data/awards.ts`. Each typed entry owns its category, nominees, winner, copy, media, optional evidence, sticker treatment, prize, and presentation size. The route remains a Server Component while each ceremony envelope uses a small Client Component for the nominee and winner reveal sequence. Ceremony styling is scoped to the feature with a CSS Module.
 
 The relationship quiz keeps its replaceable question bank in `src/data/quiz-questions.ts` and its result bands and reward thresholds in `src/data/quiz.ts`. Correct answer keys stay in a server-only module. Each answer is validated in sequence by a Server Action against the active Supabase attempt; the client receives only the selected answer result. Completed attempts determine the persisted best score, while achievement and reward inserts are idempotent.
+
+### Survive 24 Hours with Gianmaria
+
+`/challenges/survive-relationship` is a branching novel, not an answer-scoring quiz. `src/data/relationship-story.ts` contains 36 unconditional decisions, three conditional scenes, six timed chapters, dialogue variations and two hidden fifth responses. Original fictional dialogue alternates between sincere and absurd; Gianmaria can replace personal details there. The relationship began **31 October 2025**.
+
+The pure domain under `src/features/games/visual-novel` clamps six hidden metrics to 0–100. Trust, patience, remembered clues and broken promises affect later reactions and responses. Only the final sealed report reveals metric values. Ten accumulated-state endings, including one difficult secret ending and the explicitly non-canon ending, live in `src/data/relationship-endings.ts`.
+
+At completion the authenticated Server Action independently replays the complete choice transcript. It discards client-supplied score, ending and secret claims for this game. Incomplete, impossible or out-of-order transcripts are rejected before database writes. This verifies story consistency, not that a human spent a particular amount of time playing it.
+
+The existing `challenge_scores.discovered_secrets` field stores the cumulative ending archive; no duplicate table or local progress store is introduced. First completion, perfect ending, secret ending and all ten endings have data-driven achievement rules. The server loads previous durable endings before deriving the collection grant; the existing active-run row lock and idempotent finish transaction protect concurrent/retried writes. An unsuccessful narrative ending still records completion time, while wins/losses remain distinct. The archive updates only after a confirmed save. An unfinished day is intentionally held in memory and does not resume on another device.
+
+`monogatari-adapter.ts` lazily imports the MIT Monogatari 2.6.0 function-action runtime prepared from the locked npm dependency. The generated runtime is approximately 36KB, has four source modules and no default UI/CSS, localStorage, global keyboard manager, particles, commercial assets or timers. Its complete licenses are distributed alongside it. Loading failures have a retry action, inputs pause on hidden pages, effects are cleaned up, sound is optional and reduced motion is respected.
+
+Run `npm run test:games`: a seeded 18,000-day deterministic simulation validates all ten reachable endings, all conditional scenes/hidden choices, 0–100 bounds, state-dependent dialogue, rejection of forged/incomplete paths and collection rewards. `supabase/tests/game_state.sql` additionally exercises ten replayed endings, four achievements, completion timestamps, atomic grants, duplicate-save rejection and legacy Snake compatibility inside a full rollback. No test progress is left in production.
+
+Artwork placeholders are named in the chapter registry (`morning-kitchen`, `lunch-street`, `incident-cafe`, `shopping-window`, `dinner-table`, `night-sofa`). Map those slots to real background/character media through `src/data/relationship-artwork.ts`; image metadata remains in the central `src/data/media.ts` registry. Until supplied, the novel shows explicit V/G paper monograms rather than invented personal photos.
 
 ### Geographic maps
 

@@ -34,7 +34,7 @@ Coupon redemption and reward-bearing challenge, quiz, letter and V&G game writes
 - Access codes are read only on the server and compared as fixed-length SHA-256 digests.
 - Failed access attempts receive a fixed delay and generic rotating copy.
 - Sessions are HMAC-signed, expire after 30 days, and use HTTP-only, SameSite=Strict, Secure-in-production cookies.
-- Production requires `AUTH_SECRET`; the existing validator accepts 5+ characters. Configure a cryptographically random secret of at least 32 characters. The games expansion does not alter or rotate the deployed access credentials.
+- Production requires `AUTH_SECRET`; configure a cryptographically random secret of at least 32 characters. The current remote access validator is preserved; the games expansion does not alter or rotate deployed credentials.
 - Private routes and every mutating action recheck the signed session.
 - A global lock action clears the session explicitly.
 - CSP, `X-Frame-Options`, `nosniff`, `no-referrer`, restrictive Permissions Policy, and header/metadata `noindex` controls are enabled.
@@ -43,6 +43,8 @@ Coupon redemption and reward-bearing challenge, quiz, letter and V&G game writes
 This remains a personal access gate, not identity-grade authentication. Deployment-level access protection and secret rotation are recommended. Arcade scores originate in a client-side game and receive server-side range/step/session validation; a hostile authorized browser could still forge a score. That is an accepted boundary for the single trusted private user, not a suitable model for competitive prizes.
 
 ## Major components
+
+Game 3 is now **Survive 24 Hours with Gianmaria**: a custom V&G visual novel using the MIT Monogatari function-action API, not its default interface. Six chapters contain 36 unconditional decisions plus three conditional scenes, two hidden responses and ten accumulated-state endings. A sealed report reveals the six otherwise hidden metrics. Server replay validates the complete choice transcript independently; ending archives and four achievements use the existing atomic Supabase games layer. Its 36KB engine integration is loaded only when playing; no global third-party input listeners, autosaves or default assets are initialised. Details and replaceable media slots are documented in README.
 
 - `SiteHeader`, `ProgressIndicator`, and `SiteFooter` form the authenticated shell.
 - `Sticker`, `Tape`, `PaperCard`, `TicketCard`, `Polaroid`, `PostageStamp`, `PassportStamp`, `HandwrittenNote`, and travel ephemera define the shared tactile system.
@@ -70,4 +72,6 @@ No major feature placeholder blocks the architecture, but personal editorial con
 - Replace the explicitly marked Year One timeline/scenario copy in `src/data/game-content.ts` and map game media slots in `src/data/game-media.ts` to real assets in the canonical `src/data/media.ts` registry.
 - Keep media IDs stable: Gallery, Map, Awards, Home, and Secret Area share that registry.
 
-Before production launch, apply the committed Supabase migration, configure all server secrets, select the final map provider, add platform access protection, and run `npm run verify`.
+Both committed migrations are applied to the existing Supabase project and their filenames match its history. Supabase types were regenerated from the live schema. SQL rollback tests cover game rewards, legacy compatibility, ten ending discoveries and achievement idempotence; user progress is unchanged by tests. Security advisors show only the seven intentional deny-all RLS tables without browser policies; performance advisors show no findings. See [RLS advisor guidance](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy).
+
+Production dependency audit is clean. The full development audit reports a pre-existing braces/Next ESLint dependency advisory; no patched braces release is available in the registry, so Next was not downgraded or force-upgraded. Monogatari's unused vulnerable build dependency is overridden to patched esbuild 0.25.x. Before launch, configure server secrets, add real artwork/content, select the final map provider, add platform access protection, and run `npm run verify`.

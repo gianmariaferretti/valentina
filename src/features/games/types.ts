@@ -3,7 +3,8 @@ export const gameDifficulties = ["story", "standard", "daring"] as const;
 export type GameDifficulty = (typeof gameDifficulties)[number];
 export type GameRewardKind =
   "achievement" | "coupon" | "discovery" | "secret" | "item";
-export type GameRewardTrigger = "completion" | "victory" | "secret";
+export type GameRewardTrigger =
+  "completion" | "victory" | "secret" | "collection";
 export type GameEngineKind =
   | "great-escape"
   | "find-gianmaria"
@@ -21,6 +22,7 @@ export interface GameRewardDefinition {
   readonly description: string;
   readonly trigger: GameRewardTrigger;
   readonly secretId?: string;
+  readonly requiredSecrets?: readonly string[];
 }
 
 export interface GameVictoryRule {
@@ -48,6 +50,7 @@ export interface VgGameDefinition {
   readonly maxScore: number;
   readonly victory: GameVictoryRule;
   readonly allowedEndings: readonly string[];
+  readonly permittedSecrets?: readonly string[];
   readonly rewards: readonly GameRewardDefinition[];
 }
 
@@ -78,6 +81,7 @@ export interface GameRunResult {
   readonly progress: number;
   readonly ending: string;
   readonly discoveredSecrets?: readonly string[];
+  readonly storyChoices?: readonly string[];
 }
 
 export interface GameRewardReceipt {
@@ -94,6 +98,7 @@ export interface GameEngineProps {
   readonly paused: boolean;
   readonly reduceMotion: boolean;
   readonly soundEnabled: boolean;
+  readonly archivedSecrets: readonly string[];
   readonly onFinish: (result: GameRunResult) => void;
   readonly onRestart: () => void;
   readonly onScoreChange: (score: number) => void;

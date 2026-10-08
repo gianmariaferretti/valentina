@@ -8,22 +8,37 @@ import type {
 export function evaluateGameResult(
   game: VgGameDefinition,
   result: GameRunResult,
+  archivedSecrets: readonly string[] = [],
 ) {
   const won =
     game.victory.endings.includes(result.ending) &&
     result.progress >= game.victory.minimumProgress &&
     result.score >= (game.victory.minimumScore ?? 0);
-  const permittedSecrets = new Set(
-    game.rewards.flatMap((reward) =>
+  const permittedSecrets = new Set([
+    ...(game.permittedSecrets ?? []),
+    ...game.rewards.flatMap((reward) =>
       reward.trigger === "secret" && reward.secretId ? [reward.secretId] : [],
     ),
-  );
+  ]);
   const discoveredSecrets = [...new Set(result.discoveredSecrets ?? [])].filter(
     (id) => permittedSecrets.has(id),
   );
   const rewards = game.rewards.filter((reward) => {
-    if (reward.trigger === "completion") return true;
+    if (reward.trigger === "completion") return result.progress === 100;
     if (reward.trigger === "victory") return won;
+    if (reward.trigger === "collection") {
+      const required = reward.requiredSecrets;
+      return (
+        result.progress === 100 &&
+        Boolean(required?.length) &&
+        Boolean(
+          required?.every(
+            (id) =>
+              discoveredSecrets.includes(id) || archivedSecrets.includes(id),
+          ),
+        )
+      );
+    }
     return Boolean(
       reward.secretId && discoveredSecrets.includes(reward.secretId),
     );

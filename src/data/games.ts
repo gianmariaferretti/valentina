@@ -1,4 +1,5 @@
 import type { VgGameDefinition } from "@/features/games/types";
+import { endingSecretId, relationshipEndings } from "./relationship-endings.ts";
 
 export const vgGames = [
   {
@@ -112,39 +113,85 @@ export const vgGames = [
     gameId: "survive-relationship",
     slug: "survive-relationship",
     number: "03",
-    title: "Survive Our Relationship",
-    shortTitle: "Survive Us",
-    dossierLabel: "Emergency response drill",
+    title: "Survive 24 Hours with Gianmaria",
+    shortTitle: "24 Hours Together",
+    dossierLabel: "An interactive relationship novel",
     description:
-      "Eight highly scientific relationship emergencies. Pick the response least likely to produce a diplomatic incident.",
+      "Six chapters. One very ordinary day that refuses to stay ordinary. A branching visual novel about listening, questionable decisions and the same team.",
     objective:
-      "Resolve at least six scenarios before the patience meter reaches zero.",
+      "Live the whole day, discover its consequences, and collect ten different endings.",
     engine: "survive-relationship",
-    difficulty: "standard",
-    estimatedMinutes: 3,
+    difficulty: "story",
+    estimatedMinutes: 18,
     accent: "rose",
     instructions: [
-      "Choose one response for each emergency dossier.",
-      "Good calls preserve patience; catastrophic calls remove it.",
-      "Six correct decisions count as a successful survival event.",
+      "You direct Gianmaria through six chapters, from morning coffee to the final conversation at home.",
+      "There are no correct answers. Earlier decisions change later dialogue, trust and available responses.",
+      "Follow small clues, keep promises, or create chaos. Your relationship report stays sealed until the day ends.",
+      "Replay to collect ten endings. Completed endings are archived across devices; an unfinished day is not saved.",
     ],
-    controls: ["Mouse or touch", "Tab and Enter", "Keys 1–3"],
-    maxScore: 800,
+    controls: [
+      "Mouse or touch",
+      "Tab and Enter",
+      "Keys 1–5 for responses",
+      "P to pause",
+    ],
+    maxScore: 1_000,
     victory: {
-      endings: ["relationship-intact"],
-      minimumProgress: 75,
-      minimumScore: 600,
+      endings: [
+        "perfect-boyfriend",
+        "still-together",
+        "valentina-wins",
+        "gianmaria-was-right",
+        "snack-diplomat",
+        "beautiful-chaos",
+        "quiet-team",
+        "eleventh-hour",
+      ],
+      minimumProgress: 100,
     },
-    allowedEndings: ["relationship-intact", "diplomatic-incident"],
+    allowedEndings: relationshipEndings.map((ending) => ending.id),
+    permittedSecrets: relationshipEndings.map((ending) =>
+      endingSecretId(ending.id),
+    ),
     rewards: [
       {
         id: "survive-relationship-achievement",
         kind: "achievement",
         targetId: "relationship-survivor",
-        title: "Still Together Somehow",
+        title: "One Whole Day",
+        description: "Completed a first full day in the relationship novel.",
+        trigger: "completion",
+      },
+      {
+        id: "relationship-perfect-achievement",
+        kind: "achievement",
+        targetId: "relationship-perfect",
+        title: "Suspiciously Perfect",
+        description: "Discovered the Perfect Boyfriend ending.",
+        trigger: "secret",
+        secretId: endingSecretId("perfect-boyfriend"),
+      },
+      {
+        id: "relationship-secret-achievement",
+        kind: "achievement",
+        targetId: "relationship-eleventh-hour",
+        title: "The Little Things",
         description:
-          "Passed the emergency drill with the relationship legally intact.",
-        trigger: "victory",
+          "Followed the clues all the way to the very difficult secret ending.",
+        trigger: "secret",
+        secretId: endingSecretId("eleventh-hour"),
+      },
+      {
+        id: "relationship-all-endings-achievement",
+        kind: "achievement",
+        targetId: "relationship-complete-archive",
+        title: "Every Version of Us",
+        description: "Discovered all ten endings, including the non-canon one.",
+        trigger: "collection",
+        requiredSecrets: relationshipEndings.map((ending) =>
+          endingSecretId(ending.id),
+        ),
       },
       {
         id: "survive-relationship-snack-token",

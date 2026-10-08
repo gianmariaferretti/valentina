@@ -1,219 +1,285 @@
 "use client";
 
-import { Heart, ShieldAlert } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
-
-import { relationshipScenarios } from "@/data/game-content";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { Sticker } from "@/components/design-system";
 import {
-  GameHud,
-  GameOutcome,
-  GamePausedOverlay,
-} from "@/features/games/components/game-primitives";
+  relationshipChapters,
+  relationshipStory,
+} from "@/data/relationship-story";
+import { relationshipEndings } from "@/data/relationship-endings";
 import { useGameSound } from "@/features/games/hooks/use-game-sound";
+import { GameEngineLoading } from "@/features/games/components/game-primitives";
 import {
-  useGameCountdown,
-  useGameDelay,
-} from "@/features/games/hooks/use-game-clock";
-import type { GameEngineProps, GameRunResult } from "@/features/games/types";
-
-import styles from "../components/games.module.css";
+  availableStoryChoices,
+  createStoryState,
+  replayRelationshipStory,
+  relationshipMetricLabels,
+  storyDecision,
+  storyPresentation,
+} from "@/features/games/visual-novel/story-domain";
+import { createNovelRuntime } from "@/features/games/visual-novel/monogatari-adapter";
+import { SceneArtwork } from "@/features/games/visual-novel/scene-artwork";
+import type { GameEngineProps } from "@/features/games/types";
+import type { RelationshipMetric } from "@/features/games/visual-novel/types";
+import styles from "@/features/games/visual-novel/novel.module.css";
 
 export function SurviveRelationshipGame({
-  difficulty,
   paused,
   soundEnabled,
+  reduceMotion,
   onFinish,
-  onRestart,
   onProgressChange,
-  onScoreChange,
+  onRestart,
 }: GameEngineProps) {
-  const correctRef = useRef(0);
-  const patienceRef = useRef(3);
-  const scoreRef = useRef(0);
-  const finishedRef = useRef(false);
-  const [roundIndex, setRoundIndex] = useState(0);
-  const [patience, setPatience] = useState(3);
-  const [correct, setCorrect] = useState(0);
-  const [score, setScore] = useState(0);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [resolved, setResolved] = useState(false);
-  const [feedback, setFeedback] = useState(
-    "The emergency committee is waiting for your decision.",
+  const [state, setState] = useState(createStoryState);
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loadingKey, setLoadingKey] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [reaction, setReaction] = useState<string | null>(null);
+  const [revealed, setRevealed] = useState(false);
+  const runtime = useRef<Awaited<ReturnType<typeof createNovelRuntime>> | null>(
+    null,
   );
-  const [result, setResult] = useState<GameRunResult | null>(null);
-  const playSound = useGameSound(soundEnabled);
-  const scenario = relationshipScenarios[roundIndex];
-
-  const finish = useCallback(
-    (nextResult: GameRunResult) => {
-      if (finishedRef.current) return;
-      finishedRef.current = true;
-      setResult(nextResult);
-      onScoreChange(nextResult.score);
-      onProgressChange(nextResult.progress);
-      playSound(nextResult.progress === 100 ? "victory" : "wrong");
-      onFinish(nextResult);
-    },
-    [onFinish, onProgressChange, onScoreChange, playSound],
-  );
-
-  const chooseAnswer = useCallback(
-    (answerIndex: number) => {
-      if (paused || resolved || finishedRef.current) return;
-      const isCorrect = answerIndex === scenario.correctIndex;
-      const nextCorrect = correctRef.current + (isCorrect ? 1 : 0);
-      const nextPatience = patienceRef.current - (isCorrect ? 0 : 1);
-      const nextScore = scoreRef.current + (isCorrect ? 100 : 0);
-      const roundProgress = Math.round(
-        ((roundIndex + 1) / relationshipScenarios.length) * 100,
-      );
-
-      correctRef.current = nextCorrect;
-      patienceRef.current = nextPatience;
-      scoreRef.current = nextScore;
-      setCorrect(nextCorrect);
-      setPatience(nextPatience);
-      setScore(nextScore);
-      setSelectedIndex(answerIndex >= 0 ? answerIndex : null);
-      setResolved(true);
-      setFeedback(
-        isCorrect
-          ? scenario.feedback
-          : answerIndex < 0
-            ? "Silence was interpreted as a tactical error."
-            : "The jury has described that response as ‘boldly unhelpful’. ",
-      );
-      onScoreChange(nextScore);
-      onProgressChange(roundProgress);
-      playSound(isCorrect ? "correct" : "wrong");
-    },
-    [
-      onProgressChange,
-      onScoreChange,
-      paused,
-      playSound,
-      resolved,
-      roundIndex,
-      scenario.correctIndex,
-      scenario.feedback,
-    ],
-  );
-
-  const roundSeconds =
-    difficulty === "story" ? 18 : difficulty === "daring" ? 8 : 12;
-  const { secondsLeft, resetCountdown } = useGameCountdown(
-    roundSeconds,
-    !paused && !resolved && !result,
-    () => chooseAnswer(-1),
-  );
-
-  useGameDelay(!paused && resolved && !result, 720, () => {
-    const isLastRound = roundIndex === relationshipScenarios.length - 1;
-    if (patienceRef.current <= 0 || isLastRound) {
-      const won = patienceRef.current > 0 && correctRef.current >= 6;
-      const roundProgress = Math.round(
-        ((roundIndex + 1) / relationshipScenarios.length) * 100,
-      );
-      finish({
-        score: scoreRef.current,
-        progress: won ? 100 : Math.min(99, roundProgress),
-        ending: won ? "relationship-intact" : "diplomatic-incident",
-      });
-      return;
-    }
-    setRoundIndex((value) => value + 1);
-    resetCountdown(roundSeconds);
-    setSelectedIndex(null);
-    setResolved(false);
-    setFeedback("New emergency received. Please pretend to remain calm.");
-  });
+  const locked = useRef(false);
+  const mounted = useRef(true);
+  const focusTarget = useRef<HTMLHeadingElement>(null);
+  const sound = useGameSound(soundEnabled);
+  const decision = storyDecision(state);
+  const presentation = storyPresentation(state);
+  const choices = availableStoryChoices(state);
+  const chapter = relationshipChapters[decision?.chapter ?? 5];
 
   useEffect(() => {
-    if (paused || resolved || result) return;
-    function handleNumberKey(event: KeyboardEvent) {
-      const index = Number(event.key) - 1;
-      if (!Number.isInteger(index) || index < 0 || index > 2) return;
-      event.preventDefault();
-      chooseAnswer(index);
-    }
-    window.addEventListener("keydown", handleNumberKey);
-    return () => window.removeEventListener("keydown", handleNumberKey);
-  }, [chooseAnswer, paused, resolved, result]);
+    let cancelled = false;
+    mounted.current = true;
+    createNovelRuntime()
+      .then((engine) => {
+        if (cancelled) {
+          engine.dispose();
+          return;
+        }
+        runtime.current = engine;
+        setReady(true);
+      })
+      .catch(() => {
+        if (!cancelled)
+          setError(
+            "The story engine could not be loaded. Your private archive is unaffected.",
+          );
+      });
+    return () => {
+      cancelled = true;
+      mounted.current = false;
+      runtime.current?.dispose();
+      runtime.current = null;
+    };
+  }, [loadingKey]);
+  useEffect(() => {
+    if (ready) focusTarget.current?.focus({ preventScroll: true });
+  }, [state.cursor, reaction, ready, revealed]);
 
+  async function choose(id: string) {
+    if (paused || reaction || locked.current || !runtime.current || !decision)
+      return;
+    locked.current = true;
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await runtime.current.choose(state, id);
+      if (!mounted.current) return;
+      setState(result.state);
+      setReaction(result.consequence);
+      onProgressChange(
+        Math.round((result.state.cursor / relationshipStory.length) * 100),
+      );
+      sound("move");
+    } catch {
+      if (mounted.current)
+        setError("That response could not be applied. Please try again.");
+    } finally {
+      locked.current = false;
+      if (mounted.current) setBusy(false);
+    }
+  }
+  function continueStory() {
+    if (paused || busy || !reaction) return;
+    setReaction(null);
+  }
+  const handleKey = useEffectEvent((event: KeyboardEvent) => {
+    if (
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.repeat ||
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement
+    )
+      return;
+    const index = Number(event.key) - 1;
+    if (!paused && !reaction && choices[index]) {
+      event.preventDefault();
+      void choose(choices[index].id);
+    }
+  });
+  useEffect(() => {
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
+
+  if (!ready)
+    return (
+      <div className={styles.loading}>
+        {error ? (
+          <>
+            <p role="alert">{error}</p>
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                setLoadingKey((key) => key + 1);
+              }}
+            >
+              Retry loading story
+            </button>
+          </>
+        ) : (
+          <GameEngineLoading />
+        )}
+      </div>
+    );
+  if (!decision && !reaction) {
+    const result = replayRelationshipStory(state.choices);
+    const ending = relationshipEndings.find(
+      (item) => item.id === result.ending,
+    )!;
+    return (
+      <section className={styles.report} data-reduced-motion={reduceMotion}>
+        <p className={styles.eyebrow}>24 HOURS LATER / SEALED REPORT</p>
+        <h2 ref={focusTarget} tabIndex={-1}>
+          {revealed ? ending.title : "What the day left behind."}
+        </h2>
+        <dl>
+          {(Object.keys(relationshipMetricLabels) as RelationshipMetric[]).map(
+            (metric) => (
+              <div key={metric}>
+                <dt>{relationshipMetricLabels[metric]}</dt>
+                <dd>
+                  {state.metrics[metric]} <span>/ 100</span>
+                </dd>
+                <meter
+                  aria-label={relationshipMetricLabels[metric]}
+                  value={state.metrics[metric]}
+                  min={0}
+                  max={100}
+                />
+              </div>
+            ),
+          )}
+        </dl>
+        {revealed ? (
+          <div className={styles.ending}>
+            <Sticker
+              text={
+                ending.id === "eleventh-hour" ? "Top secret" : "Evidence filed"
+              }
+              variant="classified"
+              rotation={-3}
+            />
+            <p>{ending.description}</p>
+            {"footnote" in ending ? <small>{ending.footnote}</small> : null}
+            <button type="button" onClick={onRestart}>
+              Live another version of the day
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            disabled={paused}
+            onClick={() => {
+              setRevealed(true);
+              sound("victory");
+              onFinish({
+                score: result.score,
+                progress: 100,
+                ending: result.ending,
+                discoveredSecrets: result.discoveredSecrets,
+                storyChoices: state.choices,
+              });
+            }}
+          >
+            Reveal the ending
+          </button>
+        )}
+        <p className={styles.filingNote}>
+          Check the archive status below. An ending is collected only after its
+          save succeeds.
+        </p>
+      </section>
+    );
+  }
   return (
     <section
-      className={styles.survivalGame}
-      aria-label="Survive Our Relationship game"
+      className={styles.novel}
+      data-reduced-motion={reduceMotion}
+      aria-label="Interactive relationship story"
     >
-      <GameHud
-        details={[
-          { label: "Emergency", value: `${roundIndex + 1}/8` },
-          { label: "Correct", value: `${correct}/6` },
-          { label: "Time", value: `${secondsLeft}s` },
-        ]}
-        progress={result?.progress ?? (roundIndex / 8) * 100}
-        score={score}
-      />
-
-      <div className={styles.emergencyDossier}>
-        <header>
-          <div>
-            <ShieldAlert aria-hidden="true" />
-            <span>Emergency {String(roundIndex + 1).padStart(2, "0")}</span>
-          </div>
-          <div
-            className={styles.patienceMeter}
-            aria-label={`${patience} patience remaining`}
+      <div className={styles.scene} data-chapter={decision?.chapter ?? 5}>
+        <div className={styles.sceneTitle}>
+          <p>
+            {chapter.time} / CHAPTER{" "}
+            {String((decision?.chapter ?? 5) + 1).padStart(2, "0")}
+          </p>
+          <h2>{chapter.title}</h2>
+          <span>{chapter.setting}</span>
+        </div>
+        <SceneArtwork slotId={chapter.artwork} />
+        <p className={styles.annotation}>{chapter.annotation}</p>
+      </div>
+      <div className={styles.dialogue}>
+        <p className={styles.eyebrow}>
+          {reaction ? "WHAT HAPPENED NEXT" : presentation?.speaker}
+        </p>
+        <h3 ref={focusTarget} tabIndex={-1}>
+          {reaction ? "A little consequence." : presentation?.dialogue}
+        </h3>
+        <p className={styles.narration} aria-live="polite">
+          {reaction ?? presentation?.narration}
+        </p>
+        {paused ? (
+          <p className={styles.pause} role="status">
+            The day is paused. Resume using the controls above.
+          </p>
+        ) : null}
+        {error ? <p role="alert">{error}</p> : null}
+        {reaction ? (
+          <button
+            className={styles.continue}
+            type="button"
+            disabled={paused || busy}
+            onClick={continueStory}
           >
-            {[0, 1, 2].map((index) => (
-              <Heart
-                aria-hidden="true"
-                data-active={index < patience}
-                fill={index < patience ? "currentColor" : "none"}
-                key={index}
-              />
+            {decision ? "Continue the day" : "Open the relationship report"}{" "}
+            <span aria-hidden="true">→</span>
+          </button>
+        ) : (
+          <div className={styles.choices}>
+            {choices.map((choice, index) => (
+              <button
+                key={choice.id}
+                type="button"
+                disabled={paused || busy}
+                onClick={() => void choose(choice.id)}
+              >
+                <span>{String.fromCharCode(65 + index)}</span>
+                {choice.text}
+              </button>
             ))}
           </div>
-        </header>
-        <p className={styles.scenarioPrompt}>{scenario.prompt}</p>
-        <div className={styles.answerStack}>
-          {scenario.answers.map((answer, answerIndex) => {
-            const selected = selectedIndex === answerIndex;
-            const verdict =
-              resolved && selected
-                ? answerIndex === scenario.correctIndex
-                  ? "correct"
-                  : "wrong"
-                : undefined;
-            return (
-              <button
-                data-verdict={verdict}
-                disabled={resolved || Boolean(result)}
-                key={answer}
-                onClick={() => chooseAnswer(answerIndex)}
-                type="button"
-              >
-                <span>{answerIndex + 1}</span>
-                {answer}
-              </button>
-            );
-          })}
-        </div>
-        <p aria-live="polite" className={styles.dossierFeedback}>
-          {feedback}
+        )}
+        <p className={styles.caption}>
+          No countdown. No correct answer. Just what you do next.
         </p>
-
-        {paused ? <GamePausedOverlay /> : null}
-        {result ? (
-          <GameOutcome
-            failureCopy="The emergency committee has adjourned. Snacks and a diplomatic reset are advised."
-            failureTitle="Diplomatic incident."
-            onRestart={onRestart}
-            result={result}
-            successCopy="Eight emergencies processed. The relationship remains improbably operational."
-            successTitle="We survived us."
-          />
-        ) : null}
       </div>
     </section>
   );

@@ -28,6 +28,7 @@ import {
 } from "@/features/games/actions/game-actions";
 import { GameEngineLoading } from "@/features/games/components/game-primitives";
 import { GameRewardReceipts } from "@/features/games/components/game-reward-receipts";
+import { EndingsArchive } from "@/features/games/visual-novel/endings-archive";
 import type {
   GameDifficulty,
   GameEngineProps,
@@ -132,6 +133,7 @@ export function GameExperience({
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [runKey, setRunKey] = useState(0);
   const [starting, setStarting] = useState(false);
+  const [completedRun, setCompletedRun] = useState(false);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [rewards, setRewards] = useState<readonly GameRewardReceipt[]>([]);
@@ -169,6 +171,7 @@ export function GameExperience({
     }
 
     finishedRef.current = false;
+    setCompletedRun(false);
     startTimeRef.current = performance.now();
     pauseStartedAtRef.current = null;
     pausedDurationRef.current = 0;
@@ -226,6 +229,7 @@ export function GameExperience({
     async (result: GameRunResult) => {
       if (finishedRef.current) return;
       finishedRef.current = true;
+      setCompletedRun(true);
       const durationMs = Math.max(
         0,
         Math.floor(
@@ -243,6 +247,7 @@ export function GameExperience({
         progress: result.progress,
         ending: result.ending,
         discoveredSecrets: result.discoveredSecrets ?? [],
+        storyChoices: result.storyChoices,
       };
       setPendingSave(input);
       await saveResult(input);
@@ -300,6 +305,7 @@ export function GameExperience({
     paused: paused || starting,
     reduceMotion,
     soundEnabled,
+    archivedSecrets: progressState.discoveredSecrets,
     onFinish: finishRun,
     onRestart: startRun,
     onScoreChange: setCurrentScore,
@@ -308,7 +314,11 @@ export function GameExperience({
   const Engine = gameEngines[game.engine];
 
   return (
-    <div className={styles.gameExperience} data-accent={game.accent}>
+    <div
+      className={styles.gameExperience}
+      data-accent={game.accent}
+      data-narrative={game.engine === "survive-relationship"}
+    >
       <div className="page-container py-6 sm:py-10 lg:py-14">
         <nav className={styles.gameBreadcrumb} aria-label="Game navigation">
           <Link href="/challenges">
@@ -365,23 +375,35 @@ export function GameExperience({
             </PaperCard>
 
             <aside className={styles.briefingAside}>
-              <section>
-                <p>Difficulty file</p>
-                <div className={styles.difficultyPicker}>
-                  {(["story", "standard", "daring"] as const).map((option) => (
-                    <button
-                      aria-pressed={difficulty === option}
-                      data-selected={difficulty === option}
-                      key={option}
-                      onClick={() => setDifficulty(option)}
-                      type="button"
-                    >
-                      <strong>{option}</strong>
-                      <span>{difficultyCopy[option]}</span>
-                    </button>
-                  ))}
-                </div>
-              </section>
+              {game.engine === "survive-relationship" ? (
+                <section>
+                  <p>Story mode</p>
+                  <p>
+                    No timer. No answer key. The secret ending is difficult
+                    because of the choices you accumulate, not faster controls.
+                  </p>
+                </section>
+              ) : (
+                <section>
+                  <p>Difficulty file</p>
+                  <div className={styles.difficultyPicker}>
+                    {(["story", "standard", "daring"] as const).map(
+                      (option) => (
+                        <button
+                          aria-pressed={difficulty === option}
+                          data-selected={difficulty === option}
+                          key={option}
+                          onClick={() => setDifficulty(option)}
+                          type="button"
+                        >
+                          <strong>{option}</strong>
+                          <span>{difficultyCopy[option]}</span>
+                        </button>
+                      ),
+                    )}
+                  </div>
+                </section>
+              )}
               <section>
                 <p>Controls</p>
                 <ul>
@@ -421,16 +443,30 @@ export function GameExperience({
             >
               <dl>
                 <div>
-                  <dt>Score</dt>
-                  <dd>{currentScore.toLocaleString("en-GB")}</dd>
+                  <dt>
+                    {game.engine === "survive-relationship" ? "File" : "Score"}
+                  </dt>
+                  <dd>
+                    {game.engine === "survive-relationship"
+                      ? "24h"
+                      : currentScore.toLocaleString("en-GB")}
+                  </dd>
                 </div>
                 <div>
                   <dt>Progress</dt>
                   <dd>{currentProgress}%</dd>
                 </div>
                 <div>
-                  <dt>Best</dt>
-                  <dd>{progressState.bestScore.toLocaleString("en-GB")}</dd>
+                  <dt>
+                    {game.engine === "survive-relationship"
+                      ? "Endings"
+                      : "Best"}
+                  </dt>
+                  <dd>
+                    {game.engine === "survive-relationship"
+                      ? `${progressState.discoveredSecrets.filter((id) => id.startsWith("relationship-ending:")).length}/10`
+                      : progressState.bestScore.toLocaleString("en-GB")}
+                  </dd>
                 </div>
                 <div>
                   <dt>Attempts</dt>
@@ -440,6 +476,7 @@ export function GameExperience({
               <div className={styles.runtimeActions}>
                 <button
                   aria-label={paused ? "Resume game" : "Pause game"}
+                  disabled={completedRun || starting}
                   onClick={togglePause}
                   type="button"
                 >
@@ -496,10 +533,15 @@ export function GameExperience({
           </>
         )}
 
+        {game.engine === "survive-relationship" ? (
+          <EndingsArchive archivedSecrets={progressState.discoveredSecrets} />
+        ) : null}
         <footer className={styles.gameRecordFooter}>
-          <span>
-            Best score · {progressState.bestScore.toLocaleString("en-GB")}
-          </span>
+          {game.engine !== "survive-relationship" ? (
+            <span>
+              Best score · {progressState.bestScore.toLocaleString("en-GB")}
+            </span>
+          ) : null}
           <span>Wins · {progressState.wins}</span>
           <span>Losses · {progressState.losses}</span>
           <span>

@@ -17,6 +17,10 @@ declare
     {"id":"test-secret","kind":"secret","targetId":"test-secret"},
     {"id":"test-item","kind":"item","targetId":"test-item"}
   ]'::jsonb;
+  ending_id text;
+  novel_run uuid;
+  ending_number integer := 0;
+  novel_grants jsonb;
 begin
   assert not has_function_privilege('anon', 'public.begin_game_run(uuid,uuid,text,text,timestamptz)', 'execute');
   assert not has_function_privilege('authenticated', 'public.finish_game_run(uuid,uuid,text,integer,integer,text,smallint,text,boolean,jsonb,text[],timestamptz)', 'execute');
@@ -61,6 +65,28 @@ begin
 
   perform * from public.record_challenge_result(test_user, 'snake', 500, true, 'test-legacy-coupon', now());
   assert (select best_score = 500 and attempts = 1 from public.challenge_scores where user_id = test_user and challenge_id = 'snake');
+
+  foreach ending_id in array array['sleeping-on-the-sofa','perfect-boyfriend','still-together','you-had-one-job','valentina-wins','gianmaria-was-right','snack-diplomat','beautiful-chaos','quiet-team','eleventh-hour']
+  loop
+    ending_number := ending_number + 1;
+    novel_run := gen_random_uuid();
+    novel_grants := '[{"id":"survive-relationship-achievement","kind":"achievement","targetId":"relationship-survivor"}]'::jsonb;
+    if ending_id = 'perfect-boyfriend' then
+      novel_grants := novel_grants || '[{"id":"relationship-perfect-achievement","kind":"achievement","targetId":"relationship-perfect"}]'::jsonb;
+    end if;
+    if ending_id = 'eleventh-hour' then
+      novel_grants := novel_grants || '[{"id":"relationship-secret-achievement","kind":"achievement","targetId":"relationship-eleventh-hour"},{"id":"relationship-all-endings-achievement","kind":"achievement","targetId":"relationship-complete-archive"}]'::jsonb;
+    end if;
+    perform * from public.begin_game_run(novel_run, test_user, 'survive-relationship', 'story', now());
+    select * into saved from public.finish_game_run(novel_run, test_user, 'survive-relationship', 200, 300000, 'story', 100::smallint, ending_id, ending_id not in ('sleeping-on-the-sofa','you-had-one-job'), novel_grants, array['relationship-ending:' || ending_id], now());
+    assert saved.completed_at is not null, 'A completed narrative day has a completion timestamp even for a failure ending';
+    assert cardinality(saved.discovered_secrets) = ending_number, 'Ending archive must accumulate across replays';
+  end loop;
+  assert saved.attempts = 10 and saved.wins = 8 and saved.losses = 2;
+  assert cardinality(saved.unlocked_rewards) = 4;
+  select * into saved from public.finish_game_run(novel_run, test_user, 'survive-relationship', 200, 300000, 'story', 100::smallint, 'eleventh-hour', true, novel_grants, array['relationship-ending:eleventh-hour'], now());
+  assert saved.wins = 8 and cardinality(saved.newly_granted_reward_ids) = 0;
+  assert (select count(*) = 4 from public.achievements where user_id = test_user and achievement_id like 'relationship-%');
 end;
 $$;
 

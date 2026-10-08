@@ -8,6 +8,7 @@ import { getCoupon } from "@/data/coupons";
 import { getVgGame } from "@/data/games";
 import { getChallengeStateRepository } from "@/features/challenges/repositories/get-challenge-state-repository";
 import { evaluateGameResult } from "@/features/games/lib/game-domain";
+import { replayRelationshipStory } from "@/features/games/visual-novel/story-domain";
 import type {
   GameDifficulty,
   GameProgress,
@@ -37,6 +38,7 @@ export interface FinishGameRunInput {
   readonly progress: number;
   readonly ending: string;
   readonly discoveredSecrets: readonly string[];
+  readonly storyChoices?: readonly string[];
 }
 
 export interface FinishGameRunResponse {
@@ -117,6 +119,26 @@ export async function finishVgGameRun(
   }
 
   const game = getVgGame(input.gameId);
+  if (game?.engine === "survive-relationship") {
+    try {
+      const verified = replayRelationshipStory(input.storyChoices ?? []);
+      input = {
+        ...input,
+        score: verified.score,
+        progress: verified.progress,
+        ending: verified.ending,
+        discoveredSecrets: verified.discoveredSecrets,
+      };
+    } catch {
+      return {
+        status: "error",
+        message:
+          "This story transcript could not be verified. Complete a legitimate day before filing the report.",
+        won: false,
+        rewards: [],
+      };
+    }
+  }
   const score = input.score;
   const durationMs = input.durationMs;
   const progress = input.progress;
@@ -143,7 +165,28 @@ export async function finishVgGameRun(
     };
   }
 
-  const { won, discoveredSecrets, rewards } = evaluateGameResult(game, input);
+  // The active-run lock in finishRun prevents a second device from merging a superseded day.
+  let archivedSecrets: readonly string[] = [];
+  try {
+    if (game.engine === "survive-relationship")
+      archivedSecrets =
+        (await getChallengeStateRepository().get()).games.find(
+          (record) => record.gameId === game.gameId,
+        )?.discoveredSecrets ?? [];
+  } catch (error) {
+    reportPersistenceFailure("load ending archive", error);
+    return {
+      status: "error",
+      message: persistenceFailureMessage("This ending"),
+      won: false,
+      rewards: [],
+    };
+  }
+  const { won, discoveredSecrets, rewards } = evaluateGameResult(
+    game,
+    input,
+    archivedSecrets,
+  );
 
   for (const reward of rewards) {
     if (reward.kind === "coupon" && !getCoupon(reward.targetId)) {

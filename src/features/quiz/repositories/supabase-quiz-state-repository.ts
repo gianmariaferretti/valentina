@@ -144,9 +144,9 @@ export class SupabaseQuizStateRepository implements QuizStateRepository {
       p_answers: serializeAnswers(input.attempt.answers),
       p_score: input.score,
       p_completed_at: input.completedAt,
-      p_achievement_id: input.achievementId,
-      p_reward_id: input.rewardId,
-      p_reward_coupon_id: input.rewardCouponId,
+      p_achievement_id: input.achievementId ?? undefined,
+      p_reward_id: input.rewardId ?? undefined,
+      p_reward_coupon_id: input.rewardCouponId ?? undefined,
     });
 
     assertSupabaseResult("Unable to complete quiz attempt.", error);

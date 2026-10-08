@@ -27,31 +27,31 @@ export default async function AchievementsPage() {
       description="Milestones awarded for long-distance logistics, elite snack theft and other measurable relationship excellence."
       eyebrow="Progress, gamified unnecessarily"
       icon="achievements"
-      note="Achievements are granted once and archived across devices. Seven new badges are hidden inside V&G Games."
+      note="Achievements are granted once and archived across devices. Game badges and four visual-novel milestones are hidden inside V&G Games."
       title="Badges for surviving us."
     >
       <section className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {vgGames.map((game) => {
-          const achievement = game.rewards.find(
-            (reward) => reward.kind === "achievement",
-          );
-          if (!achievement) return null;
-          const record = getChallengeProgress(
-            game.gameId,
-            gameState,
-            game.difficulty,
-          );
-          const unlocked = record.unlockedRewards.includes(achievement.id);
-          return (
-            <AchievementCard
-              description={achievement.description}
-              eyebrow={`${game.number} · ${game.shortTitle}`}
-              key={achievement.id}
-              title={achievement.title}
-              unlocked={unlocked}
-            />
-          );
-        })}
+        {vgGames.flatMap((game) =>
+          game.rewards
+            .filter((reward) => reward.kind === "achievement")
+            .map((achievement) => {
+              const record = getChallengeProgress(
+                game.gameId,
+                gameState,
+                game.difficulty,
+              );
+              const unlocked = record.unlockedRewards.includes(achievement.id);
+              return (
+                <AchievementCard
+                  description={achievement.description}
+                  eyebrow={`${game.number} · ${game.shortTitle}`}
+                  key={achievement.id}
+                  title={achievement.title}
+                  unlocked={unlocked}
+                />
+              );
+            }),
+        )}
 
         {quizAchievementRule ? (
           <AchievementCard

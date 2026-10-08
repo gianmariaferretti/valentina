@@ -251,7 +251,7 @@ begin
     p_score,
     1,
     p_finished_at - make_interval(secs => p_duration_ms / 1000.0),
-    case when p_won then p_finished_at else null end,
+    case when p_progress = 100 then p_finished_at else null end,
     p_duration_ms,
     p_difficulty,
     p_progress,
@@ -265,7 +265,7 @@ begin
     set best_score = greatest(public.challenge_scores.best_score, excluded.best_score),
         latest_score = excluded.latest_score,
         completed_at = case
-          when p_won then coalesce(public.challenge_scores.completed_at, excluded.completed_at)
+          when p_progress = 100 then coalesce(public.challenge_scores.completed_at, excluded.completed_at)
           else public.challenge_scores.completed_at
         end,
         duration_ms = excluded.duration_ms,
