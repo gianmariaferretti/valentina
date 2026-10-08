@@ -94,9 +94,9 @@ export function EuropeMapExperience({
       maxZoom: 4.7,
       padding: {
         top: 72,
-        right: map.getContainer().clientWidth >= 1024 ? 72 : 36,
-        bottom: map.getContainer().clientWidth >= 640 ? 72 : 190,
-        left: map.getContainer().clientWidth >= 1024 ? 390 : 36,
+        right: map.getContainer().clientWidth >= 1024 ? 110 : 64,
+        bottom: map.getContainer().clientWidth >= 640 ? 110 : 210,
+        left: map.getContainer().clientWidth >= 1024 ? 110 : 64,
       },
     });
   }, [destinations]);
@@ -159,7 +159,10 @@ export function EuropeMapExperience({
     map.once("load", handleLoad);
     map.on("error", handleError);
 
-    const resizeObserver = new ResizeObserver(() => map.resize());
+    const resizeObserver = new ResizeObserver(() => {
+      map.resize();
+      frameAllDestinations();
+    });
     resizeObserver.observe(container);
 
     return () => {
