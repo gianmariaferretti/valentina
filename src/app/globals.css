@@ -2193,11 +2193,12 @@ a {
 
 .envelope__address {
   position: absolute;
-  z-index: 4;
-  top: 42%;
+  z-index: 6;
+  top: 55%;
   right: 18%;
   left: 9%;
   display: block;
+  pointer-events: none;
 }
 
 .envelope__address > span {
