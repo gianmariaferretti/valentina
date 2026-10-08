@@ -287,7 +287,6 @@ export const places = [
     travelCode: "BRU",
     stampTone: "mustard",
   },
-,
   {
     id: "place-polignano-a-mare",
     slug: "polignano-a-mare",
