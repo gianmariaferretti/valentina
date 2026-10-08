@@ -47,10 +47,13 @@ export default function GalleryPage() {
           </HandwrittenNote>
         </div>
 
-        <Images aria-hidden="true" className="absolute bottom-8 left-0" />
+        <Images
+          aria-hidden="true"
+          className="absolute bottom-8 left-0 hidden sm:block"
+        />
         <Sparkles
           aria-hidden="true"
-          className="absolute right-[28%] bottom-20 text-[var(--rust)]"
+          className="absolute right-[28%] bottom-20 hidden text-[var(--rust)] sm:block"
           size={19}
         />
       </header>

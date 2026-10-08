@@ -9,11 +9,26 @@ export const metadata: Metadata = {
     default: "V&G — Year One",
     template: "%s · V&G",
   },
-  description:
-    "A private interactive archive of Valentina and Gianmaria’s first year.",
+  description: "A private interactive archive for two people.",
+  formatDetection: {
+    address: false,
+    email: false,
+    telephone: false,
+  },
+  referrer: "no-referrer",
   robots: {
     follow: false,
+    googleBot: {
+      follow: false,
+      index: false,
+      noimageindex: true,
+      nosnippet: true,
+    },
     index: false,
+    noarchive: true,
+    nocache: true,
+    noimageindex: true,
+    nosnippet: true,
   },
 };
 

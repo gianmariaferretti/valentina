@@ -12,11 +12,33 @@ import type { Destination } from "@/features/map/types";
 
 export function PlaceMiniMap({ place }: { place: Destination }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
   const [mapError, setMapError] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
+
+    if (!("IntersectionObserver" in window)) {
+      const animationFrame = requestAnimationFrame(() => setShouldLoad(true));
+      return () => cancelAnimationFrame(animationFrame);
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setShouldLoad(true);
+        observer.disconnect();
+      },
+      { rootMargin: "400px 0px" },
+    );
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !shouldLoad) return;
 
     configureMapLibreWorker();
 
@@ -67,16 +89,20 @@ export function PlaceMiniMap({ place }: { place: Destination }) {
       marker.remove();
       map.remove();
     };
-  }, [place]);
+  }, [place, shouldLoad]);
 
   return (
     <div className="place-mini-map">
       <div
         aria-label={`Interactive map centered on ${place.city}, ${place.country}`}
+        aria-busy={!shouldLoad}
         className="size-full"
         ref={containerRef}
         role="region"
       />
+      {!shouldLoad ? (
+        <p className="place-mini-map__loading">Map prepared on approach</p>
+      ) : null}
       {mapError ? (
         <p className="place-mini-map__error" role="status">
           Map unavailable · coordinates remain below

@@ -12,10 +12,11 @@ import {
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Image from "next/image";
 import type { CSSProperties, KeyboardEvent, MouseEvent } from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { Tape } from "@/components/design-system";
 import type { GalleryFilter, GalleryMediaAsset } from "@/features/media/types";
+import { useModalDialog } from "@/hooks/use-modal-dialog";
 
 import styles from "./gallery.module.css";
 
@@ -165,8 +166,14 @@ export function GalleryScrapbook({
 
   const closeLightbox = useCallback(() => {
     setActiveIndex(null);
-    requestAnimationFrame(() => lastTriggerRef.current?.focus());
   }, []);
+
+  const { dialogRef, onKeyDown: handleModalKeyDown } = useModalDialog({
+    initialFocusRef: closeButtonRef,
+    isOpen: Boolean(activeAsset),
+    onClose: closeLightbox,
+    returnFocusRef: lastTriggerRef,
+  });
 
   const showPrevious = useCallback(() => {
     setActiveIndex((current) =>
@@ -182,24 +189,7 @@ export function GalleryScrapbook({
     );
   }, [visibleMedia.length]);
 
-  useEffect(() => {
-    if (!activeAsset) return;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    closeButtonRef.current?.focus();
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [activeAsset]);
-
   function handleLightboxKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      closeLightbox();
-      return;
-    }
-
     if (event.key === "ArrowLeft") {
       event.preventDefault();
       showPrevious();
@@ -212,27 +202,7 @@ export function GalleryScrapbook({
       return;
     }
 
-    if (event.key !== "Tab") return;
-
-    const focusable = Array.from(
-      event.currentTarget.querySelectorAll<HTMLButtonElement>(
-        "button:not(:disabled)",
-      ),
-    );
-    const currentIndex = focusable.indexOf(
-      document.activeElement as HTMLButtonElement,
-    );
-    if (focusable.length === 0 || currentIndex === -1) return;
-
-    const atStart = currentIndex === 0;
-    const atEnd = currentIndex === focusable.length - 1;
-    if (event.shiftKey && atStart) {
-      event.preventDefault();
-      focusable.at(-1)?.focus();
-    } else if (!event.shiftKey && atEnd) {
-      event.preventDefault();
-      focusable[0]?.focus();
-    }
+    handleModalKeyDown(event);
   }
 
   function selectFilter(nextFilter: GalleryFilter) {
@@ -292,7 +262,9 @@ export function GalleryScrapbook({
             onMouseDown={(event) => {
               if (event.currentTarget === event.target) closeLightbox();
             }}
+            ref={dialogRef}
             role="dialog"
+            tabIndex={-1}
             transition={{ duration: reduceMotion ? 0 : 0.22 }}
           >
             <button

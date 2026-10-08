@@ -44,18 +44,4 @@ export class SupabaseProgressRepository implements ProgressRepository {
       lastVisitedAt: progressResult.data?.last_visited_at ?? null,
     };
   }
-
-  async setMemoriesDiscovered(count: number): Promise<void> {
-    const { client, userId } = getSupabaseServerContext();
-    const visitedAt = new Date().toISOString();
-    const { error } = await client.from("site_progress").upsert(
-      {
-        user_id: userId,
-        memories_discovered: Math.max(0, Math.floor(count)),
-        last_visited_at: visitedAt,
-      },
-      { onConflict: "user_id" },
-    );
-    assertSupabaseResult("Unable to save site progress.", error);
-  }
 }

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import type { OpenWhenStateRepository } from "@/features/open-when/repositories/open-when-state-repository";
 import { SupabaseOpenWhenStateRepository } from "@/features/open-when/repositories/supabase-open-when-state-repository";
 import { EMPTY_OPEN_WHEN_STATE } from "@/features/open-when/types";
@@ -10,7 +12,7 @@ export function getOpenWhenStateRepository(): OpenWhenStateRepository {
   return new SupabaseOpenWhenStateRepository();
 }
 
-export async function loadOpenWhenState() {
+export const loadOpenWhenState = cache(async function loadOpenWhenState() {
   if (!(await hasValidAccessSession())) return EMPTY_OPEN_WHEN_STATE;
 
   try {
@@ -19,4 +21,4 @@ export async function loadOpenWhenState() {
     reportPersistenceFailure("load open when state", error);
     return EMPTY_OPEN_WHEN_STATE;
   }
-}
+});

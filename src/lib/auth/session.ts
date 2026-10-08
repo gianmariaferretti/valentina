@@ -5,12 +5,19 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 
 const ACCESS_COOKIE = "vg_access";
-const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 365;
+const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 30;
+const MINIMUM_PRODUCTION_SECRET_LENGTH = 32;
 
 export function getAuthSecret(): string | null {
   const configuredSecret = process.env.AUTH_SECRET;
 
-  if (configuredSecret) return configuredSecret;
+  if (
+    configuredSecret &&
+    (process.env.NODE_ENV !== "production" ||
+      configuredSecret.length >= MINIMUM_PRODUCTION_SECRET_LENGTH)
+  ) {
+    return configuredSecret;
+  }
   if (process.env.NODE_ENV !== "production")
     return "vg-local-development-secret";
 
@@ -64,6 +71,19 @@ export async function setAccessSession(): Promise<void> {
     httpOnly: true,
     maxAge: SESSION_DURATION_SECONDS,
     path: "/",
+    priority: "high",
+    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+  });
+}
+
+export async function clearAccessSession(): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set(ACCESS_COOKIE, "", {
+    httpOnly: true,
+    maxAge: 0,
+    path: "/",
+    priority: "high",
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
   });

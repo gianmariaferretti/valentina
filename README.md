@@ -67,11 +67,13 @@ Navigation is driven by `src/data/navigation.ts`, so future sections can be adde
 
 ### Access and privacy
 
-The access code is verified in a Server Action and never shipped in the client bundle. Successful verification creates an HTTP-only, same-site session cookie signed with HMAC. The `(experience)` layout verifies that cookie on the server before rendering private routes.
+The access code is verified in a Server Action and never shipped in the client bundle. Successful verification creates a 30-day HTTP-only, secure-in-production, same-site session cookie signed with HMAC. The `(experience)` layout verifies that cookie on the server before rendering private routes, and the global navigation provides an explicit **Lock private archive** action that clears it.
 
 The first complete journey is `/` → `/access` → `/home`. The landing page intentionally omits application navigation, the access screen returns rotating server-authored rejection messages, and successful verification briefly confirms the identity before opening the authenticated dashboard. The private shell includes a compact global progress indicator backed by persisted coupon and achievement state.
 
 This is an application-level privacy gate, not a replacement for deployment access controls. For a truly private deployment, also configure platform-level protection and rotate secrets before launch.
+
+Every response also sends a restrictive privacy/security baseline: CSP, clickjacking protection, MIME sniffing protection, a no-referrer policy, disabled camera/microphone/geolocation/payment permissions, and both metadata- and header-level `noindex` directives. The CSP permits HTTPS image/map connections because the MapLibre provider is deployment-configurable; narrow those origins when a final provider is fixed.
 
 ### Persistence and Supabase
 
@@ -92,6 +94,8 @@ The versioned migration at `supabase/migrations/20261007220000_create_private_pr
 Every table has Row Level Security enabled and public `anon`/`authenticated` privileges revoked. Only the server secret’s `service_role` can access state. Multi-table mutations for challenge rewards, letter rewards, quiz completion, and coupon redemption run in Postgres functions so related state is committed atomically. Static definitions—coupons, challenges, letters, cities, awards, quiz questions, and reward copy—remain typed application data under `src/data`; Supabase is not used as a CMS.
 
 Read paths fail closed to an empty state and log a server-side diagnostic, so editorial pages still render when Supabase is missing or temporarily unavailable. Mutations are not optimistically marked complete: the interface updates durable state only after the Server Action confirms the database write, and returns a retryable message when persistence fails.
+
+Repository reads are request-memoized to avoid duplicate state queries when both the application shell and a route need the same progress. Reward-bearing writes remain atomic database functions; unused non-atomic mutation paths have been removed.
 
 #### Supabase setup
 
@@ -142,6 +146,8 @@ The style URL is public browser configuration, not a secret. Map requests are se
 
 Map interaction is paired with keyboard-accessible marker buttons, a complete destination index, direct memory links, and an external OpenStreetMap link on each location page. Cooperative touch gestures prevent the embedded map from trapping mobile page scrolling.
 
+Location mini-maps initialize only when they approach the viewport. All MapLibre markers, observers, event handlers, and map instances are removed during route cleanup.
+
 ### Content model
 
 Placeholder content lives in typed registries under `src/data`. Feature work should extend those models or move a domain into its own `features/<feature>` package; route files should remain thin composition layers.
@@ -153,6 +159,30 @@ The reusable primitives under `src/components/design-system` combine editorial t
 All photographic metadata lives in the typed `src/data/media.ts` registry. Gallery, Map, and Awards resolve their images from that canonical source, while surface tags make the same records available to Home and the Secret Area without duplicating `src`, alternative text, captions, dates, or locations. The current source-controlled SVG placeholders under `public/images` can be replaced one record at a time when personal photographs are ready; consumers already use `next/image` with stable dimensions and responsive sizing.
 
 `/gallery` renders that media registry as an asymmetric editorial scrapbook with data-driven category and favourites filters, polaroid and photo-strip treatments, deterministic annotations, and an accessible keyboard-controlled lightbox. Gallery presentation metadata remains optional, so shared media can participate in Map or Awards without appearing in the scrapbook.
+
+## Quality and accessibility
+
+The authenticated route group has branded loading, error, and transition boundaries. Disclosure navigation and dialogs support Escape, focus management, focus return, and accessible current-page state. The gallery viewer adds trapped focus and arrow-key navigation; game canvases support keyboard, swipe, and on-screen controls and pause automatically when the page is hidden. Canvas animation frames run only while a game is active.
+
+Layout sizing is mobile-first and reviewed at 320, 375, 430, 768, and 1440 CSS pixels. Headline clamps, 44px minimum interactive targets, non-obstructive stickers, cooperative map gestures, and `prefers-reduced-motion` handling protect the experience across those widths.
+
+The current engineering review and handoff inventory are documented in [`docs/technical-report.md`](docs/technical-report.md).
+
+## Replacing placeholders
+
+Gianmaria can finish the private content without changing presentation components:
+
+| Content                                                       | Edit here                                    |
+| ------------------------------------------------------------- | -------------------------------------------- |
+| Photograph files and shared metadata                          | `public/images/` and `src/data/media.ts`     |
+| City stories, dates, notes, coordinates, and image references | `src/data/places.ts`                         |
+| Coupon copy, terms, rarity, and unlock configuration          | `src/data/coupons.ts`                        |
+| Open When letters                                             | `src/data/open-when.ts`                      |
+| Award nominees, winners, evidence, and prizes                 | `src/data/awards.ts`                         |
+| Personal quiz prompts, answers, and feedback                  | `src/data/quiz-questions.ts`                 |
+| Quiz thresholds and rewards                                   | `src/data/quiz.ts` and `src/data/rewards.ts` |
+
+Keep the media IDs stable when replacing placeholders so Map, Awards, Gallery, Home, and Secret Area continue to share the same records.
 
 ## Product direction
 

@@ -1,6 +1,7 @@
 "use server";
 
-import { timingSafeEqual } from "node:crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
+import { setTimeout as delay } from "node:timers/promises";
 
 import { setAccessSession } from "@/lib/auth/session";
 
@@ -22,13 +23,9 @@ const rejectionMessages = [
 ] as const;
 
 function matchesAccessCode(candidate: string, expected: string): boolean {
-  const candidateBuffer = Buffer.from(candidate);
-  const expectedBuffer = Buffer.from(expected);
-
-  return (
-    candidateBuffer.length === expectedBuffer.length &&
-    timingSafeEqual(candidateBuffer, expectedBuffer)
-  );
+  const candidateDigest = createHash("sha256").update(candidate).digest();
+  const expectedDigest = createHash("sha256").update(expected).digest();
+  return timingSafeEqual(candidateDigest, expectedDigest);
 }
 
 export async function verifyAccess(
@@ -37,21 +34,24 @@ export async function verifyAccess(
 ): Promise<AccessActionState> {
   const expectedCode = getAccessCode();
   const candidate = String(formData.get("code") ?? "").trim();
+  const attemptCount = Number.isSafeInteger(previousState.attempts)
+    ? Math.max(0, Math.min(previousState.attempts, 10_000))
+    : 0;
 
   if (!expectedCode) {
     return {
       status: "error",
       message: "The private entrance is not configured yet.",
-      attempts: previousState.attempts,
+      attempts: attemptCount,
     };
   }
 
-  if (!matchesAccessCode(candidate, expectedCode)) {
+  if (candidate.length > 128 || !matchesAccessCode(candidate, expectedCode)) {
+    await delay(450);
     return {
       status: "error",
-      message:
-        rejectionMessages[previousState.attempts % rejectionMessages.length],
-      attempts: previousState.attempts + 1,
+      message: rejectionMessages[attemptCount % rejectionMessages.length],
+      attempts: attemptCount + 1,
     };
   }
 
@@ -60,6 +60,6 @@ export async function verifyAccess(
   return {
     status: "success",
     message: "Welcome back, amor.",
-    attempts: previousState.attempts,
+    attempts: attemptCount,
   };
 }

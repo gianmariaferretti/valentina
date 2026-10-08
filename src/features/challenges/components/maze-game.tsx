@@ -433,37 +433,51 @@ export function MazeGame({
   }, []);
 
   useEffect(() => {
+    draw(performance.now());
+    if (phase !== "running") return;
+
     let animationFrame = 0;
 
     function animate(timestamp: number) {
       const elapsed = Math.min(timestamp - lastFrameRef.current, 100);
       lastFrameRef.current = timestamp;
 
-      if (phaseRef.current === "running") {
-        playerAccumulatorRef.current += elapsed;
-        enemyAccumulatorRef.current += elapsed;
+      playerAccumulatorRef.current += elapsed;
+      enemyAccumulatorRef.current += elapsed;
 
-        if (playerAccumulatorRef.current >= PLAYER_INTERVAL) {
-          playerAccumulatorRef.current -= PLAYER_INTERVAL;
-          movePlayer(timestamp);
-        }
-        if (
-          phaseRef.current === "running" &&
-          enemyAccumulatorRef.current >= ENEMY_INTERVAL
-        ) {
-          enemyAccumulatorRef.current -= ENEMY_INTERVAL;
-          moveEnemies(timestamp);
-        }
+      if (playerAccumulatorRef.current >= PLAYER_INTERVAL) {
+        playerAccumulatorRef.current -= PLAYER_INTERVAL;
+        movePlayer(timestamp);
+      }
+      if (
+        phaseRef.current === "running" &&
+        enemyAccumulatorRef.current >= ENEMY_INTERVAL
+      ) {
+        enemyAccumulatorRef.current -= ENEMY_INTERVAL;
+        moveEnemies(timestamp);
       }
 
       draw(timestamp);
-      animationFrame = window.requestAnimationFrame(animate);
+      if (phaseRef.current === "running") {
+        animationFrame = window.requestAnimationFrame(animate);
+      }
     }
 
     lastFrameRef.current = performance.now();
     animationFrame = window.requestAnimationFrame(animate);
     return () => window.cancelAnimationFrame(animationFrame);
-  }, [draw, moveEnemies, movePlayer]);
+  }, [draw, moveEnemies, movePlayer, phase]);
+
+  useEffect(() => {
+    const pauseWhenHidden = () => {
+      if (document.hidden && phaseRef.current === "running") {
+        updatePhase("paused");
+      }
+    };
+    document.addEventListener("visibilitychange", pauseWhenHidden);
+    return () =>
+      document.removeEventListener("visibilitychange", pauseWhenHidden);
+  }, [updatePhase]);
 
   const changeDirection = useCallback((direction: GameDirection) => {
     queuedDirectionRef.current = direction;
@@ -487,6 +501,7 @@ export function MazeGame({
     setFragmentsRemaining(collectibles.size);
     onScoreChange(0);
     updatePhase("running");
+    requestAnimationFrame(() => canvasRef.current?.focus());
   }, [onScoreChange, resetPositions, updatePhase]);
 
   function togglePause() {
@@ -512,6 +527,7 @@ export function MazeGame({
         onTouchStart={touchControls.onTouchStart}
       >
         <canvas
+          aria-describedby="maze-instructions maze-status"
           aria-label="Midnight Circuit maze game board"
           className="block size-full"
           ref={canvasRef}
@@ -569,6 +585,14 @@ export function MazeGame({
           </div>
         ) : null}
       </div>
+
+      <p className="sr-only" id="maze-instructions">
+        Use arrow keys or WASD on a keyboard. Swipe on the board or use the
+        directional controls on a touch screen.
+      </p>
+      <p aria-live="polite" className="sr-only" id="maze-status">
+        Game {phase}. Score {score}. {lives} lives remaining.
+      </p>
 
       <div className="mt-5 flex flex-wrap justify-center gap-2">
         <button

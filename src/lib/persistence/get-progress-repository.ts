@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import { hasValidAccessSession } from "@/lib/auth/session";
 import type { ProgressRepository } from "@/lib/persistence/progress-repository";
 import { reportPersistenceFailure } from "@/lib/persistence/persistence-error";
@@ -10,7 +12,7 @@ export function getProgressRepository(): ProgressRepository {
   return new SupabaseProgressRepository();
 }
 
-export async function loadSiteProgress() {
+export const loadSiteProgress = cache(async function loadSiteProgress() {
   if (!(await hasValidAccessSession())) return EMPTY_SITE_PROGRESS;
 
   try {
@@ -19,4 +21,4 @@ export async function loadSiteProgress() {
     reportPersistenceFailure("load site progress", error);
     return EMPTY_SITE_PROGRESS;
   }
-}
+});

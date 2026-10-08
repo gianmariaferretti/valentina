@@ -76,6 +76,7 @@ export function EuropeMapExperience({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markersRef = useRef<DestinationMarker[]>([]);
+  const lastTriggerRef = useRef<HTMLElement | null>(null);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
   const [mapError, setMapError] = useState(false);
   const selectedPlace =
@@ -132,6 +133,7 @@ export function EuropeMapExperience({
       const element = createMarkerElement(destination);
       const handleClick = (event: MouseEvent) => {
         event.stopPropagation();
+        lastTriggerRef.current = element;
         setSelectedSlug(destination.slug);
       };
       element.addEventListener("click", handleClick);
@@ -211,6 +213,7 @@ export function EuropeMapExperience({
   function closePreview() {
     setSelectedSlug(null);
     frameAllDestinations();
+    requestAnimationFrame(() => lastTriggerRef.current?.focus());
   }
 
   return (
@@ -242,6 +245,7 @@ export function EuropeMapExperience({
 
         {selectedPlace ? (
           <article
+            aria-labelledby={`map-preview-${selectedPlace.slug}`}
             aria-live="polite"
             className="map-place-preview"
             data-testid="map-place-preview"
@@ -266,7 +270,9 @@ export function EuropeMapExperience({
             </div>
             <div className="map-place-preview__body">
               <p>{selectedPlace.country}</p>
-              <h2>{selectedPlace.city}</h2>
+              <h2 id={`map-preview-${selectedPlace.slug}`}>
+                {selectedPlace.city}
+              </h2>
               <time>{selectedPlace.dateRange.label}</time>
               <p>{selectedPlace.shortDescription}</p>
               <Link href={`/map/${selectedPlace.slug}`}>
@@ -299,7 +305,10 @@ export function EuropeMapExperience({
                 <button
                   aria-label={`Locate ${destination.city} on the map`}
                   aria-pressed={active}
-                  onClick={() => selectDestination(destination.slug)}
+                  onClick={(event) => {
+                    lastTriggerRef.current = event.currentTarget;
+                    selectDestination(destination.slug);
+                  }}
                   type="button"
                 >
                   <span>{String(destination.atlasOrder).padStart(2, "0")}</span>

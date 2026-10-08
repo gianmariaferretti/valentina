@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import type { CouponStateRepository } from "@/features/coupons/repositories/coupon-state-repository";
 import { SupabaseCouponStateRepository } from "@/features/coupons/repositories/supabase-coupon-state-repository";
 import { EMPTY_COUPON_WALLET_STATE } from "@/features/coupons/types";
@@ -10,7 +12,7 @@ export function getCouponStateRepository(): CouponStateRepository {
   return new SupabaseCouponStateRepository();
 }
 
-export async function loadCouponState() {
+export const loadCouponState = cache(async function loadCouponState() {
   if (!(await hasValidAccessSession())) return EMPTY_COUPON_WALLET_STATE;
 
   try {
@@ -19,4 +21,4 @@ export async function loadCouponState() {
     reportPersistenceFailure("load coupon state", error);
     return EMPTY_COUPON_WALLET_STATE;
   }
-}
+});

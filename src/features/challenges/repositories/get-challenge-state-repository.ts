@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import type { ChallengeStateRepository } from "@/features/challenges/repositories/challenge-state-repository";
 import { SupabaseChallengeStateRepository } from "@/features/challenges/repositories/supabase-challenge-state-repository";
 import { EMPTY_CHALLENGE_PROGRESS_STATE } from "@/features/challenges/types";
@@ -10,7 +12,7 @@ export function getChallengeStateRepository(): ChallengeStateRepository {
   return new SupabaseChallengeStateRepository();
 }
 
-export async function loadChallengeState() {
+export const loadChallengeState = cache(async function loadChallengeState() {
   if (!(await hasValidAccessSession())) return EMPTY_CHALLENGE_PROGRESS_STATE;
 
   try {
@@ -19,4 +21,4 @@ export async function loadChallengeState() {
     reportPersistenceFailure("load challenge scores", error);
     return EMPTY_CHALLENGE_PROGRESS_STATE;
   }
-}
+});

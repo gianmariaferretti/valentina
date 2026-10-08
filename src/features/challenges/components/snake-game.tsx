@@ -206,23 +206,37 @@ export function SnakeGame({
   }, [finishRun, onScoreChange, requiredScore]);
 
   useEffect(() => {
+    draw();
+    if (phase !== "running") return;
+
     let animationFrame = 0;
 
     function animate(timestamp: number) {
-      if (phaseRef.current === "running") {
-        const interval = Math.max(58, 128 - scoreRef.current * 0.08);
-        if (timestamp - lastTickRef.current >= interval) {
-          lastTickRef.current = timestamp;
-          tick();
-        }
+      const interval = Math.max(58, 128 - scoreRef.current * 0.08);
+      if (timestamp - lastTickRef.current >= interval) {
+        lastTickRef.current = timestamp;
+        tick();
       }
       draw();
-      animationFrame = window.requestAnimationFrame(animate);
+      if (phaseRef.current === "running") {
+        animationFrame = window.requestAnimationFrame(animate);
+      }
     }
 
     animationFrame = window.requestAnimationFrame(animate);
     return () => window.cancelAnimationFrame(animationFrame);
-  }, [draw, tick]);
+  }, [draw, phase, tick]);
+
+  useEffect(() => {
+    const pauseWhenHidden = () => {
+      if (document.hidden && phaseRef.current === "running") {
+        updatePhase("paused");
+      }
+    };
+    document.addEventListener("visibilitychange", pauseWhenHidden);
+    return () =>
+      document.removeEventListener("visibilitychange", pauseWhenHidden);
+  }, [updatePhase]);
 
   const changeDirection = useCallback((direction: GameDirection) => {
     if (direction === opposites[directionRef.current]) return;
@@ -246,6 +260,7 @@ export function SnakeGame({
     setSnakeLength(3);
     onScoreChange(0);
     updatePhase("running");
+    requestAnimationFrame(() => canvasRef.current?.focus());
   }, [onScoreChange, updatePhase]);
 
   function togglePause() {
@@ -271,6 +286,7 @@ export function SnakeGame({
         onTouchStart={touchControls.onTouchStart}
       >
         <canvas
+          aria-describedby="snake-instructions snake-status"
           aria-label="Snake game board"
           className="block size-full"
           ref={canvasRef}
@@ -327,6 +343,14 @@ export function SnakeGame({
           </div>
         ) : null}
       </div>
+
+      <p className="sr-only" id="snake-instructions">
+        Use arrow keys or WASD on a keyboard. Swipe on the board or use the
+        directional controls on a touch screen.
+      </p>
+      <p aria-live="polite" className="sr-only" id="snake-status">
+        Game {phase}. Score {score}.
+      </p>
 
       <div className="mt-5 flex flex-wrap justify-center gap-2">
         <button

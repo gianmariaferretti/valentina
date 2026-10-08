@@ -37,16 +37,16 @@ export async function ProgressIndicator() {
   ];
 
   return (
-    <div className="border-t border-[var(--line)]" role="status">
+    <aside
+      aria-label="Year One progress"
+      className="border-t border-[var(--line)]"
+    >
       <div className="mx-auto flex min-h-11 max-w-[92rem] items-stretch px-5 sm:px-8">
         <p className="flex shrink-0 items-center pr-3 text-[0.54rem] font-bold tracking-[0.14em] uppercase sm:pr-5">
           <span className="mr-2 size-1.5 rounded-full bg-[var(--rust)]" />
           Year One
         </p>
-        <dl
-          aria-label="Year One progress"
-          className="ml-auto grid min-w-0 grid-cols-3"
-        >
+        <dl className="ml-auto grid min-w-0 grid-cols-3">
           {progressItems.map((item) => (
             <div
               className="flex min-w-0 items-center gap-1.5 border-l border-[var(--line)] px-2 sm:gap-2 sm:px-4"
@@ -63,6 +63,6 @@ export async function ProgressIndicator() {
           ))}
         </dl>
       </div>
-    </div>
+    </aside>
   );
 }

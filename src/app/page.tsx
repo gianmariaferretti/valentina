@@ -29,7 +29,7 @@ export default function EntryPage() {
             </p>
           </FadeIn>
           <FadeIn delay={0.14}>
-            <h1 className="mt-6 font-display text-[clamp(4.5rem,17vw,13rem)] leading-[0.72] tracking-[-0.075em]">
+            <h1 className="mt-6 font-display text-[clamp(3.35rem,17vw,13rem)] leading-[0.72] tracking-[-0.075em]">
               YEAR ONE
             </h1>
           </FadeIn>

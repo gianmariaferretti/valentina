@@ -190,3 +190,4 @@ export function getQuizQuestionViews() {
     options,
   }));
 }
+import "server-only";

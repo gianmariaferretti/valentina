@@ -109,7 +109,7 @@ export default function HomePage() {
             </div>
 
             <div className="my-auto py-14">
-              <h1 className="max-w-5xl font-display text-[clamp(4.2rem,12vw,10.5rem)] leading-[0.75] tracking-[-0.075em]">
+              <h1 className="max-w-5xl font-display text-[clamp(3.25rem,12vw,10.5rem)] leading-[0.75] tracking-[-0.075em]">
                 365 DAYS
                 <br />
                 <span className="ml-[0.22em] italic text-[var(--sand)]">
@@ -161,7 +161,9 @@ export default function HomePage() {
           {dashboardCards.map((card, index) => (
             <FadeIn
               className={
-                card.href === "/coupons" ? "md:col-span-2 lg:row-span-2" : ""
+                card.href === "/coupons"
+                  ? "min-w-0 md:col-span-2 lg:row-span-2"
+                  : "min-w-0"
               }
               delay={0.1 + index * 0.035}
               key={card.href}
@@ -170,7 +172,7 @@ export default function HomePage() {
             </FadeIn>
           ))}
 
-          <FadeIn delay={0.32}>
+          <FadeIn className="min-w-0" delay={0.32}>
             <article className="flex min-h-64 flex-col rounded-[1.75rem] border border-dashed border-[var(--line-strong)] bg-transparent p-6 text-[var(--muted)] sm:p-7">
               <div className="flex items-start justify-between gap-5">
                 <span className="grid size-12 place-items-center rounded-full border border-dashed border-[var(--line-strong)]">

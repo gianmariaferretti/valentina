@@ -3,10 +3,11 @@
 import { ArrowRight, Check, LockKeyhole, Trophy, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useCallback, useRef, useState, useTransition } from "react";
 
 import { redeemCoupon } from "@/features/coupons/actions/redeem-coupon";
 import type { CouponStatus, CouponType } from "@/features/coupons/types";
+import { useModalDialog } from "@/hooks/use-modal-dialog";
 
 interface RedemptionControlProps {
   couponId: string;
@@ -41,6 +42,15 @@ export function RedemptionControl({
   const [isConfirming, setIsConfirming] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const redeemButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const closeConfirmation = useCallback(() => setIsConfirming(false), []);
+  const { dialogRef, onKeyDown } = useModalDialog({
+    initialFocusRef: closeButtonRef,
+    isOpen: isConfirming,
+    onClose: closeConfirmation,
+    returnFocusRef: redeemButtonRef,
+  });
 
   if (status === "redeemed") {
     return (
@@ -110,6 +120,7 @@ export function RedemptionControl({
           setFeedback(null);
           setIsConfirming(true);
         }}
+        ref={redeemButtonRef}
         type="button"
       >
         Redeem coupon
@@ -130,14 +141,23 @@ export function RedemptionControl({
           aria-labelledby="redemption-title"
           aria-modal="true"
           className="fixed inset-0 z-[80] grid place-items-center bg-[var(--ink)]/65 p-5 backdrop-blur-sm"
+          onKeyDown={onKeyDown}
+          onMouseDown={(event) => {
+            if (event.currentTarget === event.target && !isPending) {
+              closeConfirmation();
+            }
+          }}
+          ref={dialogRef}
           role="dialog"
+          tabIndex={-1}
         >
           <div className="relative w-full max-w-md rounded-[1.75rem] bg-[var(--paper-white)] p-7 shadow-[var(--shadow-lifted)] sm:p-9">
             <button
               aria-label="Cancel redemption"
               className="absolute top-5 right-5 grid size-11 place-items-center rounded-full border border-[var(--line)] transition hover:bg-[var(--paper)]"
               disabled={isPending}
-              onClick={() => setIsConfirming(false)}
+              onClick={closeConfirmation}
+              ref={closeButtonRef}
               type="button"
             >
               <X aria-hidden="true" size={18} />
@@ -159,7 +179,7 @@ export function RedemptionControl({
               <button
                 className="min-h-12 rounded-full border border-[var(--line-strong)] px-5 text-[0.65rem] font-bold tracking-[0.13em] uppercase"
                 disabled={isPending}
-                onClick={() => setIsConfirming(false)}
+                onClick={closeConfirmation}
                 type="button"
               >
                 Not yet
