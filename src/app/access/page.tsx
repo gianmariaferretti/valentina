@@ -38,7 +38,7 @@ export default async function AccessPage() {
               <p className="text-[0.62rem] font-bold tracking-[0.22em] text-[var(--rust)] uppercase">
                 Identity check · 01
               </p>
-              <h1 className="mt-5 max-w-full font-display text-[clamp(3rem,10vw,7rem)] leading-[0.8] tracking-[-0.06em] uppercase lg:text-[5rem] xl:text-[6rem]">
+              <h1 className="mt-5 max-w-full overflow-hidden font-display text-[clamp(3rem,10vw,7rem)] leading-[0.8] tracking-[-0.06em] uppercase lg:text-[clamp(4rem,5.2vw,5rem)] xl:text-[clamp(4.5rem,5.5vw,5.5rem)]">
                 Restricted
                 <br />
                 <span className="italic text-[var(--rust)]">Area</span>
