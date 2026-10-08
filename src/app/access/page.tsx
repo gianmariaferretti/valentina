@@ -34,11 +34,11 @@ export default async function AccessPage() {
 
         <FadeIn delay={0.08}>
           <section className="relative mt-10 overflow-hidden rounded-[2rem] border border-[var(--line)] bg-[var(--paper-white)]/72 px-6 py-8 shadow-[var(--shadow-paper)] sm:px-11 sm:py-12 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(21rem,0.78fr)] lg:gap-16 lg:px-14 lg:py-14">
-            <div>
+            <div className="min-w-0 [container-type:inline-size]">
               <p className="text-[0.62rem] font-bold tracking-[0.22em] text-[var(--rust)] uppercase">
                 Identity check · 01
               </p>
-              <h1 className="mt-5 max-w-full overflow-hidden font-display text-[clamp(3rem,10vw,7rem)] leading-[0.8] tracking-[-0.06em] uppercase lg:text-[clamp(4rem,5.2vw,5rem)] xl:text-[clamp(4.5rem,5.5vw,5.5rem)]">
+              <h1 className="mt-5 max-w-full font-display text-[min(11cqi,5.5rem)] leading-[0.95] tracking-[-0.06em] uppercase">
                 Restricted
                 <br />
                 <span className="italic text-[var(--rust)]">Area</span>
