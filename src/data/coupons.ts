@@ -5,7 +5,8 @@ export const coupons = [
     id: "breakfast-in-bed",
     code: "GV-001",
     title: "Breakfast in Bed",
-    shortDescription: "Breakfast, delivered directly to bed. No commuting required.",
+    shortDescription:
+      "Breakfast, delivered directly to bed. No commuting required.",
     description: "Breakfast, delivered directly to bed. No commuting required.",
     category: "food",
     rarity: "standard",
@@ -17,7 +18,10 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T08:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "dinner-wherever-you-want",
@@ -35,7 +39,10 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T09:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "emergency-date",
@@ -53,13 +60,17 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T10:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "movie-night-no-veto",
     code: "GV-004",
     title: "Movie Night — No Veto",
-    shortDescription: "You pick the movie. No veto, lobbying or strategic sleeping.",
+    shortDescription:
+      "You pick the movie. No veto, lobbying or strategic sleeping.",
     description: "You pick the movie. No veto, lobbying or strategic sleeping.",
     category: "romantic",
     rarity: "standard",
@@ -71,14 +82,19 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T11:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "30-minute-massage",
     code: "GV-005",
     title: "30 Minute Massage",
-    shortDescription: "Thirty uninterrupted minutes of amateur but committed massage.",
-    description: "Thirty uninterrupted minutes of amateur but committed massage.",
+    shortDescription:
+      "Thirty uninterrupted minutes of amateur but committed massage.",
+    description:
+      "Thirty uninterrupted minutes of amateur but committed massage.",
     category: "romantic",
     rarity: "standard",
     type: "standard",
@@ -89,7 +105,10 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T12:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "dinner-cooked-by-gianmaria",
@@ -107,13 +126,17 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T13:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "emergency-ice-cream",
     code: "GV-007",
     title: "Emergency Ice Cream",
-    shortDescription: "Immediate ice-cream intervention when normal measures fail.",
+    shortDescription:
+      "Immediate ice-cream intervention when normal measures fail.",
     description: "Immediate ice-cream intervention when normal measures fail.",
     category: "emergency",
     rarity: "standard",
@@ -125,13 +148,17 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T14:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "i-admit-you-were-right",
     code: "GV-008",
     title: "I Admit You Were Right",
-    shortDescription: "One formal admission that Valentina was right. No footnotes.",
+    shortDescription:
+      "One formal admission that Valentina was right. No footnotes.",
     description: "One formal admission that Valentina was right. No footnotes.",
     category: "romantic",
     rarity: "premium",
@@ -143,14 +170,19 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T15:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "you-decide-everything-today",
     code: "GV-009",
     title: "You Decide Everything Today",
-    shortDescription: "For one day, Valentina gets executive decision-making authority.",
-    description: "For one day, Valentina gets executive decision-making authority.",
+    shortDescription:
+      "For one day, Valentina gets executive decision-making authority.",
+    description:
+      "For one day, Valentina gets executive decision-making authority.",
     category: "dates",
     rarity: "premium",
     type: "standard",
@@ -161,13 +193,17 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T16:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "breakfast-in-bed-encore",
     code: "GV-010",
     title: "Breakfast in Bed",
-    shortDescription: "Yes, another one. Breakfast in bed deserved a second coupon.",
+    shortDescription:
+      "Yes, another one. Breakfast in bed deserved a second coupon.",
     description: "Yes, another one. Breakfast in bed deserved a second coupon.",
     category: "food",
     rarity: "standard",
@@ -179,14 +215,19 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T17:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "cocktail-night",
     code: "GV-011",
     title: "Cocktail Night",
-    shortDescription: "One cocktail night, with the location or drinks chosen together.",
-    description: "One cocktail night, with the location or drinks chosen together.",
+    shortDescription:
+      "One cocktail night, with the location or drinks chosen together.",
+    description:
+      "One cocktail night, with the location or drinks chosen together.",
     category: "dates",
     rarity: "standard",
     type: "standard",
@@ -197,14 +238,19 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T18:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "lazy-sunday",
     code: "GV-012",
     title: "Lazy Sunday",
-    shortDescription: "A deliberately unproductive Sunday with no unnecessary agenda.",
-    description: "A deliberately unproductive Sunday with no unnecessary agenda.",
+    shortDescription:
+      "A deliberately unproductive Sunday with no unnecessary agenda.",
+    description:
+      "A deliberately unproductive Sunday with no unnecessary agenda.",
     category: "romantic",
     rarity: "standard",
     type: "standard",
@@ -215,14 +261,19 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T19:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "spanish-lesson-30-standard",
     code: "GV-013",
     title: "A 30 Minute Spanish Lesson",
-    shortDescription: "Thirty minutes of Spanish. Corrections are permitted; humiliation is not.",
-    description: "Thirty minutes of Spanish. Corrections are permitted; humiliation is not.",
+    shortDescription:
+      "Thirty minutes of Spanish. Corrections are permitted; humiliation is not.",
+    description:
+      "Thirty minutes of Spanish. Corrections are permitted; humiliation is not.",
     category: "romantic",
     rarity: "standard",
     type: "standard",
@@ -233,14 +284,19 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T08:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "surprise-dinner",
     code: "GV-014",
     title: "Surprise Dinner",
-    shortDescription: "Gianmaria plans the dinner. Valentina discovers the details later.",
-    description: "Gianmaria plans the dinner. Valentina discovers the details later.",
+    shortDescription:
+      "Gianmaria plans the dinner. Valentina discovers the details later.",
+    description:
+      "Gianmaria plans the dinner. Valentina discovers the details later.",
     category: "dates",
     rarity: "premium",
     type: "standard",
@@ -251,7 +307,10 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T09:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "homemade-tiramisu",
@@ -269,14 +328,19 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T10:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "one-wish",
     code: "GV-016",
     title: "One Wish",
-    shortDescription: "One reasonable wish, redeemable against boyfriend management.",
-    description: "One reasonable wish, redeemable against boyfriend management.",
+    shortDescription:
+      "One reasonable wish, redeemable against boyfriend management.",
+    description:
+      "One reasonable wish, redeemable against boyfriend management.",
     category: "romantic",
     rarity: "premium",
     type: "standard",
@@ -287,14 +351,19 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T11:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "choose-our-next-date",
     code: "GV-017",
     title: "Choose Our Next Date",
-    shortDescription: "Valentina chooses the next date and Gianmaria follows the brief.",
-    description: "Valentina chooses the next date and Gianmaria follows the brief.",
+    shortDescription:
+      "Valentina chooses the next date and Gianmaria follows the brief.",
+    description:
+      "Valentina chooses the next date and Gianmaria follows the brief.",
     category: "dates",
     rarity: "standard",
     type: "standard",
@@ -305,14 +374,19 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T12:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "italian-only-day",
     code: "GV-018",
     title: "A Day Talking Only Italian",
-    shortDescription: "Twenty-four hours in Italian. Emergency translations may be negotiated.",
-    description: "Twenty-four hours in Italian. Emergency translations may be negotiated.",
+    shortDescription:
+      "Twenty-four hours in Italian. Emergency translations may be negotiated.",
+    description:
+      "Twenty-four hours in Italian. Emergency translations may be negotiated.",
     category: "romantic",
     rarity: "standard",
     type: "standard",
@@ -323,14 +397,19 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T13:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "skip-one-argument",
     code: "GV-019",
     title: "Skip One Argument",
-    shortDescription: "End one unnecessary argument before the appellate process begins.",
-    description: "End one unnecessary argument before the appellate process begins.",
+    shortDescription:
+      "End one unnecessary argument before the appellate process begins.",
+    description:
+      "End one unnecessary argument before the appellate process begins.",
     category: "emergency",
     rarity: "premium",
     type: "standard",
@@ -341,14 +420,19 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T14:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "spanish-only-day",
     code: "GV-020",
     title: "A Day Talking Only Spanish",
-    shortDescription: "A full day in Spanish. Gianmaria accepts the linguistic consequences.",
-    description: "A full day in Spanish. Gianmaria accepts the linguistic consequences.",
+    shortDescription:
+      "A full day in Spanish. Gianmaria accepts the linguistic consequences.",
+    description:
+      "A full day in Spanish. Gianmaria accepts the linguistic consequences.",
     category: "romantic",
     rarity: "legendary",
     type: "standard",
@@ -359,7 +443,10 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T15:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "surprise-gift",
@@ -377,14 +464,19 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T16:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "your-choice-no-complaints",
     code: "GV-022",
     title: "Your Choice, No Complaints",
-    shortDescription: "Your choice. No complaints, commentary or suspicious facial expressions.",
-    description: "Your choice. No complaints, commentary or suspicious facial expressions.",
+    shortDescription:
+      "Your choice. No complaints, commentary or suspicious facial expressions.",
+    description:
+      "Your choice. No complaints, commentary or suspicious facial expressions.",
     category: "romantic",
     rarity: "premium",
     type: "standard",
@@ -395,14 +487,19 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T17:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "recreate-first-date",
     code: "GV-023",
     title: "Recreate Our First Date",
-    shortDescription: "Recreate the first date, with one year of additional evidence.",
-    description: "Recreate the first date, with one year of additional evidence.",
+    shortDescription:
+      "Recreate the first date, with one year of additional evidence.",
+    description:
+      "Recreate the first date, with one year of additional evidence.",
     category: "dates",
     rarity: "premium",
     type: "standard",
@@ -413,14 +510,19 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T18:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "mystery-date",
     code: "GV-024",
     title: "Mystery Date",
-    shortDescription: "The itinerary stays classified until Gianmaria decides disclosure is necessary.",
-    description: "The itinerary stays classified until Gianmaria decides disclosure is necessary.",
+    shortDescription:
+      "The itinerary stays classified until Gianmaria decides disclosure is necessary.",
+    description:
+      "The itinerary stays classified until Gianmaria decides disclosure is necessary.",
     category: "dates",
     rarity: "premium",
     type: "standard",
@@ -431,13 +533,17 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T19:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "24-hours-somewhere-else",
     code: "GV-025",
     title: "24 Hours Somewhere Else",
-    shortDescription: "Disappear together for twenty-four hours somewhere else.",
+    shortDescription:
+      "Disappear together for twenty-four hours somewhere else.",
     description: "Disappear together for twenty-four hours somewhere else.",
     category: "dates",
     rarity: "legendary",
@@ -449,14 +555,19 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T08:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "weekend-getaway",
     code: "GV-026",
     title: "Weekend Getaway",
-    shortDescription: "One proper weekend away, planned around two people and too much luggage.",
-    description: "One proper weekend away, planned around two people and too much luggage.",
+    shortDescription:
+      "One proper weekend away, planned around two people and too much luggage.",
+    description:
+      "One proper weekend away, planned around two people and too much luggage.",
     category: "dates",
     rarity: "legendary",
     type: "standard",
@@ -467,7 +578,10 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T09:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "whatever-you-want-day",
@@ -485,14 +599,19 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T10:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "gianmaria-plans-everything",
     code: "GV-028",
     title: "Gianmaria Plans Everything",
-    shortDescription: "Valentina only needs to show up. Gianmaria handles the entire plan.",
-    description: "Valentina only needs to show up. Gianmaria handles the entire plan.",
+    shortDescription:
+      "Valentina only needs to show up. Gianmaria handles the entire plan.",
+    description:
+      "Valentina only needs to show up. Gianmaria handles the entire plan.",
     category: "dates",
     rarity: "premium",
     type: "standard",
@@ -503,14 +622,19 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T11:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "spanish-lesson-30-legendary",
     code: "GV-029",
     title: "A 30 Minute Lesson in Spanish",
-    shortDescription: "The legendary edition of the Spanish lesson. Expectations are inexplicably higher.",
-    description: "The legendary edition of the Spanish lesson. Expectations are inexplicably higher.",
+    shortDescription:
+      "The legendary edition of the Spanish lesson. Expectations are inexplicably higher.",
+    description:
+      "The legendary edition of the Spanish lesson. Expectations are inexplicably higher.",
     category: "romantic",
     rarity: "legendary",
     type: "standard",
@@ -521,14 +645,19 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T12:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "another-year-with-me",
     code: "GV-030",
     title: "Another Year With Me — GV-365",
-    shortDescription: "The final Year One coupon. Valid for one highly ambitious extension.",
-    description: "The final Year One coupon. Valid for one highly ambitious extension.",
+    shortDescription:
+      "The final Year One coupon. Valid for one highly ambitious extension.",
+    description:
+      "The final Year One coupon. Valid for one highly ambitious extension.",
     category: "romantic",
     rarity: "legendary",
     type: "standard",
@@ -539,13 +668,17 @@ export const coupons = [
     secret: false,
     createdAt: "2025-10-31T13:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "no-budget-date",
     code: "GV-031",
     title: "No Budget Date",
-    shortDescription: "For one date, the budget committee is formally adjourned.",
+    shortDescription:
+      "For one date, the budget committee is formally adjourned.",
     description: "For one date, the budget committee is formally adjourned.",
     category: "dates",
     rarity: "legendary",
@@ -557,13 +690,17 @@ export const coupons = [
     secret: true,
     createdAt: "2025-10-31T14:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "you-found-me",
     code: "GV-032",
     title: "You Found Me",
-    shortDescription: "Proof that Valentina found what was deliberately hidden.",
+    shortDescription:
+      "Proof that Valentina found what was deliberately hidden.",
     description: "Proof that Valentina found what was deliberately hidden.",
     category: "romantic",
     rarity: "legendary",
@@ -575,7 +712,10 @@ export const coupons = [
     secret: true,
     createdAt: "2025-10-31T15:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "classified-coupon",
@@ -593,7 +733,10 @@ export const coupons = [
     secret: true,
     createdAt: "2025-10-31T16:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "one-question-honest-answer",
@@ -611,7 +754,10 @@ export const coupons = [
     secret: true,
     createdAt: "2025-10-31T17:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
   },
   {
     id: "coupon-with-no-rules",
@@ -629,8 +775,11 @@ export const coupons = [
     secret: true,
     createdAt: "2025-10-31T18:00:00.000Z",
     redeemedAt: null,
-    terms: ["Valid once.", "Subject to mutual availability, safety and common sense."],
-  }
+    terms: [
+      "Valid once.",
+      "Subject to mutual availability, safety and common sense.",
+    ],
+  },
 ] as const satisfies readonly Coupon[];
 
 export function getCoupon(id: string): Coupon | undefined {

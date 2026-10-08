@@ -22,7 +22,8 @@ export const quizQuestions = [
   {
     id: "change-his-mind",
     eyebrow: "Negotiation studies",
-    prompt: "Qual è il modo più efficace per convincere Gianmaria a cambiare idea?",
+    prompt:
+      "Qual è il modo più efficace per convincere Gianmaria a cambiare idea?",
     options: [
       { id: "a", label: "Argomentare razionalmente" },
       { id: "b", label: "Insistere" },
@@ -38,7 +39,8 @@ export const quizQuestions = [
   {
     id: "during-argument",
     eyebrow: "Legal department",
-    prompt: "Qual è la cosa più probabile che Gianmaria faccia durante una discussione?",
+    prompt:
+      "Qual è la cosa più probabile che Gianmaria faccia durante una discussione?",
     options: [
       { id: "a", label: "Ammettere immediatamente di avere torto" },
       { id: "b", label: "Presentare una memoria difensiva di 14 pagine" },
@@ -70,7 +72,8 @@ export const quizQuestions = [
   {
     id: "get-out-of-bed",
     eyebrow: "Emergency protocol",
-    prompt: "Quale di queste cose potrebbe convincere Gianmaria ad alzarsi dal letto immediatamente?",
+    prompt:
+      "Quale di queste cose potrebbe convincere Gianmaria ad alzarsi dal letto immediatamente?",
     options: [
       { id: "a", label: "Un’emergenza" },
       { id: "b", label: "Una telefonata" },
@@ -86,7 +89,8 @@ export const quizQuestions = [
   {
     id: "officially-in-trouble",
     eyebrow: "Threat assessment",
-    prompt: "Quale frase di Valentina dovrebbe far capire a Gianmaria che è ufficialmente nei guai?",
+    prompt:
+      "Quale frase di Valentina dovrebbe far capire a Gianmaria che è ufficialmente nei guai?",
     options: [
       { id: "a", label: "“Okay”" },
       { id: "b", label: "“Tranquillo”" },
@@ -118,7 +122,8 @@ export const quizQuestions = [
   {
     id: "not-hungry",
     eyebrow: "Food intelligence",
-    prompt: "Chi dei due è più probabile che dica “non ho fame” e poi mangi metà del piatto dell’altro?",
+    prompt:
+      "Chi dei due è più probabile che dica “non ho fame” e poi mangi metà del piatto dell’altro?",
     options: [
       { id: "a", label: "Gianmaria" },
       { id: "b", label: "Valentina" },
@@ -134,12 +139,17 @@ export const quizQuestions = [
   {
     id: "missed-flight",
     eyebrow: "Aviation incident report",
-    prompt: "Se dovessimo perdere un volo, quale sarebbe la causa più probabile?",
+    prompt:
+      "Se dovessimo perdere un volo, quale sarebbe la causa più probabile?",
     options: [
       { id: "a", label: "Traffico" },
       { id: "b", label: "Valentina" },
       { id: "c", label: "Gianmaria" },
-      { id: "d", label: "Una catena di eventi che entrambi sosterranno essere colpa dell’altro" },
+      {
+        id: "d",
+        label:
+          "Una catena di eventi che entrambi sosterranno essere colpa dell’altro",
+      },
     ],
     correctOptionId: "b",
     feedback: {
@@ -194,7 +204,7 @@ export const quizQuestions = [
       correct: "Correct. The official record agrees.",
       incorrect: "Incorrect. The V&G archives respectfully disagree.",
     },
-  }
+  },
 ] as const satisfies readonly QuizQuestion[];
 
 export function getQuizQuestion(id: string): QuizQuestion | undefined {

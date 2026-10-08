@@ -78,11 +78,7 @@ export function DashboardCard({
 
       {sticker ? (
         <span className="pointer-events-none absolute top-24 right-5 z-10 sm:right-8">
-          <Sticker
-            rotation={featured ? 3 : -2}
-            size="sm"
-            variant={sticker}
-          />
+          <Sticker rotation={featured ? 3 : -2} size="sm" variant={sticker} />
         </span>
       ) : null}
 

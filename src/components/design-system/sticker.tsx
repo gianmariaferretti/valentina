@@ -30,7 +30,7 @@ interface StickerDefinition {
 const stickerDefinitions: Record<StickerVariant, StickerDefinition> = {
   text: { defaultText: "Year One", rotation: -2 },
   location: { defaultText: "Somewhere important", icon: MapPin, rotation: 2 },
-  date: { defaultText: "04 · 10 · 25", icon: CalendarDays, rotation: -1 },
+  date: { defaultText: "31 · 10 · 25", icon: CalendarDays, rotation: -1 },
   classified: { defaultText: "Classified", icon: KeyRound, rotation: -4 },
   "girlfriend-approved": {
     defaultText: "Girlfriend approved",

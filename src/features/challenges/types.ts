@@ -1,3 +1,9 @@
+import {
+  EMPTY_GAME_PROGRESS_STATE,
+  type GameProgress,
+  type GameProgressState,
+} from "@/features/games/types";
+
 export type ArcadeGameKind = "snake" | "maze";
 export type GameDirection = "up" | "down" | "left" | "right";
 
@@ -27,19 +33,7 @@ export interface PlaceholderChallengeDefinition extends BaseChallengeDefinition 
 export type ChallengeDefinition =
   ArcadeChallengeDefinition | PlaceholderChallengeDefinition;
 
-export interface ChallengeProgress {
-  readonly challengeId: string;
-  readonly bestScore: number;
-  readonly attempts: number;
-  readonly completedAt: string | null;
-}
+export type ChallengeProgress = GameProgress;
+export type ChallengeProgressState = GameProgressState;
 
-export interface ChallengeProgressState {
-  readonly version: 1;
-  readonly challenges: readonly ChallengeProgress[];
-}
-
-export const EMPTY_CHALLENGE_PROGRESS_STATE: ChallengeProgressState = {
-  version: 1,
-  challenges: [],
-};
+export const EMPTY_CHALLENGE_PROGRESS_STATE = EMPTY_GAME_PROGRESS_STATE;

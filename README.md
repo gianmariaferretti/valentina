@@ -49,7 +49,7 @@ src/
 └── assets/              # Source-controlled asset notes and future originals
 ```
 
-Route groups keep public entry pages separate from the authenticated experience without changing public URLs. Server Components are the default. Client Components are limited to the access form, mobile navigation, and motion/persistence helpers that require browser APIs.
+Route groups keep public entry pages separate from the authenticated experience without changing public URLs. Server Components are the default. Client Components are limited to interactive feature surfaces (including games), mobile navigation, and helpers that require browser APIs.
 
 ### Routes
 
@@ -57,7 +57,8 @@ The current route foundation includes:
 
 - `/`, `/access`, `/home`
 - `/coupons`, `/coupons/[id]`
-- `/challenges`, `/challenges/snake`, `/challenges/maze`, `/challenges/[game]`
+- `/challenges` and seven V&G game routes under `/challenges/[game]`
+- `/challenges/snake` and `/challenges/maze` remain available in the legacy annex
 - `/map`, `/map/[place]`
 - `/open-when`, `/open-when/[slug]`
 - `/awards`, `/quiz`, `/gallery`, `/achievements`, `/secret`, `/year-two`
@@ -81,15 +82,15 @@ Persistent state is stored in Supabase Postgres through feature-owned repository
 
 The versioned migration at `supabase/migrations/20261007220000_create_private_progress.sql` creates only user-state tables:
 
-| Table              | Stored state                                                          |
-| ------------------ | --------------------------------------------------------------------- |
-| `site_progress`    | Global memory count and last persisted activity                       |
-| `coupon_state`     | Coupon unlock and redemption timestamps                               |
-| `challenge_scores` | Best score, attempts, and completion per game                         |
-| `quiz_attempts`    | Active, completed, and abandoned attempts with server-checked answers |
-| `letter_state`     | Opened envelope timestamps                                            |
-| `achievements`     | Idempotent achievement unlocks                                        |
-| `discoveries`      | Reward, coupon, challenge, memory, and future secret discoveries      |
+| Table              | Stored state                                                                                       |
+| ------------------ | -------------------------------------------------------------------------------------------------- |
+| `site_progress`    | Global memory count and last persisted activity                                                    |
+| `coupon_state`     | Coupon unlock and redemption timestamps                                                            |
+| `challenge_scores` | Attempts, scores, timing, difficulty, endings, wins/losses, progress, rewards and secrets per game |
+| `quiz_attempts`    | Active, completed, and abandoned attempts with server-checked answers                              |
+| `letter_state`     | Opened envelope timestamps                                                                         |
+| `achievements`     | Idempotent achievement unlocks                                                                     |
+| `discoveries`      | Reward, coupon, challenge, memory, and future secret discoveries                                   |
 
 Every table has Row Level Security enabled and public `anon`/`authenticated` privileges revoked. Only the server secret’s `service_role` can access state. Multi-table mutations for challenge rewards, letter rewards, quiz completion, and coupon redemption run in Postgres functions so related state is committed atomically. Static definitions—coupons, challenges, letters, cities, awards, quiz questions, and reward copy—remain typed application data under `src/data`; Supabase is not used as a CMS.
 
@@ -120,9 +121,35 @@ Repository reads are request-memoized to avoid duplicate state queries when both
 
 4. Configure the same values in the deployment provider’s encrypted environment settings, then restart or redeploy the application. Visit `/coupons`, `/challenges`, `/quiz`, and `/open-when` from two devices to confirm the shared state.
 
-Database changes should be added as new migration files and deployed with `supabase db push`; do not edit the production schema manually after migration tracking begins. See the [Supabase migration workflow](https://supabase.com/docs/guides/deployment/database-migrations) and [server secret guidance](https://supabase.com/docs/guides/getting-started/api-keys).
+Database changes should be added as new migration files and deployed with `supabase db push`; do not edit the production schema manually after migration tracking begins. The additive `20261008094720_expand_vg_games_state.sql` migration extends the existing challenge table and adds atomic `begin_game_run` / `finish_game_run` functions; it does not create a competing game-state store. See the [Supabase migration workflow](https://supabase.com/docs/guides/deployment/database-migrations) and [server secret guidance](https://supabase.com/docs/guides/getting-started/api-keys).
 
-Challenge definitions remain configuration-driven, so targets and future game types can be added without coupling them to route files. Both current game engines—Snake and the original Midnight Circuit maze chase—were implemented in-house using Canvas and `requestAnimationFrame`; they contain no third-party gameplay code, branded characters, copied sprites, sounds, or artwork.
+### V&G Games
+
+`/challenges` is a shared collection rather than seven embedded demos. The typed registry in `src/data/games.ts` owns each game’s identity, instructions, difficulty, victory rules, legal endings, score boundary and reward rules. Replaceable scenario/timeline/memory content lives separately in `src/data/game-content.ts`. Route files only resolve a definition and pass durable state into the shared `GameExperience` shell.
+
+The seven playable files are:
+
+1. V&G: The Great Escape
+2. Operation: Find Gianmaria
+3. Survive Our Relationship
+4. Break My Defences
+5. Build Our Year
+6. Relationship Minefield
+7. 365 Memories
+
+Every engine is dynamically imported after its briefing, so Canvas and interaction code are excluded from the collection’s initial client bundle. `GameExperience` supplies the shared loading, start, difficulty, sound, pause, restart, replay, persistence and reward surfaces. Engines own only their game rules and report a typed score/progress/ending result. Keyboard, pointer, swipe or on-screen controls are provided where appropriate; hidden-page pause and effect cleanup prevent abandoned loops from continuing after navigation.
+
+All seven new engines, the legacy Snake, and the original Midnight Circuit maze chase were implemented in-house. They use DOM, Canvas, `requestAnimationFrame`, Web Audio oscillator tones and existing V&G placeholder art; there is no third-party game engine, gameplay code, branded character, copied sprite, commercial sound or copyrighted game asset.
+
+The server derives victory and eligible rewards from the trusted static definition rather than accepting reward claims from the browser. The atomic finish function can grant achievements, coupon unlocks, discoveries, secret records and cross-game items idempotently. Progress reads fail safely to an empty record; a database outage never prevents a game from being played, although the interface clearly reports that the result was not saved.
+
+Server-issued run UUIDs make finish retries idempotent and reject results from attempts superseded on another device. A failed write keeps the result in memory with an explicit **Retry saving result** action; retry before navigating away or replaying. Scores originate in a trusted player's browser: server range/ending/reward validation is not an anti-cheat engine and is unsuitable for competitive or financial prizes. The migration also fixes a pre-existing ambiguous conflict target in the legacy Snake/Maze result function without changing those games' rules.
+
+`/secret` displays durable recovered notes and the cross-game inventory. Completing The Great Escape, Break My Defences and 365 Memories supplies three distinct keys that reveal the final archive file. Secret copy and required item IDs live in `src/data/game-secrets.ts`; locked final copy is not sent to the game client.
+
+Run `npm run test:games` on Node 22.18+ for the dependency-free registry, rewards, inventory, media and minefield contract tests. `supabase/tests/game_state.sql` verifies atomic grants, retry idempotence, stale-run rejection and legacy challenge compatibility using an ephemeral fixture UUID and a full rollback. Execute it after both migrations; it creates no permanent progress. Browser QA covers all seven engines at 320, 375, 430, 768 and 1440px. Real-device iOS/Safari testing remains a release recommendation beyond viewport simulation.
+
+Each game record supports `gameId`, `attempts`, `startedAt`, `completedAt`, `bestScore`, `latestScore`, `duration`, `difficulty`, `progress`, `ending`, `wins`, `losses`, `unlockedRewards` and `discoveredSecrets`. The single-user private-session and server-only Supabase boundary remain unchanged.
 
 Open When content remains in the typed `src/data/open-when.ts` registry, while rewards live in `src/data/rewards.ts`. The discriminated reward model can accept additional reward kinds without coupling them to `Envelope`, `Letter`, or route components.
 
@@ -172,15 +199,18 @@ The current engineering review and handoff inventory are documented in [`docs/te
 
 Gianmaria can finish the private content without changing presentation components:
 
-| Content                                                       | Edit here                                    |
-| ------------------------------------------------------------- | -------------------------------------------- |
-| Photograph files and shared metadata                          | `public/images/` and `src/data/media.ts`     |
-| City stories, dates, notes, coordinates, and image references | `src/data/places.ts`                         |
-| Coupon copy, terms, rarity, and unlock configuration          | `src/data/coupons.ts`                        |
-| Open When letters                                             | `src/data/open-when.ts`                      |
-| Award nominees, winners, evidence, and prizes                 | `src/data/awards.ts`                         |
-| Personal quiz prompts, answers, and feedback                  | `src/data/quiz-questions.ts`                 |
-| Quiz thresholds and rewards                                   | `src/data/quiz.ts` and `src/data/rewards.ts` |
+| Content                                                       | Edit here                                      |
+| ------------------------------------------------------------- | ---------------------------------------------- |
+| Photograph files and shared metadata                          | `public/images/` and `src/data/media.ts`       |
+| City stories, dates, notes, coordinates, and image references | `src/data/places.ts`                           |
+| Coupon copy, terms, rarity, and unlock configuration          | `src/data/coupons.ts`                          |
+| Open When letters                                             | `src/data/open-when.ts`                        |
+| Award nominees, winners, evidence, and prizes                 | `src/data/awards.ts`                           |
+| Personal quiz prompts, answers, and feedback                  | `src/data/quiz-questions.ts`                   |
+| Quiz thresholds and rewards                                   | `src/data/quiz.ts` and `src/data/rewards.ts`   |
+| Game rules, thresholds and rewards                            | `src/data/games.ts`                            |
+| Game scenarios and Year One timeline cards                    | `src/data/game-content.ts`                     |
+| Game photograph replacement slots                             | `src/data/game-media.ts` → `src/data/media.ts` |
 
 Keep the media IDs stable when replacing placeholders so Map, Awards, Gallery, Home, and Secret Area continue to share the same records.
 

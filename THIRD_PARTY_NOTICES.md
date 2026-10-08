@@ -20,3 +20,7 @@ The default runtime map style and vector tiles are provided by OpenFreeMap. They
 - Required map attribution: OpenFreeMap © OpenMapTiles, data from OpenStreetMap
 
 MapLibre displays the attribution supplied by the configured style. Do not remove the attribution control. Deployments may replace the style through `NEXT_PUBLIC_MAP_STYLE_URL`; the deployer is responsible for the selected provider’s terms and attribution requirements.
+
+## V&G game implementations
+
+The seven V&G Games and the existing Snake and Midnight Circuit challenges are original in-house implementations. No third-party game engine, gameplay source, sprite set, sound pack or commercial game asset was added for this work. Sound cues are generated at runtime with the browser Web Audio API, and game imagery references the application’s existing source-controlled placeholder registry. There are therefore no additional game-specific license or attribution requirements.

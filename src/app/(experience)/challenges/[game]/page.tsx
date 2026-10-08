@@ -8,27 +8,48 @@ import {
   getArcadeChallenge,
   getChallenge,
 } from "@/data/challenges";
+import { getVgGame, vgGames } from "@/data/games";
 import { ChallengeArcade } from "@/features/challenges/components/challenge-arcade";
 import { getChallengeProgress } from "@/features/challenges/lib/challenge-domain";
 import { loadChallengeState } from "@/features/challenges/repositories/get-challenge-state-repository";
+import { GameExperience } from "@/features/games/components/game-experience";
 
 interface ChallengePageProps {
   params: Promise<{ game: string }>;
 }
 
 export function generateStaticParams() {
-  return challenges.map((challenge) => ({ game: challenge.slug }));
+  return [...vgGames, ...challenges].map((challenge) => ({
+    game: challenge.slug,
+  }));
 }
 
 export async function generateMetadata({
   params,
 }: ChallengePageProps): Promise<Metadata> {
-  const challenge = getChallenge((await params).game);
-  return { title: challenge?.title ?? "Challenge" };
+  const game = (await params).game;
+  const challenge = getVgGame(game) ?? getChallenge(game);
+  return { title: challenge?.title ?? "Game" };
 }
 
 export default async function ChallengePage({ params }: ChallengePageProps) {
   const game = (await params).game;
+  const vgGame = getVgGame(game);
+  if (vgGame) {
+    const state = await loadChallengeState();
+    return (
+      <GameExperience
+        game={vgGame}
+        key={vgGame.gameId}
+        initialProgress={getChallengeProgress(
+          vgGame.gameId,
+          state,
+          vgGame.difficulty,
+        )}
+      />
+    );
+  }
+
   const challenge = getChallenge(game);
   if (!challenge) notFound();
 

@@ -100,7 +100,7 @@ function createMaze(): readonly (readonly number[])[] {
   const grid = Array.from({ length: MAZE_SIZE }, () =>
     Array.from({ length: MAZE_SIZE }, () => 1),
   );
-  const random = seededRandom(4102025);
+  const random = seededRandom(31102025);
   const stack: Point[] = [{ ...playerStart }];
   grid[playerStart.y][playerStart.x] = 0;
 

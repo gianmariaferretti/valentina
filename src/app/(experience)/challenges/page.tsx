@@ -1,130 +1,162 @@
-import { ArrowUpRight, Gamepad2, LockKeyhole, Trophy } from "lucide-react";
+import {
+  ArrowUpRight,
+  CalendarRange,
+  Footprints,
+  HeartPulse,
+  Images,
+  KeyRound,
+  Search,
+  Shield,
+  Sparkles,
+} from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { PaperCard, Sticker, Tape } from "@/components/design-system";
 import { arcadeChallenges } from "@/data/challenges";
+import { vgGames } from "@/data/games";
 import { getChallengeProgress } from "@/features/challenges/lib/challenge-domain";
 import { loadChallengeState } from "@/features/challenges/repositories/get-challenge-state-repository";
 
+import styles from "@/features/games/components/games.module.css";
+
 export const metadata: Metadata = {
-  title: "Impossible Coupon Challenge",
-  description: "The hidden V&G arcade. Impossible coupons are earned here.",
+  title: "V&G Games",
+  description: "Seven private games hidden inside the Year One archive.",
 };
 
-function formatScore(score: number): string {
-  return new Intl.NumberFormat("en-GB").format(score);
-}
+const gameIcons = [
+  Footprints,
+  Search,
+  HeartPulse,
+  Shield,
+  CalendarRange,
+  KeyRound,
+  Images,
+] as const;
 
 export default async function ChallengesPage() {
   const state = await loadChallengeState();
+  const progress = vgGames.map((game) =>
+    getChallengeProgress(game.gameId, state, game.difficulty),
+  );
+  const completed = progress.filter((record) => record.completedAt).length;
+  const wins = progress.reduce((total, record) => total + record.wins, 0);
+  const rewards = new Set(progress.flatMap((record) => record.unlockedRewards))
+    .size;
 
   return (
-    <div className="arcade-surface min-h-[calc(100svh-7rem)] text-white">
-      <div className="page-container py-12 sm:py-16 lg:py-24">
-        <header className="grid items-end gap-10 border-b border-white/12 pb-12 lg:grid-cols-[minmax(0,1fr)_24rem]">
+    <div className={styles.gamesSurface}>
+      <div className="page-container py-6 sm:py-10 lg:py-14">
+        <header className={styles.collectionHero}>
           <div>
-            <p className="arcade-pixel text-[0.62rem] tracking-[0.22em] text-[#ff5d8f]">
-              V&amp;G ARCADE · RESTRICTED FLOOR
-            </p>
-            <h1 className="mt-6 max-w-5xl text-[clamp(3rem,9vw,7.8rem)] leading-[0.86] font-black tracking-[-0.07em] uppercase">
-              Impossible coupon challenge
+            <p>V&amp;G Games Department · Private collection</p>
+            <h1>
+              Seven games.
+              <br />
+              <em>One suspicious archive.</em>
             </h1>
+            <span>
+              Built for two people, one year and a completely reasonable amount
+              of classified paperwork.
+            </span>
           </div>
-          <div className="lg:pb-2">
-            <Gamepad2 aria-hidden="true" className="text-white/35" size={30} />
-            <p className="mt-6 text-xl leading-8 text-white/62">
-              You want the coupon? Earn it.
-            </p>
-            <p className="mt-3 text-sm leading-6 text-white/38">
-              No shortcuts, no mysteriously generous scoring and absolutely no
-              appeals to management.
-            </p>
+          <div className={styles.heroSpark} aria-hidden="true">
+            <Sparkles />
+            <span>Playable evidence</span>
           </div>
         </header>
 
-        <section className="mt-10 grid gap-5 lg:grid-cols-2" aria-label="Games">
-          {arcadeChallenges.map((challenge, index) => {
-            const progress = getChallengeProgress(challenge.slug, state);
-            const complete = progress.completedAt !== null;
-            const accent = challenge.accent === "acid" ? "#a7ff4e" : "#39cfff";
+        <dl
+          className={styles.collectionStats}
+          aria-label="Games archive progress"
+        >
+          <div>
+            <dt>Files closed</dt>
+            <dd>{completed} / 07</dd>
+          </div>
+          <div>
+            <dt>Successful operations</dt>
+            <dd>{wins}</dd>
+          </div>
+          <div>
+            <dt>Rewards recovered</dt>
+            <dd>{rewards}</dd>
+          </div>
+        </dl>
 
+        <section className={styles.gameCollection} aria-label="V&G games">
+          {vgGames.map((game, index) => {
+            const Icon = gameIcons[index];
+            const record = progress[index];
             return (
-              <Link
-                className="arcade-challenge-card group"
-                data-accent={challenge.accent}
-                href={`/challenges/${challenge.slug}`}
-                key={challenge.slug}
+              <PaperCard
+                className={styles.gameCollectionCard}
+                elevated={index === 0 || index === 6}
+                key={game.gameId}
+                texture={index % 2 === 0 ? "ruled" : "plain"}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <span
-                    className="arcade-pixel text-[0.56rem] tracking-[0.16em]"
-                    style={{ color: accent }}
-                  >
-                    GAME 0{index + 1} · {challenge.format}
-                  </span>
-                  <ArrowUpRight
-                    aria-hidden="true"
-                    className="text-white/38 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1"
-                    size={22}
+                <Tape
+                  position={index % 2 === 0 ? "top-left" : "top-right"}
+                  rotation={index % 2 === 0 ? -3 : 2}
+                  size="sm"
+                  tone={index === 6 ? "burgundy" : "cream"}
+                />
+                <div className={styles.gameCardTopline}>
+                  <span>{game.number} / 07</span>
+                  <Sticker
+                    rotation={index % 2 === 0 ? 2 : -2}
+                    size="sm"
+                    text={
+                      record.completedAt ? "File closed" : game.dossierLabel
+                    }
+                    variant={
+                      record.completedAt ? "girlfriend-approved" : "classified"
+                    }
                   />
                 </div>
-
-                <div className="mt-16 sm:mt-24">
-                  <div
-                    className="mb-5 grid size-12 place-items-center rounded-xl border"
-                    style={{ borderColor: `${accent}50`, color: accent }}
-                  >
-                    {complete ? (
-                      <Trophy aria-hidden="true" size={21} />
-                    ) : (
-                      <LockKeyhole aria-hidden="true" size={20} />
-                    )}
-                  </div>
-                  <h2 className="text-4xl font-black tracking-[-0.045em] uppercase sm:text-5xl">
-                    {challenge.title}
-                  </h2>
-                  <p className="mt-4 max-w-xl text-sm leading-6 text-white/48">
-                    {challenge.description}
-                  </p>
+                <div className={styles.gameCardIcon} data-accent={game.accent}>
+                  <Icon aria-hidden="true" />
                 </div>
-
-                <dl className="mt-9 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:grid-cols-4">
-                  {[
-                    ["Required", formatScore(challenge.requiredScore)],
-                    ["Best", formatScore(progress.bestScore)],
-                    ["Attempts", formatScore(progress.attempts)],
-                    ["Status", complete ? "Unlocked" : "Locked"],
-                  ].map(([label, value]) => (
-                    <div className="bg-[#081016] p-3.5" key={label}>
-                      <dt className="text-[0.5rem] font-bold tracking-[0.14em] text-white/32 uppercase">
-                        {label}
-                      </dt>
-                      <dd className="mt-1.5 text-xs font-bold text-white/78">
-                        {value}
-                      </dd>
+                <p>{game.objective}</p>
+                <h2>{game.title}</h2>
+                <div className={styles.gameCardProgress}>
+                  <span>
+                    <i style={{ width: `${record.progress}%` }} />
+                  </span>
+                  <dl>
+                    <div>
+                      <dt>Best</dt>
+                      <dd>{record.bestScore.toLocaleString("en-GB")}</dd>
                     </div>
-                  ))}
-                </dl>
-
-                <div className="mt-5 border-t border-dashed border-white/12 pt-5">
-                  <p className="text-[0.54rem] font-bold tracking-[0.14em] text-white/32 uppercase">
-                    Reward
-                  </p>
-                  <p
-                    className="mt-2 text-sm font-bold"
-                    style={{ color: accent }}
-                  >
-                    {challenge.reward}
-                  </p>
+                    <div>
+                      <dt>Attempts</dt>
+                      <dd>{record.attempts}</dd>
+                    </div>
+                  </dl>
                 </div>
-              </Link>
+                <Link href={`/challenges/${game.slug}`}>
+                  Open game file <ArrowUpRight aria-hidden="true" />
+                </Link>
+              </PaperCard>
             );
           })}
         </section>
 
-        <p className="mt-8 text-center text-[0.58rem] font-bold tracking-[0.16em] text-white/28 uppercase">
-          Scores are archived · Pride is not recoverable
-        </p>
+        <aside className={styles.impossibleAnnex}>
+          <div>
+            <p>Legacy annex · Still legally impossible</p>
+            <h2>The original challenges remain in the basement.</h2>
+          </div>
+          <div>
+            {arcadeChallenges.map((challenge) => (
+              <Link href={`/challenges/${challenge.slug}`} key={challenge.slug}>
+                {challenge.title}
+                <ArrowUpRight aria-hidden="true" size={16} />
+              </Link>
+            ))}
+          </div>
+        </aside>
       </div>
     </div>
   );

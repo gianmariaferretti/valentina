@@ -173,7 +173,7 @@ export default function DesignSystemPage() {
           >
             <div className="relative grid w-full max-w-lg grid-cols-2 items-center gap-8">
               <PostageStamp country="Colombia" tone="burgundy" year="2026" />
-              <PassportStamp date="04 OCT 2025" location="Cartagena" />
+              <PassportStamp date="31 OCT 2025" location="Cartagena" />
               <PostageStamp
                 className="justify-self-end"
                 country="France"

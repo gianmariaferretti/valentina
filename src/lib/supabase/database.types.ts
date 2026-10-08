@@ -64,21 +64,57 @@ export interface Database {
           user_id: string;
           challenge_id: string;
           best_score: number;
+          latest_score: number;
           attempts: number;
+          started_at: string | null;
           completed_at: string | null;
+          duration_ms: number;
+          difficulty: string;
+          progress: number;
+          ending: string | null;
+          wins: number;
+          losses: number;
+          unlocked_rewards: string[];
+          discovered_secrets: string[];
+          active_run_id: string | null;
+          last_finished_run_id: string | null;
         };
         Insert: TimestampInsert & {
           user_id: string;
           challenge_id: string;
           best_score?: number;
+          latest_score?: number;
           attempts?: number;
+          started_at?: string | null;
           completed_at?: string | null;
+          duration_ms?: number;
+          difficulty?: string;
+          progress?: number;
+          ending?: string | null;
+          wins?: number;
+          losses?: number;
+          unlocked_rewards?: string[];
+          discovered_secrets?: string[];
+          active_run_id?: string | null;
+          last_finished_run_id?: string | null;
         };
         Update: Partial<
           TimestampInsert & {
             best_score: number;
+            latest_score: number;
             attempts: number;
+            started_at: string | null;
             completed_at: string | null;
+            duration_ms: number;
+            difficulty: string;
+            progress: number;
+            ending: string | null;
+            wins: number;
+            losses: number;
+            unlocked_rewards: string[];
+            discovered_secrets: string[];
+            active_run_id: string | null;
+            last_finished_run_id: string | null;
           }
         >;
         Relationships: [];
@@ -198,6 +234,64 @@ export interface Database {
           attempts: number;
           completed_at: string | null;
           coupon_unlocked: boolean;
+        }[];
+      };
+      begin_game_run: {
+        Args: {
+          p_run_id: string;
+          p_user_id: string;
+          p_game_id: string;
+          p_difficulty: string;
+          p_started_at: string;
+        };
+        Returns: {
+          game_id: string;
+          best_score: number;
+          latest_score: number;
+          attempts: number;
+          started_at: string | null;
+          completed_at: string | null;
+          duration_ms: number;
+          difficulty: string;
+          progress: number;
+          ending: string | null;
+          wins: number;
+          losses: number;
+          unlocked_rewards: string[];
+          discovered_secrets: string[];
+        }[];
+      };
+      finish_game_run: {
+        Args: {
+          p_run_id: string;
+          p_user_id: string;
+          p_game_id: string;
+          p_score: number;
+          p_duration_ms: number;
+          p_difficulty: string;
+          p_progress: number;
+          p_ending: string;
+          p_won: boolean;
+          p_reward_grants: Json;
+          p_discovered_secrets: string[];
+          p_finished_at: string;
+        };
+        Returns: {
+          game_id: string;
+          best_score: number;
+          latest_score: number;
+          attempts: number;
+          started_at: string | null;
+          completed_at: string | null;
+          duration_ms: number;
+          difficulty: string;
+          progress: number;
+          ending: string | null;
+          wins: number;
+          losses: number;
+          unlocked_rewards: string[];
+          discovered_secrets: string[];
+          newly_granted_reward_ids: string[];
         }[];
       };
       open_letter_state: {

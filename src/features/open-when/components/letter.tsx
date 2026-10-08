@@ -60,7 +60,7 @@ export function Letter({ letter, sequence }: LetterProps) {
         <span>
           <PenLine aria-hidden="true" size={13} /> Written for Valentina
         </span>
-        <span>04.10.2025 → ∞</span>
+        <span>31.10.2025 → ∞</span>
       </footer>
     </article>
   );
