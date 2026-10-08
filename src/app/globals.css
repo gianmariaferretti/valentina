@@ -2143,12 +2143,12 @@ a {
 }
 
 .envelope__back {
-  z-index: -3;
+  z-index: 0;
   background: var(--envelope-face);
 }
 
 .envelope__paper-peek {
-  z-index: -2;
+  z-index: 1;
   top: 7%;
   right: 8%;
   bottom: 12%;
@@ -2160,7 +2160,7 @@ a {
 }
 
 .envelope__flap {
-  z-index: -1;
+  z-index: 2;
   height: 64%;
   background: var(--envelope-back);
   clip-path: polygon(0 0, 50% 74%, 100% 0);
@@ -2172,7 +2172,7 @@ a {
 }
 
 .envelope__fold {
-  z-index: -1;
+  z-index: 2;
   top: 32%;
   background: color-mix(in srgb, var(--envelope-face) 90%, white);
 }
@@ -2196,7 +2196,7 @@ a {
 
 .envelope__address {
   position: absolute;
-  z-index: 1;
+  z-index: 4;
   top: 42%;
   right: 18%;
   left: 9%;
@@ -2223,7 +2223,7 @@ a {
 
 .envelope__number {
   position: absolute;
-  z-index: 1;
+  z-index: 4;
   bottom: 7%;
   left: 8%;
   opacity: 0.5;
@@ -2234,7 +2234,7 @@ a {
 
 .envelope__stamp {
   position: absolute;
-  z-index: 1;
+  z-index: 4;
   top: 9%;
   right: 6%;
   display: grid;
@@ -2266,7 +2266,7 @@ a {
 
 .envelope__postmark {
   position: absolute;
-  z-index: 2;
+  z-index: 5;
   top: 12%;
   right: 1.6%;
   width: 5rem;
@@ -2279,7 +2279,7 @@ a {
 
 .envelope__seal {
   position: absolute;
-  z-index: 2;
+  z-index: 5;
   right: 9%;
   bottom: 9%;
   display: grid;
@@ -2303,7 +2303,7 @@ a {
 
 .envelope__status {
   position: absolute;
-  z-index: 2;
+  z-index: 5;
   top: 8%;
   left: 7%;
   border: 1px solid currentColor;
