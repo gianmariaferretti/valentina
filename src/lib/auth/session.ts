@@ -69,7 +69,6 @@ export async function setAccessSession(): Promise<void> {
 
   cookieStore.set(ACCESS_COOKIE, createAccessToken(), {
     httpOnly: true,
-    maxAge: SESSION_DURATION_SECONDS,
     path: "/",
     priority: "high",
     sameSite: "strict",
