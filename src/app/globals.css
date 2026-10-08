@@ -1115,9 +1115,7 @@ a {
     0 0 0 1px rgba(36, 30, 28, 0.16);
   color: white;
   cursor: pointer;
-  transform: rotate(-7deg);
   transition:
-    transform 180ms ease,
     background 180ms ease,
     box-shadow 180ms ease;
 }
@@ -1131,7 +1129,6 @@ a {
     0 12px 34px rgba(36, 30, 28, 0.4),
     0 0 0 4px rgba(251, 248, 243, 0.82);
   outline: none;
-  transform: rotate(0) translateY(-4px) scale(1.06);
 }
 
 .vg-map-marker__monogram {
