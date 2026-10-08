@@ -25,7 +25,7 @@ export default function EntryPage() {
         <div className="my-auto py-20 text-center">
           <FadeIn delay={0.08}>
             <p className="text-[0.6rem] font-semibold tracking-[0.38em] text-white/45 uppercase sm:text-[0.68rem]">
-              04.10.2025 — 04.10.2026
+              31.10.2025 — 31.10.2026
             </p>
           </FadeIn>
           <FadeIn delay={0.14}>
