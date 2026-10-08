@@ -125,7 +125,7 @@ export default function HomePage() {
                   Gianmaria
                 </p>
                 <p className="mt-2 text-[0.62rem] font-semibold tracking-[0.18em] text-white/48 uppercase">
-                  04.10.2025 → ∞
+                  31.10.2025 → ∞
                 </p>
               </div>
               <HandwrittenNote
