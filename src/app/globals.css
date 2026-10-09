@@ -1504,6 +1504,10 @@ a {
     linear-gradient(to top, rgba(20, 16, 16, 0.86), transparent 62%);
 }
 
+.place-memory-hero--photograph {
+  background: var(--ink);
+}
+
 .place-memory-hero__topline {
   position: absolute;
   z-index: 1;

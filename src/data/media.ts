@@ -1,5 +1,6 @@
 import type {
   GalleryMediaAsset,
+  GalleryPresentation,
   MediaAsset,
   MediaCategory,
   MediaLocation,
@@ -99,9 +100,373 @@ const placeLocations = {
   paris: { label: "Paris, France", code: "PAR" },
   hamburg: { label: "Hamburg, Germany", code: "HAM" },
   brussels: { label: "Brussels, Belgium", code: "BRU" },
+  "polignano-a-mare": { label: "Polignano a Mare, Italy" },
+  matera: { label: "Matera, Italy" },
+  accettura: { label: "Accettura, Italy" },
+  bari: { label: "Bari, Italy" },
 } as const satisfies Record<string, MediaLocation>;
 
-export const mediaAssets = [
+interface TravelPhotoDefinition {
+  readonly id: string;
+  /** Leave unset until a photograph's destination is reliably identified. */
+  readonly place?: keyof typeof placeLocations;
+  readonly alt: string;
+  readonly caption: string;
+  readonly landscape?: boolean;
+  /** Actual optimized dimensions for photographs with non-4:3 aspect ratios. */
+  readonly dimensions?: readonly [width: number, height: number];
+  readonly category?: MediaCategory;
+  readonly featured?: boolean;
+  /** Map-only photos never enter the Gallery or Memory game. */
+  readonly mapOnly?: boolean;
+  readonly gallery: GalleryPresentation;
+}
+
+/** Supplied travel photographs. Order is editorial, not chronological. */
+export const travelPhotos: readonly MediaAsset[] = (
+  [
+    {
+      id: "paris-cover",
+      place: "paris",
+      category: "us",
+      featured: true,
+      alt: "A couple leaning together on the grass in Paris",
+      caption: "Paris · on the grass",
+      gallery: { format: "editorial", size: "hero", rotation: 0, tape: "none" },
+    },
+    {
+      id: "accettura-cover",
+      place: "accettura",
+      featured: true,
+      alt: "Rocky peaks and green hills beneath a cloud-filled blue sky near Accettura",
+      caption: "Accettura · the view",
+      gallery: {
+        format: "polaroid",
+        size: "portrait",
+        rotation: -2,
+        tape: "cream",
+      },
+    },
+    {
+      id: "bari-cover",
+      place: "bari",
+      alt: "Boats moored in front of a waterfront building in Bari",
+      caption: "Bari · by the water",
+      gallery: {
+        format: "editorial",
+        size: "portrait",
+        rotation: 0,
+        tape: "none",
+      },
+    },
+    {
+      id: "polignano-boat",
+      place: "polignano-a-mare",
+      alt: "A woman in a blue shirt sitting on a boat beside the coastline at Polignano a Mare",
+      caption: "Polignano a Mare · on the water",
+      gallery: {
+        format: "polaroid",
+        size: "portrait",
+        rotation: 2,
+        tape: "yellow",
+      },
+    },
+    {
+      id: "paris-bite",
+      place: "paris",
+      category: "us",
+      featured: true,
+      alt: "A playful bite captured in a couple's mirror photograph in Paris",
+      caption: "The Gianmaria Bite Photo",
+      gallery: {
+        format: "polaroid",
+        size: "portrait",
+        rotation: -1,
+        tape: "rose",
+      },
+    },
+    {
+      id: "matera-cover",
+      place: "matera",
+      alt: "Stone buildings and terraced rooftops across Matera beneath a clear blue sky",
+      caption: "Matera · rooftops",
+      gallery: {
+        format: "editorial",
+        size: "portrait",
+        rotation: 0,
+        tape: "none",
+      },
+    },
+    {
+      id: "accettura-evening",
+      place: "accettura",
+      alt: "Sunset over hills viewed from beneath a geodesic dome near Accettura",
+      caption: "Accettura · evening light",
+      gallery: {
+        format: "polaroid",
+        size: "portrait",
+        rotation: 2,
+        tape: "clear",
+      },
+    },
+    {
+      id: "rome-cover",
+      place: "rome",
+      category: "us",
+      alt: "A woman posing in a pink-lit room beneath a Barbie sign in Rome",
+      caption: "Rome · a little pink",
+      gallery: {
+        format: "polaroid",
+        size: "portrait",
+        rotation: -2,
+        tape: "cream",
+      },
+    },
+    {
+      id: "paris-disneyland",
+      place: "paris",
+      landscape: true,
+      alt: "A couple posing with drinks at Disneyland Paris",
+      caption: "Disneyland Paris",
+      gallery: { format: "editorial", size: "wide", rotation: 0, tape: "none" },
+    },
+    {
+      id: "polignano-a-mare-cover",
+      place: "polignano-a-mare",
+      alt: "White coastal buildings above turquoise water at Polignano a Mare",
+      caption: "Polignano a Mare · the coastline",
+      gallery: {
+        format: "editorial",
+        size: "portrait",
+        rotation: 0,
+        tape: "none",
+      },
+    },
+    {
+      id: "accettura-portrait",
+      place: "accettura",
+      landscape: true,
+      category: "us",
+      alt: "A woman's selfie with hillside houses and green slopes behind her near Accettura",
+      caption: "Accettura · a frame together with the view",
+      gallery: {
+        format: "polaroid",
+        size: "wide",
+        rotation: -1,
+        tape: "yellow",
+      },
+    },
+    {
+      id: "bari-street",
+      place: "bari",
+      category: "us",
+      alt: "A couple taking a selfie in a narrow street in Bari",
+      caption: "Bari · a street-side frame",
+      gallery: {
+        format: "polaroid",
+        size: "portrait",
+        rotation: 2,
+        tape: "cream",
+      },
+    },
+    {
+      id: "accettura-dome",
+      place: "accettura",
+      alt: "A terrace overlooking hills through the frame of a geodesic dome near Accettura",
+      caption: "Accettura · from the terrace",
+      gallery: {
+        format: "photo-strip",
+        size: "wide",
+        rotation: -1,
+        tape: "none",
+      },
+    },
+    {
+      id: "polignano-table",
+      place: "polignano-a-mare",
+      category: "food",
+      alt: "A woman eating an ice cream at a table in Polignano a Mare",
+      caption: "Polignano a Mare · ice cream",
+      gallery: {
+        format: "polaroid",
+        size: "portrait",
+        rotation: 1,
+        tape: "rose",
+      },
+    },
+    {
+      id: "brussels-cover",
+      place: "brussels",
+      dimensions: [1400, 1588],
+      category: "us",
+      featured: true,
+      alt: "A couple taking a selfie in front of the ornate buildings of Brussels Grand Place",
+      caption: "Brussels · together in the square",
+      gallery: {
+        format: "polaroid",
+        size: "portrait",
+        rotation: 2,
+        tape: "cream",
+      },
+    },
+    {
+      id: "beach-umbrellas",
+      dimensions: [1277, 1600],
+      category: "random",
+      alt: "White beach umbrellas against a blue sky above the sea",
+      caption: "A little shade. A lot of sky.",
+      gallery: {
+        format: "editorial",
+        size: "portrait",
+        rotation: 0,
+        tape: "none",
+      },
+    },
+    {
+      id: "paris-eiffel",
+      place: "paris",
+      dimensions: [1600, 1273],
+      category: "us",
+      featured: true,
+      alt: "A couple beside the river with the illuminated Eiffel Tower behind them",
+      caption: "Paris · one more frame together",
+      gallery: { format: "editorial", size: "wide", rotation: 0, tape: "none" },
+    },
+    {
+      id: "fresco-detail",
+      dimensions: [1198, 1600],
+      alt: "A woman in a white cap looking at painted ancient frescoes beneath a vaulted ceiling",
+      caption: "Looking a little closer",
+      gallery: {
+        format: "polaroid",
+        size: "portrait",
+        rotation: -2,
+        tape: "yellow",
+      },
+    },
+    {
+      id: "sheet-mask-committee",
+      dimensions: [1600, 1261],
+      category: "us",
+      alt: "A couple wearing sheet face masks while sitting on a sofa",
+      caption: "The skincare committee",
+      gallery: { format: "polaroid", size: "wide", rotation: 1, tape: "rose" },
+    },
+    {
+      id: "london-cover",
+      place: "london",
+      dimensions: [1600, 1273],
+      category: "us",
+      featured: true,
+      alt: "A couple sharing a kiss by the Thames at night, with the Millennium Bridge and St Paul's Cathedral behind them",
+      caption: "London · by the river, after dark",
+      gallery: { format: "editorial", size: "wide", rotation: 0, tape: "none" },
+    },
+    {
+      id: "copper-vessel",
+      dimensions: [1240, 1600],
+      alt: "A smiling woman standing beside a large copper brewing vessel",
+      caption: "One very large copper souvenir",
+      gallery: {
+        format: "polaroid",
+        size: "portrait",
+        rotation: 2,
+        tape: "clear",
+      },
+    },
+    {
+      id: "matera-together",
+      dimensions: [1600, 1246],
+      category: "us",
+      alt: "A couple taking a selfie above a hillside of stone buildings",
+      caption: "Us, with a view",
+      gallery: { format: "editorial", size: "wide", rotation: 0, tape: "none" },
+    },
+    {
+      id: "church-ceiling",
+      dimensions: [1202, 1600],
+      category: "us",
+      alt: "A couple beneath an ornate church ceiling with painted vaults and gilded details",
+      caption: "The ceiling deserves a frame too",
+      gallery: {
+        format: "polaroid",
+        size: "portrait",
+        rotation: -1,
+        tape: "cream",
+      },
+    },
+    {
+      id: "road-frame",
+      dimensions: [1600, 1203],
+      category: "random",
+      alt: "A rural road seen from inside a car, winding between dry rolling hills",
+      caption: "Somewhere along the way",
+      gallery: {
+        format: "photo-strip",
+        size: "wide",
+        rotation: -1,
+        tape: "none",
+      },
+    },
+    {
+      id: "harbour-together",
+      dimensions: [1600, 1206],
+      category: "us",
+      alt: "A couple taking a selfie above a harbour with boats, a lighthouse and a palm tree",
+      caption: "Together by the harbour",
+      gallery: {
+        format: "polaroid",
+        size: "wide",
+        rotation: 1,
+        tape: "yellow",
+      },
+    },
+    {
+      id: "paris-quiet-frame",
+      place: "paris",
+      category: "us",
+      mapOnly: true,
+      alt: "A couple resting together beneath a blanket in Paris",
+      caption: "Paris · a quiet frame",
+      gallery: {
+        format: "polaroid",
+        size: "portrait",
+        rotation: 0,
+        tape: "none",
+      },
+    },
+  ] satisfies readonly TravelPhotoDefinition[]
+).map((definition: TravelPhotoDefinition): MediaAsset => ({
+  id: definition.id,
+  src: `/images/travel/${definition.id}.webp`,
+  width: definition.dimensions?.[0] ?? (definition.landscape ? 1600 : 1200),
+  height: definition.dimensions?.[1] ?? (definition.landscape ? 1200 : 1600),
+  alt: definition.alt,
+  caption: definition.caption,
+  date: null,
+  dateLabel: "Date to be added",
+  location:
+    definition.id === "paris-disneyland"
+      ? { label: "Disneyland Paris, France" }
+      : definition.place
+        ? placeLocations[definition.place]
+        : null,
+  category: definition.category ?? "trips",
+  featured: definition.featured ?? false,
+  relatedPlace: definition.place ?? null,
+  surfaces: definition.mapOnly
+    ? ["map"]
+    : definition.place
+      ? ["map", "gallery", "awards", "home"]
+      : ["gallery", "home"],
+  gallery: definition.mapOnly ? undefined : definition.gallery,
+}));
+
+export function getTravelPhotosForPlace(slug: string): readonly MediaAsset[] {
+  return travelPhotos.filter((photo) => photo.relatedPlace === slug);
+}
+
+const placeholderMediaAssets = [
   ...(
     [
       ["polignano-a-mare", "Polignano a Mare"],
@@ -475,6 +840,14 @@ export const mediaAssets = [
   }),
 ] as const satisfies readonly MediaAsset[];
 
+/** Stable cover IDs replace placeholders without duplicating image metadata. */
+export const mediaAssets: readonly MediaAsset[] = [
+  ...travelPhotos,
+  ...placeholderMediaAssets.filter(
+    (asset) => !travelPhotos.some((photo) => photo.id === asset.id),
+  ),
+];
+
 export function getMediaAsset(id: string): MediaAsset {
   const asset = mediaAssets.find((candidate) => candidate.id === id);
   if (!asset) throw new Error(`Media asset ${id} is not registered.`);
@@ -482,8 +855,9 @@ export function getMediaAsset(id: string): MediaAsset {
 }
 
 export function getGalleryMedia(): readonly GalleryMediaAsset[] {
-  return mediaAssets.filter(
-    (asset): asset is (typeof mediaAssets)[number] & GalleryMediaAsset =>
+  // Once real photos exist, don't interleave repeated placeholder illustrations.
+  return (travelPhotos.length ? travelPhotos : mediaAssets).filter(
+    (asset): asset is GalleryMediaAsset =>
       asset.surfaces.includes("gallery") && Boolean(asset.gallery),
   );
 }

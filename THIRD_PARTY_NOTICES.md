@@ -38,3 +38,7 @@ Reference: <https://github.com/lyn-kodehode/React-memory-game>.
 The README, package manifest, card state/shuffle/matching logic, flip CSS and responsive grid were reviewed. The repository's inspected recursive file tree contains no LICENSE/COPYING file and its package manifest does not declare a license. Public visibility does not grant a reuse license. No source or assets were copied; V&G's finite-state rules, Fisher–Yates shuffle and card styling were implemented independently.
 
 The retired novel's `@monogatari/core` dependency, adapter, generated runtime preparation and associated notices are no longer part of the shipped application. Historical commits retain that implementation and its licenses. No new dependencies are introduced by this Arcade overhaul.
+
+## Travel photo preparation
+
+Supplied photographs were converted locally using macOS `sips` and Sharp 0.35.5 (Apache-2.0), already present through Next.js. The installed `@img/sharp-libvips-darwin-arm64` distribution declares LGPL-3.0-or-later; upstream libvips itself is LGPL-2.1-or-later. These installed package licenses were checked locally. No new package, third-party photograph, generated personal image or borrowed asset was introduced. Only optimized WebP copies, not originals or metadata, are committed. Photo filenames and associations are documented in `docs/photo-integration.md`.

@@ -43,7 +43,7 @@ export default function GalleryPage() {
             One look suspiciously well documented.
           </p>
           <HandwrittenNote rotation={-2} tone="ink">
-            real photographs replace the placeholders when ready
+            actual evidence. selectively declassified.
           </HandwrittenNote>
         </div>
 
