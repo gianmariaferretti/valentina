@@ -39,7 +39,7 @@ At the initial GitHub audit, **no personal raster photographs were present**. Th
 - `map/transit-placeholder.svg`
 - `year-one-cover.svg`
 
-The initial audited main revision was `f4d780ee5921d5e9ce14bd888004d31d6b199b19`. In the follow-up, Gianmaria supplied a local photo folder: **15 usable photographs are now integrated**, with the requested associations confirmed by him. See [the photo integration report](photo-integration.md) for the full inventory, exclusions and checks. No illustration is presented as a supplied photograph.
+The initial audited main revision was `f4d780ee5921d5e9ce14bd888004d31d6b199b19`. In the follow-up, Gianmaria supplied a local photo folder and screenshots: **26 usable photographs are now integrated**. The original associations were supplied/confirmed by him; three new landmark associations are visual inferences, and eight new frames await city confirmation. See [the photo integration report](photo-integration.md) for the full inventory, exclusions and checks. No illustration is presented as a supplied photograph.
 
 ## D. Photo-to-city mapping
 
@@ -47,11 +47,11 @@ The ten destinations retain their routes, geographic coordinates, dates and navi
 
 | Route            | Supported filename words                            | Current personal photos |
 | ---------------- | --------------------------------------------------- | ----------------------- |
-| london           | london, londra                                      | Missing                 |
+| london           | london, londra                                      | 1                       |
 | rome             | rome, roma                                          | 1                       |
-| paris            | paris, parigi                                       | 4 (one map-only)        |
+| paris            | paris, parigi                                       | 5 (one map-only)        |
 | hamburg          | hamburg, amburgo                                    | Missing                 |
-| brussels         | brussels, bruxelles                                 | Missing                 |
+| brussels         | brussels, bruxelles                                 | 1                       |
 | polignano-a-mare | polignano, polignano a mare                         | 3                       |
 | matera           | matera                                              | 1                       |
 | accettura        | accettura                                           | 4                       |
@@ -62,7 +62,7 @@ The ten destinations retain their routes, geographic coordinates, dates and navi
 
 ## E. Gallery and memory game
 
-The existing gallery presentation, filters and lightbox remain, now displaying 14 real photographs in an interleaved editorial order. The owner-requested Paris bed photograph appears only in Paris's map gallery. Best Trip uses Accettura's landscape; Best Photo uses the confirmed bite photo. Unrelated Awards keep illustrations. Fourteen Memory identities now use the exact same photograph on both pair instances; four symbols remain. All 18 IDs, order and gameplay settings are preserved.
+The existing gallery presentation, filters and lightbox remain, now displaying 25 real photographs. The owner-requested Paris bed photograph appears only in Paris's map gallery. Best Trip uses Accettura's landscape; Best Photo uses the confirmed bite photo. Unrelated Awards keep illustrations. All eighteen Memory identities now use the exact same photograph on both pair instances. All 18 IDs, order and gameplay settings are preserved.
 
 ## F–G. One seven-stage Spicy Archive
 
@@ -126,7 +126,7 @@ Use a separately started local Next process with `SUPABASE_URL=http://127.0.0.1:
 
 ## L. Remaining manual configuration
 
-1. Supply an intact replacement for the truncated `Brussels1.jpg`, and photographs for London, Hamburg and Amalfi Coast if desired. `Pasta.MOV` remains outside this image-only integration. Other Awards still need reliably associated images.
+1. Hamburg and Amalfi Coast still need photographs if desired; intact screenshots now cover Brussels and London. Reattach the five missing screenshots and confirm locations for the eight unassigned frames listed in the photo report. `Pasta.MOV` remains outside this image-only integration. Other Awards still need reliably associated images.
 2. Supply the final archive photograph through private Storage only; set the three server-only image variables as documented in README.
 3. Review/apply the additive reward migration to a preview/local Supabase environment. Production remains untouched until separately approved.
 4. Perform final real-device iPhone/Safari and reduced-motion preference QA.

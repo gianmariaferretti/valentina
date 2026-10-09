@@ -139,8 +139,8 @@ test("Media: ten destinations have correctly attributed covers, with no fabricat
     assert.ok(asset.src.endsWith(".webp") || asset.alt.includes("placeholder"));
   }
 });
-test("Media: 15 supplied photos are decodable, correctly oriented, optimized and metadata-free", async () => {
-  assert.equal(travelPhotos.length, 15);
+test("Media: 26 supplied photos are decodable, correctly oriented, optimized and metadata-free", async () => {
+  assert.equal(travelPhotos.length, 26);
   assert.equal(
     new Set(mediaAssets.map((asset) => asset.id)).size,
     mediaAssets.length,
@@ -157,22 +157,24 @@ test("Media: 15 supplied photos are decodable, correctly oriented, optimized and
     assert.equal(metadata.height, photo.height);
     assert.equal(metadata.exif, undefined);
     assert.equal(metadata.xmp, undefined);
+    assert.equal(metadata.icc, undefined);
+    assert.equal(metadata.iptc, undefined);
     assert.equal(metadata.orientation, undefined);
     assert.ok(Math.max(photo.width, photo.height) <= 1600);
     assert.equal(photo.date, null);
     assert.ok(file.length < 450_000);
     totalBytes += file.length;
   }
-  assert.ok(totalBytes < 4_000_000);
+  assert.ok(totalBytes < 6_000_000);
 });
 test("Media: map-only Paris frame is excluded from Gallery and Memory; gallery uses real unique photos", () => {
   const gallery = getGalleryMedia();
-  assert.equal(gallery.length, 14);
+  assert.equal(gallery.length, 25);
   assert.equal(new Set(gallery.map((asset) => asset.src)).size, gallery.length);
   assert.ok(gallery.every((asset) => asset.src.endsWith(".webp")));
   assert.ok(!gallery.some((asset) => asset.id === "paris-quiet-frame"));
   assert.equal(arcadeMemories.length, 18);
-  assert.equal(arcadeMemories.filter((memory) => memory.image).length, 14);
+  assert.equal(arcadeMemories.filter((memory) => memory.image).length, 18);
   for (const memory of arcadeMemories.filter((memory) => memory.image)) {
     assert.equal(memory.image, memory.matchingImage);
     assert.ok(gallery.some((asset) => asset.id === memory.image));
@@ -214,11 +216,40 @@ test("Map: photographs belong only to their supplied destination, with no repeat
       .galleryImages.some((photo) => photo.id === "paris-quiet-frame"),
   );
   assert.equal(
+    places.find((place) => place.slug === "brussels").coverImage.id,
+    "brussels-cover",
+  );
+  assert.equal(
     places
-      .find((place) => place.slug === "brussels")
-      .coverImage.src.endsWith(".svg"),
+      .find((place) => place.slug === "london")
+      .coverImage.src.endsWith(".webp"),
     true,
   );
+});
+test("Media: unconfirmed locations cannot leak into destination galleries", () => {
+  const unconfirmed = [
+    "beach-umbrellas",
+    "fresco-detail",
+    "copper-vessel",
+    "matera-together",
+    "church-ceiling",
+    "road-frame",
+    "harbour-together",
+    "sheet-mask-committee",
+  ];
+  for (const id of unconfirmed) {
+    const photograph = travelPhotos.find((photo) => photo.id === id);
+    assert.ok(photograph);
+    assert.equal(photograph.location, null);
+    assert.equal(photograph.relatedPlace, null);
+    assert.ok(!photograph.surfaces.includes("map"));
+    assert.ok(getGalleryMedia().some((photo) => photo.id === id));
+    assert.ok(
+      places.every(
+        (place) => !place.galleryImages.some((photo) => photo.id === id),
+      ),
+    );
+  }
 });
 test("Media: Italian/English matching is conservative and rejects ambiguous/unrelated filenames", () => {
   for (const [filename, slug] of [

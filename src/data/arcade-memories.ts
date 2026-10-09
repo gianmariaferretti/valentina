@@ -28,9 +28,13 @@ const photographPairs: Readonly<Record<string, string>> = {
   book: "accettura-dome",
   anchor: "polignano-boat",
   flower: "matera-cover",
+  shell: "brussels-cover",
+  bike: "london-cover",
+  tree: "paris-eiffel",
+  gift: "sheet-mask-committee",
 };
 
-/** Four original symbols remain until further approved photographs are supplied. */
+/** Presentation changes do not change game identities, order or matching rules. */
 export const arcadeMemories: readonly ArcadeMemory[] = [
   ["plane", "Plane", "travel"],
   ["train", "Train", "travel"],

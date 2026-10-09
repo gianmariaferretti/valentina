@@ -108,10 +108,13 @@ const placeLocations = {
 
 interface TravelPhotoDefinition {
   readonly id: string;
-  readonly place: keyof typeof placeLocations;
+  /** Leave unset until a photograph's destination is reliably identified. */
+  readonly place?: keyof typeof placeLocations;
   readonly alt: string;
   readonly caption: string;
   readonly landscape?: boolean;
+  /** Actual optimized dimensions for photographs with non-4:3 aspect ratios. */
+  readonly dimensions?: readonly [width: number, height: number];
   readonly category?: MediaCategory;
   readonly featured?: boolean;
   /** Map-only photos never enter the Gallery or Memory game. */
@@ -292,6 +295,133 @@ export const travelPhotos: readonly MediaAsset[] = (
       },
     },
     {
+      id: "brussels-cover",
+      place: "brussels",
+      dimensions: [1400, 1588],
+      category: "us",
+      featured: true,
+      alt: "A couple taking a selfie in front of the ornate buildings of Brussels Grand Place",
+      caption: "Brussels · together in the square",
+      gallery: {
+        format: "polaroid",
+        size: "portrait",
+        rotation: 2,
+        tape: "cream",
+      },
+    },
+    {
+      id: "beach-umbrellas",
+      dimensions: [1277, 1600],
+      category: "random",
+      alt: "White beach umbrellas against a blue sky above the sea",
+      caption: "A little shade. A lot of sky.",
+      gallery: {
+        format: "editorial",
+        size: "portrait",
+        rotation: 0,
+        tape: "none",
+      },
+    },
+    {
+      id: "paris-eiffel",
+      place: "paris",
+      dimensions: [1600, 1273],
+      category: "us",
+      featured: true,
+      alt: "A couple beside the river with the illuminated Eiffel Tower behind them",
+      caption: "Paris · one more frame together",
+      gallery: { format: "editorial", size: "wide", rotation: 0, tape: "none" },
+    },
+    {
+      id: "fresco-detail",
+      dimensions: [1198, 1600],
+      alt: "A woman in a white cap looking at painted ancient frescoes beneath a vaulted ceiling",
+      caption: "Looking a little closer",
+      gallery: {
+        format: "polaroid",
+        size: "portrait",
+        rotation: -2,
+        tape: "yellow",
+      },
+    },
+    {
+      id: "sheet-mask-committee",
+      dimensions: [1600, 1261],
+      category: "us",
+      alt: "A couple wearing sheet face masks while sitting on a sofa",
+      caption: "The skincare committee",
+      gallery: { format: "polaroid", size: "wide", rotation: 1, tape: "rose" },
+    },
+    {
+      id: "london-cover",
+      place: "london",
+      dimensions: [1600, 1273],
+      category: "us",
+      featured: true,
+      alt: "A couple sharing a kiss by the Thames at night, with the Millennium Bridge and St Paul's Cathedral behind them",
+      caption: "London · by the river, after dark",
+      gallery: { format: "editorial", size: "wide", rotation: 0, tape: "none" },
+    },
+    {
+      id: "copper-vessel",
+      dimensions: [1240, 1600],
+      alt: "A smiling woman standing beside a large copper brewing vessel",
+      caption: "One very large copper souvenir",
+      gallery: {
+        format: "polaroid",
+        size: "portrait",
+        rotation: 2,
+        tape: "clear",
+      },
+    },
+    {
+      id: "matera-together",
+      dimensions: [1600, 1246],
+      category: "us",
+      alt: "A couple taking a selfie above a hillside of stone buildings",
+      caption: "Us, with a view",
+      gallery: { format: "editorial", size: "wide", rotation: 0, tape: "none" },
+    },
+    {
+      id: "church-ceiling",
+      dimensions: [1202, 1600],
+      category: "us",
+      alt: "A couple beneath an ornate church ceiling with painted vaults and gilded details",
+      caption: "The ceiling deserves a frame too",
+      gallery: {
+        format: "polaroid",
+        size: "portrait",
+        rotation: -1,
+        tape: "cream",
+      },
+    },
+    {
+      id: "road-frame",
+      dimensions: [1600, 1203],
+      category: "random",
+      alt: "A rural road seen from inside a car, winding between dry rolling hills",
+      caption: "Somewhere along the way",
+      gallery: {
+        format: "photo-strip",
+        size: "wide",
+        rotation: -1,
+        tape: "none",
+      },
+    },
+    {
+      id: "harbour-together",
+      dimensions: [1600, 1206],
+      category: "us",
+      alt: "A couple taking a selfie above a harbour with boats, a lighthouse and a palm tree",
+      caption: "Together by the harbour",
+      gallery: {
+        format: "polaroid",
+        size: "wide",
+        rotation: 1,
+        tape: "yellow",
+      },
+    },
+    {
       id: "paris-quiet-frame",
       place: "paris",
       category: "us",
@@ -309,8 +439,8 @@ export const travelPhotos: readonly MediaAsset[] = (
 ).map((definition: TravelPhotoDefinition): MediaAsset => ({
   id: definition.id,
   src: `/images/travel/${definition.id}.webp`,
-  width: definition.landscape ? 1600 : 1200,
-  height: definition.landscape ? 1200 : 1600,
+  width: definition.dimensions?.[0] ?? (definition.landscape ? 1600 : 1200),
+  height: definition.dimensions?.[1] ?? (definition.landscape ? 1200 : 1600),
   alt: definition.alt,
   caption: definition.caption,
   date: null,
@@ -318,11 +448,17 @@ export const travelPhotos: readonly MediaAsset[] = (
   location:
     definition.id === "paris-disneyland"
       ? { label: "Disneyland Paris, France" }
-      : placeLocations[definition.place],
+      : definition.place
+        ? placeLocations[definition.place]
+        : null,
   category: definition.category ?? "trips",
   featured: definition.featured ?? false,
-  relatedPlace: definition.place,
-  surfaces: definition.mapOnly ? ["map"] : ["map", "gallery", "awards", "home"],
+  relatedPlace: definition.place ?? null,
+  surfaces: definition.mapOnly
+    ? ["map"]
+    : definition.place
+      ? ["map", "gallery", "awards", "home"]
+      : ["gallery", "home"],
   gallery: definition.mapOnly ? undefined : definition.gallery,
 }));
 
