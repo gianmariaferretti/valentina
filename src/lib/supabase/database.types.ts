@@ -268,6 +268,15 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      grant_experience_coupon: {
+        Args: {
+          p_user_id: string;
+          p_reward_id: string;
+          p_coupon_id: string;
+          p_source: string;
+        };
+        Returns: { reward_was_new: boolean }[];
+      };
       begin_arcade_run: {
         Args: {
           p_difficulty: string;

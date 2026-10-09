@@ -23,7 +23,7 @@ export default function MapPage() {
       <div className="page-container pt-10 sm:pt-14 lg:pt-20">
         <div className="grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_18rem]">
           <PageIntro
-            description="Five real coordinates, several future photographs and a highly biased atlas of the places that became part of us."
+            description={`${places.length} real coordinates, several future photographs and a highly biased atlas of the places that became part of us.`}
             eyebrow="Where we have been"
             title="Our little world, accurately pinned."
           />
@@ -69,7 +69,7 @@ export default function MapPage() {
             <PostageStamp
               country="Our atlas"
               tone="blue"
-              value="05"
+              value={String(places.length).padStart(2, "0")}
               year="Y1"
             />
             <PassportStamp

@@ -708,7 +708,7 @@ export const coupons = [
     status: "undiscovered",
     redeemable: false,
     challengeId: null,
-    unlockCondition: "Discover the Secret Area.",
+    unlockCondition: "Complete the Spicy Archive reveal.",
     secret: true,
     createdAt: "2025-10-31T15:00:00.000Z",
     redeemedAt: null,

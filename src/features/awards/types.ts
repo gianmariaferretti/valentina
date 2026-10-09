@@ -23,15 +23,27 @@ export interface AwardSticker {
   readonly rotation: number;
 }
 
-export interface Award {
+interface AwardBase {
   readonly id: string;
   readonly category: string;
   readonly description: string;
-  readonly nominees: readonly AwardNominee[];
-  readonly winnerId: AwardNominee["id"];
   readonly photo: AwardPhoto;
   readonly evidence?: AwardEvidence;
   readonly sticker: AwardSticker;
   readonly prize?: string;
   readonly presentation: "standard" | "wide" | "finale";
 }
+
+export type Award = AwardBase &
+  (
+    | {
+        readonly status?: "active";
+        readonly nominees: readonly AwardNominee[];
+        readonly winnerId: string;
+      }
+    | {
+        readonly status: "cancelled";
+        readonly nominees: readonly [];
+        readonly winnerId: null;
+      }
+  );

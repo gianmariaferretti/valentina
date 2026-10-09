@@ -300,11 +300,10 @@ export const places = [
       "This destination is now part of the V&G atlas and is ready for the exact dates, photographs and memory that belong here.",
       "The location is real; the personal story stays intentionally open until the final Year One archive is filled in.",
     ],
-    coverImage: getMediaAsset("brussels-city-frame"),
+    coverImage: getMediaAsset("polignano-a-mare-cover"),
     galleryImages: [
-      getMediaAsset("brussels-detail"),
-      getMediaAsset("brussels-transit"),
-      getMediaAsset("brussels-city-frame"),
+      getMediaAsset("polignano-a-mare-detail"),
+      getMediaAsset("polignano-a-mare-transit"),
     ],
     stickers: [
       {
@@ -366,11 +365,10 @@ export const places = [
       "This destination is now part of the V&G atlas and is ready for the exact dates, photographs and memory that belong here.",
       "The location is real; the personal story stays intentionally open until the final Year One archive is filled in.",
     ],
-    coverImage: getMediaAsset("brussels-city-frame"),
+    coverImage: getMediaAsset("matera-cover"),
     galleryImages: [
-      getMediaAsset("brussels-detail"),
-      getMediaAsset("brussels-transit"),
-      getMediaAsset("brussels-city-frame"),
+      getMediaAsset("matera-detail"),
+      getMediaAsset("matera-transit"),
     ],
     stickers: [
       { id: "matera-code", kind: "airport-code", text: "MTR", rotation: 3 },
@@ -422,11 +420,10 @@ export const places = [
       "This destination is now part of the V&G atlas and is ready for the exact dates, photographs and memory that belong here.",
       "The location is real; the personal story stays intentionally open until the final Year One archive is filled in.",
     ],
-    coverImage: getMediaAsset("brussels-city-frame"),
+    coverImage: getMediaAsset("accettura-cover"),
     galleryImages: [
-      getMediaAsset("brussels-detail"),
-      getMediaAsset("brussels-transit"),
-      getMediaAsset("brussels-city-frame"),
+      getMediaAsset("accettura-detail"),
+      getMediaAsset("accettura-transit"),
     ],
     stickers: [
       { id: "accettura-code", kind: "airport-code", text: "ACC", rotation: -3 },
@@ -473,7 +470,7 @@ export const places = [
   {
     id: "place-amalfi-coast",
     slug: "amalfi-coast",
-    city: "Costiera Amalfitana",
+    city: "Amalfi Coast",
     country: "Italy",
     coordinates: [14.604, 40.6311],
     dateRange: { start: null, end: null, label: "Date to be added" },
@@ -483,11 +480,10 @@ export const places = [
       "This destination is now part of the V&G atlas and is ready for the exact dates, photographs and memory that belong here.",
       "The location is real; the personal story stays intentionally open until the final Year One archive is filled in.",
     ],
-    coverImage: getMediaAsset("brussels-city-frame"),
+    coverImage: getMediaAsset("amalfi-coast-cover"),
     galleryImages: [
-      getMediaAsset("brussels-detail"),
-      getMediaAsset("brussels-transit"),
-      getMediaAsset("brussels-city-frame"),
+      getMediaAsset("amalfi-coast-detail"),
+      getMediaAsset("amalfi-coast-transit"),
     ],
     stickers: [
       {
@@ -549,11 +545,10 @@ export const places = [
       "This destination is now part of the V&G atlas and is ready for the exact dates, photographs and memory that belong here.",
       "The location is real; the personal story stays intentionally open until the final Year One archive is filled in.",
     ],
-    coverImage: getMediaAsset("brussels-city-frame"),
+    coverImage: getMediaAsset("bari-cover"),
     galleryImages: [
-      getMediaAsset("brussels-detail"),
-      getMediaAsset("brussels-transit"),
-      getMediaAsset("brussels-city-frame"),
+      getMediaAsset("bari-detail"),
+      getMediaAsset("bari-transit"),
     ],
     stickers: [
       { id: "bari-code", kind: "airport-code", text: "BRI", rotation: -3 },

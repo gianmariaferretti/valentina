@@ -156,7 +156,7 @@ The additive `20261008195014_five_game_arcade_records.sql` migration adds only `
 
 The existing record still supports gameId, attempts, startedAt, completedAt, bestScore, latestScore, duration, difficulty, progress, ending, wins, losses, unlockedRewards and discoveredSecrets. The new optional fields supplement it rather than creating a parallel store.
 
-`/secret` now requires the two remaining attainable game keys (Breakout and Memory). Its editorial copy remains server-rendered. Removed games no longer gate rewards or completion; historical records are not deleted.
+`/secret` is now **The Spicy Archive**, one controlled seven-stage experience with explicit adult self-declaration, a sealed envelope and a ten-second horizontal image reveal. Game keys and historical discoveries remain untouched, but the old two-key inventory is no longer a separate Secret Area interface. GV-032 unlocks only after the complete reveal, through an authenticated, atomic server reward grant.
 
 Run `npm run test:games` for deterministic game, transcript and reward tests. Run `supabase/tests/game_state.sql` after migrations for ephemeral, fully rolled-back tests of atomic grants, stale runs, min/max records, duplicate retries, access denial and legacy compatibility. The Server Action body limit is 2MB to accommodate bounded Breakout transcripts (180,000 physics ticks, approximately 25 active minutes). Longer runs remain playable but cannot be verified/saved; other transcript budgets are documented in the verifier.
 
@@ -207,6 +207,21 @@ Layout sizing is mobile-first and reviewed at 320, 375, 430, 768, and 1440 CSS p
 The current engineering review and handoff inventory are documented in [`docs/technical-report.md`](docs/technical-report.md).
 
 ## Replacing placeholders
+
+### Private Spicy Archive image and reward setup
+
+The final archive image is **not** part of the public media registry. Leave both `SPICY_ARCHIVE_BUCKET` and `SPICY_ARCHIVE_OBJECT` unset for the original, non-sensitive envelope illustration. To supply the photograph later:
+
+1. Create a **private** Supabase Storage bucket. Keep it private and do not grant browser download policies.
+2. Upload a JPEG, PNG, WebP or AVIF prepared for display, preferably under 2MB (the endpoint rejects files above 12MB). Remove sensitive EXIF/GPS metadata first.
+3. Set `SPICY_ARCHIVE_BUCKET`, `SPICY_ARCHIVE_OBJECT` and descriptive `SPICY_ARCHIVE_IMAGE_ALT` in server-only environment configuration. Never prefix them with `NEXT_PUBLIC_`, put the photograph in `public/`, or embed its Storage URL in client code.
+4. Apply `20261008223505_grant_spicy_archive_reward.sql` to a local/preview database before testing the reward. This additive migration is **not automatically applied to production**. Review it before a separately authorized production release.
+
+`/api/secret-image` verifies the existing access session and a signed, session-bound archive proof on every request. It refuses public buckets, streams the image without a signed/public Storage URL, and sends private/no-store headers for browser and CDN caches. The image uses `next/image` with `unoptimized` intentionally: the shared image optimizer cannot safely forward this authorization or cache private media. No image request occurs before the seal is opened. A private image already delivered to an authorized visitor cannot be made uncopyable.
+
+Archive progress is ephemeral: an HTTP-only session cookie contains the signed stage and explicit adult confirmation, expires logically after 30 minutes, and is cleared on exit. Refreshing starts the visible sequence again; no date of birth or identity document is stored. Reduced motion uses a 700ms non-flashing reveal. The durable completion is stored only in the existing `coupon_state` and `discoveries` tables through `grant_experience_coupon`; retries never redeem a coupon or change an existing redemption.
+
+See [the implementation and QA report](docs/spicy-archive-report.md) for photo availability, award changes, testing evidence and remaining setup.
 
 Gianmaria can finish the private content without changing presentation components:
 

@@ -102,6 +102,27 @@ const placeLocations = {
 } as const satisfies Record<string, MediaLocation>;
 
 export const mediaAssets = [
+  ...(
+    [
+      ["polignano-a-mare", "Polignano a Mare"],
+      ["matera", "Matera"],
+      ["accettura", "Accettura"],
+      ["amalfi-coast", "Amalfi Coast"],
+      ["bari", "Bari"],
+    ] as const
+  ).flatMap(([slug, city]) =>
+    (["cover", "detail", "transit"] as const).map((kind) =>
+      defineMedia({
+        id: `${slug}-${kind}`,
+        source: kind === "cover" ? "city" : kind,
+        alt: `Illustration placeholder for a future ${city} photograph`,
+        caption: `${city} · photograph to be added`,
+        location: { label: `${city}, Italy` },
+        relatedPlace: slug,
+        surfaces: ["map"],
+      }),
+    ),
+  ),
   defineMedia({
     id: "london-cover",
     source: "cityNight",
