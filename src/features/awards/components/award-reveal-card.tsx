@@ -22,9 +22,10 @@ type RevealStage = "closed" | "nominees" | "winner";
 interface AwardRevealCardProps {
   readonly award: Award;
   readonly index: number;
+  readonly total: number;
 }
 
-export function AwardRevealCard({ award, index }: AwardRevealCardProps) {
+export function AwardRevealCard({ award, index, total }: AwardRevealCardProps) {
   const panelId = useId();
   const reduceMotion = useReducedMotion();
   const [stage, setStage] = useState<RevealStage>("closed");
@@ -32,6 +33,28 @@ export function AwardRevealCard({ award, index }: AwardRevealCardProps) {
     (nominee) => nominee.id === award.winnerId,
   );
 
+  if (award.status === "cancelled") {
+    return (
+      <article
+        className={`${styles.card} ${styles.cancelled}`}
+        data-presentation={award.presentation}
+      >
+        <p className={styles.cardEyebrow}>
+          Official jury statement · {String(index + 1).padStart(2, "0")} /{" "}
+          {total}
+        </p>
+        <h3>{award.category}</h3>
+        <p className={styles.winnerPrelude}>AWARD CANCELLED</p>
+        <p>{award.description}</p>
+        <Sticker
+          text="CASE CLOSED"
+          variant="classified"
+          size="lg"
+          rotation={-4}
+        />
+      </article>
+    );
+  }
   if (!winner) return null;
 
   const transition = reduceMotion
@@ -66,7 +89,7 @@ export function AwardRevealCard({ award, index }: AwardRevealCardProps) {
           />
           <span aria-hidden="true" className={styles.cardScrim} />
           <span className={styles.cardIndex}>
-            {String(index + 1).padStart(2, "0")} / 15
+            {String(index + 1).padStart(2, "0")} / {total}
           </span>
           <span className={styles.cardSticker}>
             <Sticker

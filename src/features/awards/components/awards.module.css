@@ -228,6 +228,26 @@
   box-shadow: 0 1.3rem 3.8rem rgba(49, 35, 30, 0.1);
 }
 
+.cancelled {
+  display: grid;
+  justify-items: start;
+  gap: 1.75rem;
+  padding: clamp(1.5rem, 5vw, 4rem);
+  background: #eee2cf;
+  color: var(--ink);
+}
+
+.cancelled h3 {
+  font-family: var(--font-display);
+  font-size: clamp(2.7rem, 7vw, 5rem);
+  line-height: 1;
+}
+
+.cancelled > p:last-of-type {
+  max-width: 36rem;
+  line-height: 1.8;
+}
+
 .card[data-presentation="finale"] {
   border-color: #8d6e27;
   background: #201918;
@@ -657,7 +677,7 @@
 
   .card[data-presentation="wide"] .cardTrigger,
   .card[data-presentation="finale"] .cardTrigger {
-    grid-template-columns: minmax(0, 1.08fr) minmax(20rem, 0.92fr);
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
   }
 
   .card[data-presentation="wide"] .cardMedia,

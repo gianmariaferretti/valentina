@@ -85,7 +85,9 @@ export default function AwardsPage() {
           <div className={styles.programHeader}>
             <div>
               <p className={styles.programEyebrow}>The official programme</p>
-              <h2 id="ceremony-program">Fifteen envelopes. No appeals.</h2>
+              <h2 id="ceremony-program">
+                {awards.length} envelopes. No appeals.
+              </h2>
             </div>
             <p>
               Open a category to inspect the nominees. The winner remains sealed
@@ -97,7 +99,12 @@ export default function AwardsPage() {
 
         <div className={styles.program}>
           {awards.map((award, index) => (
-            <AwardRevealCard award={award} index={index} key={award.id} />
+            <AwardRevealCard
+              award={award}
+              index={index}
+              total={awards.length}
+              key={award.id}
+            />
           ))}
         </div>
       </section>

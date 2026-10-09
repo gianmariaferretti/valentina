@@ -1,5 +1,11 @@
 # Third-party notices
 
+## Spicy Archive
+
+The envelope illustration, stage choreography and single-image strip reveal are original V&G code using the existing Motion and Next.js dependencies. No new runtime or project dependency was added, and no stock or generated personal photographs are used.
+
+An optional **external QA-only** installation of `@electric-sql/pglite` 0.5.8 was used to execute PostgreSQL migrations and rollback tests without touching the live Supabase project. Its Apache-2.0 license was checked at <https://github.com/electric-sql/pglite/blob/main/LICENSE>. The package, WASM binaries and third-party source are not copied into this repository or the deployed application. The optional test fixture dynamically imports a separately installed module; retain upstream notices if distributing that installation.
+
 ## MapLibre GL JS
 
 - Package: `maplibre-gl`

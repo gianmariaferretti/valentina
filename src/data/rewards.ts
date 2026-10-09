@@ -2,6 +2,17 @@ import type { ExperienceRewardDefinition } from "@/features/rewards/types";
 
 export const experienceRewards = [
   {
+    id: "spicy-archive-completed",
+    kind: "coupon",
+    targetId: "you-found-me",
+    reveal: {
+      eyebrow: "You found something.",
+      title: "GV-032 · You Found Me",
+      description: "The file is open. Your coupon is saved in the wallet.",
+      actionLabel: "View coupon",
+    },
+  },
+  {
     id: "open-when-surprise-coupon",
     kind: "coupon",
     targetId: "classified-twelve",
