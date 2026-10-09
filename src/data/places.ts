@@ -1,7 +1,7 @@
-import { getMediaAsset } from "@/data/media";
+import { getMediaAsset, getTravelPhotosForPlace } from "@/data/media";
 import type { Destination } from "@/features/map/types";
 
-export const places = [
+const placeDefinitions = [
   {
     id: "place-london",
     slug: "london",
@@ -588,6 +588,18 @@ export const places = [
     stampTone: "mustard",
   },
 ] as const satisfies readonly Destination[];
+
+export const places: readonly Destination[] = placeDefinitions.map((place) => {
+  const photographs = getTravelPhotosForPlace(place.slug);
+  return photographs.length
+    ? {
+        ...place,
+        galleryImages: photographs.filter(
+          (photo) => photo.id !== place.coverImage.id,
+        ),
+      }
+    : place;
+});
 
 export function getPlace(slug: string): Destination | undefined {
   return places.find((place) => place.slug === slug);

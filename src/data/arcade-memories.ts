@@ -1,3 +1,5 @@
+import { getMediaAsset } from "./media.ts";
+
 export interface ArcadeMemory {
   readonly id: string;
   readonly title: string;
@@ -10,7 +12,25 @@ export interface ArcadeMemory {
   readonly category: "travel" | "object" | "nature";
   readonly symbol: string;
 }
-/** Original symbol placeholders. Dates/cities remain unclaimed until personal media is supplied. */
+/** Identical photographs form each pair; stable IDs/order preserve seeded game transcripts. */
+const photographPairs: Readonly<Record<string, string>> = {
+  plane: "paris-disneyland",
+  train: "rome-cover",
+  camera: "paris-bite",
+  compass: "bari-cover",
+  key: "bari-street",
+  coffee: "polignano-table",
+  moon: "accettura-evening",
+  sun: "polignano-a-mare-cover",
+  mountain: "accettura-cover",
+  umbrella: "paris-cover",
+  music: "accettura-portrait",
+  book: "accettura-dome",
+  anchor: "polignano-boat",
+  flower: "matera-cover",
+};
+
+/** Four original symbols remain until further approved photographs are supplied. */
 export const arcadeMemories: readonly ArcadeMemory[] = [
   ["plane", "Plane", "travel"],
   ["train", "Train", "travel"],
@@ -30,12 +50,18 @@ export const arcadeMemories: readonly ArcadeMemory[] = [
   ["bike", "Bicycle", "travel"],
   ["tree", "Tree", "nature"],
   ["gift", "Gift", "object"],
-].map(([id, title, category]) => ({
-  id,
-  title,
-  symbol: id,
-  city: null,
-  date: null,
-  caption: `${title} · illustration placeholder`,
-  category: category as ArcadeMemory["category"],
-}));
+].map(([id, title, category]) => {
+  const image = photographPairs[id];
+  const photograph = image ? getMediaAsset(image) : null;
+  return {
+    id,
+    title: photograph?.caption ?? title,
+    symbol: id,
+    city: photograph?.location?.label ?? null,
+    date: photograph?.date ?? null,
+    image,
+    matchingImage: image,
+    caption: photograph?.caption ?? `${title} · illustration placeholder`,
+    category: category as ArcadeMemory["category"],
+  };
+});

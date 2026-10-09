@@ -216,7 +216,9 @@ export function GalleryScrapbook({
         <div>
           <p>Selected evidence · Year One</p>
           <h2 id="gallery-collection">
-            {visibleMedia.length} frames, carefully over-curated.
+            {visibleMedia.length}{" "}
+            {visibleMedia.length === 1 ? "frame" : "frames"}, carefully
+            over-curated.
           </h2>
         </div>
         <nav aria-label="Filter photographs" className={styles.filters}>
@@ -235,6 +237,14 @@ export function GalleryScrapbook({
       </div>
 
       <motion.div className={styles.grid} layout>
+        {visibleMedia.length === 0 ? (
+          <p
+            className="col-span-full py-14 text-center text-sm text-[var(--muted)]"
+            role="status"
+          >
+            No photographs filed in this category yet.
+          </p>
+        ) : null}
         {visibleMedia.map((asset, index) => (
           <GalleryCard
             asset={asset}

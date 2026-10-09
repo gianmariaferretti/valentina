@@ -96,10 +96,16 @@ export default async function PlacePage({ params }: PlacePageProps) {
           Our map
         </Link>
 
-        <header className="place-memory-hero mt-6">
+        <header
+          className={`place-memory-hero mt-6${place.coverImage.src.endsWith(".webp") ? " place-memory-hero--photograph" : ""}`}
+        >
           <Image
             alt={place.coverImage.alt}
-            className="object-cover"
+            className={
+              place.coverImage.src.endsWith(".webp")
+                ? "object-contain"
+                : "object-cover"
+            }
             fill
             priority
             sizes="(max-width: 640px) 100vw, 92rem"
@@ -167,7 +173,9 @@ export default async function PlacePage({ params }: PlacePageProps) {
                 year="Y1"
               />
               <HandwrittenNote className="pb-2 text-right" rotation={3}>
-                photograph pending, memory reserved
+                {place.coverImage.src.endsWith(".webp")
+                  ? "photograph filed, story yours"
+                  : "photograph pending, memory reserved"}
               </HandwrittenNote>
             </div>
           </aside>
@@ -210,31 +218,37 @@ export default async function PlacePage({ params }: PlacePageProps) {
           </div>
         </section>
 
-        <section className="mt-16 sm:mt-24">
-          <SectionLabel index="03">Selected evidence</SectionLabel>
-          <div className="place-gallery mt-8">
-            {place.galleryImages.map((image, index) => (
-              <figure
-                className="place-gallery__item"
-                key={`${image.src}-${index}`}
-              >
-                <div>
-                  <Image
-                    alt={image.alt}
-                    className="object-cover"
-                    fill
-                    sizes="(max-width: 767px) 100vw, 40vw"
-                    src={image.src}
-                  />
-                </div>
-                <figcaption>
-                  <span>{image.caption}</span>
-                  <small>Frame {String(index + 1).padStart(2, "0")}</small>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </section>
+        {place.galleryImages.length > 0 ? (
+          <section className="mt-16 sm:mt-24">
+            <SectionLabel index="03">Selected evidence</SectionLabel>
+            <div className="place-gallery mt-8">
+              {place.galleryImages.map((image, index) => (
+                <figure
+                  className="place-gallery__item"
+                  key={`${image.src}-${index}`}
+                >
+                  <div>
+                    <Image
+                      alt={image.alt}
+                      className={
+                        image.src.endsWith(".webp")
+                          ? "object-contain"
+                          : "object-cover"
+                      }
+                      fill
+                      sizes="(max-width: 767px) 100vw, 40vw"
+                      src={image.src}
+                    />
+                  </div>
+                  <figcaption>
+                    <span>{image.caption}</span>
+                    <small>Frame {String(index + 1).padStart(2, "0")}</small>
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <section className="mt-16 sm:mt-24">
           <SectionLabel index="04">Notes from the margins</SectionLabel>

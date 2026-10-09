@@ -2,7 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
 import ts from "typescript";
-import { mediaAssets } from "../src/data/media.ts";
+import {
+  mediaAssets,
+  travelPhotos,
+  getGalleryMedia,
+} from "../src/data/media.ts";
+import { arcadeMemories } from "../src/data/arcade-memories.ts";
+import sharp from "sharp";
 import { matchPhotoPlace } from "../src/features/media/lib/match-photo-place.ts";
 import {
   archiveStages,
@@ -27,6 +33,20 @@ const awardSource = ts
   .outputText.replace('"@/data/media"', JSON.stringify(mediaUrl));
 const { awards, getAwardWinner } = await import(
   "data:text/javascript;base64," + Buffer.from(awardSource).toString("base64")
+);
+const placeSource = ts
+  .transpileModule(
+    readFileSync(new URL("../src/data/places.ts", import.meta.url), "utf8"),
+    {
+      compilerOptions: {
+        target: ts.ScriptTarget.ES2022,
+        module: ts.ModuleKind.ESNext,
+      },
+    },
+  )
+  .outputText.replace('"@/data/media"', JSON.stringify(mediaUrl));
+const { places } = await import(
+  "data:text/javascript;base64," + Buffer.from(placeSource).toString("base64")
 );
 const expected = {
   "best-trip": ["Accettura", ["Accettura", "Naples", "Hamburg"]],
@@ -116,8 +136,89 @@ test("Media: ten destinations have correctly attributed covers, with no fabricat
     const asset = mediaAssets.find((m) => m.id === slug + "-cover");
     assert.equal(asset.relatedPlace, slug);
     assert.equal(asset.date, null);
-    assert.ok(asset.alt.includes("placeholder"));
+    assert.ok(asset.src.endsWith(".webp") || asset.alt.includes("placeholder"));
   }
+});
+test("Media: 15 supplied photos are decodable, correctly oriented, optimized and metadata-free", async () => {
+  assert.equal(travelPhotos.length, 15);
+  assert.equal(
+    new Set(mediaAssets.map((asset) => asset.id)).size,
+    mediaAssets.length,
+  );
+  let totalBytes = 0;
+  for (const photo of travelPhotos) {
+    const file = readFileSync(
+      new URL("../public" + photo.src, import.meta.url),
+    );
+    const metadata = await sharp(file).metadata();
+    await sharp(file).raw().toBuffer();
+    assert.equal(metadata.format, "webp");
+    assert.equal(metadata.width, photo.width);
+    assert.equal(metadata.height, photo.height);
+    assert.equal(metadata.exif, undefined);
+    assert.equal(metadata.xmp, undefined);
+    assert.equal(metadata.orientation, undefined);
+    assert.ok(Math.max(photo.width, photo.height) <= 1600);
+    assert.equal(photo.date, null);
+    assert.ok(file.length < 450_000);
+    totalBytes += file.length;
+  }
+  assert.ok(totalBytes < 4_000_000);
+});
+test("Media: map-only Paris frame is excluded from Gallery and Memory; gallery uses real unique photos", () => {
+  const gallery = getGalleryMedia();
+  assert.equal(gallery.length, 14);
+  assert.equal(new Set(gallery.map((asset) => asset.src)).size, gallery.length);
+  assert.ok(gallery.every((asset) => asset.src.endsWith(".webp")));
+  assert.ok(!gallery.some((asset) => asset.id === "paris-quiet-frame"));
+  assert.equal(arcadeMemories.length, 18);
+  assert.equal(arcadeMemories.filter((memory) => memory.image).length, 14);
+  for (const memory of arcadeMemories.filter((memory) => memory.image)) {
+    assert.equal(memory.image, memory.matchingImage);
+    assert.ok(gallery.some((asset) => asset.id === memory.image));
+  }
+  assert.equal(
+    awards.find((award) => award.id === "best-photo").photo.id,
+    "paris-bite",
+  );
+  assert.equal(
+    awards.find((award) => award.id === "best-trip").photo.id,
+    "accettura-cover",
+  );
+});
+test("Map: photographs belong only to their supplied destination, with no repeated cover or placeholder gallery", () => {
+  assert.equal(places.length, 10);
+  for (const place of places) {
+    const photos = travelPhotos.filter(
+      (photo) => photo.relatedPlace === place.slug,
+    );
+    assert.equal(place.dateRange.start, null);
+    if (photos.length) {
+      assert.ok(place.coverImage.src.endsWith(".webp"));
+      assert.equal(place.galleryImages.length, photos.length - 1);
+      assert.ok(
+        place.galleryImages.every(
+          (photo) =>
+            photo.relatedPlace === place.slug &&
+            photo.src.endsWith(".webp") &&
+            photo.id !== place.coverImage.id,
+        ),
+      );
+    } else {
+      assert.ok(place.coverImage.src.endsWith(".svg"));
+    }
+  }
+  assert.ok(
+    places
+      .find((place) => place.slug === "paris")
+      .galleryImages.some((photo) => photo.id === "paris-quiet-frame"),
+  );
+  assert.equal(
+    places
+      .find((place) => place.slug === "brussels")
+      .coverImage.src.endsWith(".svg"),
+    true,
+  );
 });
 test("Media: Italian/English matching is conservative and rejects ambiguous/unrelated filenames", () => {
   for (const [filename, slug] of [
