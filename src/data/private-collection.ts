@@ -7,7 +7,7 @@ export const privateCollection = {
     "An exclusive photograph from Gianmaria. For Valentina's eyes only.",
   price: "€100.00",
   exchangePrice: "€0.00",
-  exchangeRatio: "10 : 1",
+  exchangeRatio: "10 PHOTOS : 1 PHOTO",
   exchangeDescription:
     "Ten photographs from you. One exclusive photograph from me.",
 } as const;

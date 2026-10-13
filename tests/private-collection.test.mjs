@@ -108,7 +108,7 @@ test("Private Collection: only three allowlisted intents, no paid/delivered outc
     assert.equal(isCollectionIntent(input), false);
   assert.equal(privateCollection.price, "€100.00");
   assert.equal(privateCollection.exchangePrice, "€0.00");
-  assert.equal(privateCollection.exchangeRatio, "10 : 1");
+  assert.equal(privateCollection.exchangeRatio, "10 PHOTOS : 1 PHOTO");
 });
 
 test("Private Collection server action: authentication + fresh archive proof on browse and both confirmations", async () => {

@@ -140,7 +140,9 @@ export function verifyArcadeResult(
     return {
       score: state.score * 10,
       progress:
-        snakeStatus(state) === "won" ? 100 : Math.min(99, state.score * 2),
+        snakeStatus(state) === "won"
+          ? 100
+          : Math.min(99, Math.floor((state.score / ARCADE.snake.target) * 100)),
       ending:
         snakeStatus(state) === "won" ? "snake-complete" : "snake-collision",
       durationMs: state.elapsedMs,

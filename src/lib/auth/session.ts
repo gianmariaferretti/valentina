@@ -46,8 +46,15 @@ export function verifyAccessToken(token: string | undefined): boolean {
   const secret = getAuthSecret();
   if (!secret || !token) return false;
 
-  const [expiresAt, signature] = token.split(".");
-  if (!expiresAt || !signature || Number(expiresAt) <= Date.now() / 1000) {
+  const parts = token.split(".");
+  const [expiresAt, signature] = parts;
+  if (
+    parts.length !== 2 ||
+    !/^\d{10,12}$/.test(expiresAt ?? "") ||
+    !signature ||
+    !Number.isSafeInteger(Number(expiresAt)) ||
+    Number(expiresAt) <= Date.now() / 1000
+  ) {
     return false;
   }
 

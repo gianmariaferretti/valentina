@@ -1,5 +1,7 @@
 # Supplied travel photographs — integration report
 
+Historical integration record. The new authenticated media gateway and migration process supersede the public paths described below; see [the follow-up report](follow-up-completion.md). Actual live migration remains a separate verified operation.
+
 Scope: `feat/five-game-arcade` only. No merge, production deploy, live database write, authentication change, anniversary-date change, coupon-rarity change or game-rule change.
 
 ## Inventory and associations

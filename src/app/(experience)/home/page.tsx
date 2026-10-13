@@ -51,7 +51,7 @@ const dashboardCards = [
     href: "/challenges",
     title: "OUR GAMES",
     description:
-      "Seven private operations involving memory, timing and avoidable pressure.",
+      "Five private operations involving memory, timing and avoidable pressure.",
     eyebrow: "Playable files",
     icon: "challenges" as const,
     index: "04 / 07",

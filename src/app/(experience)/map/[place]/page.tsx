@@ -6,7 +6,7 @@ import {
   NotebookPen,
 } from "lucide-react";
 import type { Metadata } from "next";
-import Image from "next/image";
+import Image from "@/features/media/components/media-image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -97,12 +97,12 @@ export default async function PlacePage({ params }: PlacePageProps) {
         </Link>
 
         <header
-          className={`place-memory-hero mt-6${place.coverImage.src.endsWith(".webp") ? " place-memory-hero--photograph" : ""}`}
+          className={`place-memory-hero mt-6${place.coverImage.src.startsWith("/api/private-media/") ? " place-memory-hero--photograph" : ""}`}
         >
           <Image
             alt={place.coverImage.alt}
             className={
-              place.coverImage.src.endsWith(".webp")
+              place.coverImage.src.startsWith("/api/private-media/")
                 ? "object-contain"
                 : "object-cover"
             }
@@ -173,7 +173,7 @@ export default async function PlacePage({ params }: PlacePageProps) {
                 year="Y1"
               />
               <HandwrittenNote className="pb-2 text-right" rotation={3}>
-                {place.coverImage.src.endsWith(".webp")
+                {place.coverImage.src.startsWith("/api/private-media/")
                   ? "photograph filed, story yours"
                   : "photograph pending, memory reserved"}
               </HandwrittenNote>
@@ -231,7 +231,7 @@ export default async function PlacePage({ params }: PlacePageProps) {
                     <Image
                       alt={image.alt}
                       className={
-                        image.src.endsWith(".webp")
+                        image.src.startsWith("/api/private-media/")
                           ? "object-contain"
                           : "object-cover"
                       }

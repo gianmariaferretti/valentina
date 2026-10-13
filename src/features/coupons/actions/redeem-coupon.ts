@@ -31,7 +31,7 @@ export async function redeemCoupon(
   }
 
   const coupon = getCoupon(couponId);
-  if (!coupon || coupon.status === "undiscovered") {
+  if (!coupon) {
     return {
       status: "error",
       message: "This coupon does not exist. Allegedly.",

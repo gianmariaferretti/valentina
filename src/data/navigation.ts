@@ -37,7 +37,7 @@ export const navigationItems = [
     title: "V&G Games",
     shortTitle: "Games",
     href: "/challenges",
-    description: "Seven playable files from the private archive.",
+    description: "Five playable files from the private archive.",
     icon: "challenges",
     group: "primary",
   },

@@ -226,7 +226,7 @@ export function PrivateCollection({
                   <span className={styles.optionRatio}>
                     {offer.exchangeRatio}
                   </span>
-                  <strong>EXCHANGE 10 PHOTOS</strong>
+                  <strong>EXCHANGE 10 PHOTOS FOR 1</strong>
                   <span>{offer.exchangeDescription}</span>
                   <ArrowRight size={18} aria-hidden="true" />
                 </button>

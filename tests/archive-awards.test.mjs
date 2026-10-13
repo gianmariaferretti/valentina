@@ -136,7 +136,10 @@ test("Media: ten destinations have correctly attributed covers, with no fabricat
     const asset = mediaAssets.find((m) => m.id === slug + "-cover");
     assert.equal(asset.relatedPlace, slug);
     assert.equal(asset.date, null);
-    assert.ok(asset.src.endsWith(".webp") || asset.alt.includes("placeholder"));
+    assert.ok(
+      asset.src.startsWith("/api/private-media/") ||
+        asset.alt.includes("placeholder"),
+    );
   }
 });
 test("Media: 26 supplied photos are decodable, correctly oriented, optimized and metadata-free", async () => {
@@ -148,7 +151,7 @@ test("Media: 26 supplied photos are decodable, correctly oriented, optimized and
   let totalBytes = 0;
   for (const photo of travelPhotos) {
     const file = readFileSync(
-      new URL("../public" + photo.src, import.meta.url),
+      new URL("../public/images/travel/" + photo.id + ".webp", import.meta.url),
     );
     const metadata = await sharp(file).metadata();
     await sharp(file).raw().toBuffer();
@@ -171,7 +174,9 @@ test("Media: map-only Paris frame is excluded from Gallery and Memory; gallery u
   const gallery = getGalleryMedia();
   assert.equal(gallery.length, 25);
   assert.equal(new Set(gallery.map((asset) => asset.src)).size, gallery.length);
-  assert.ok(gallery.every((asset) => asset.src.endsWith(".webp")));
+  assert.ok(
+    gallery.every((asset) => asset.src.startsWith("/api/private-media/")),
+  );
   assert.ok(!gallery.some((asset) => asset.id === "paris-quiet-frame"));
   assert.equal(arcadeMemories.length, 18);
   assert.equal(arcadeMemories.filter((memory) => memory.image).length, 18);
@@ -196,13 +201,13 @@ test("Map: photographs belong only to their supplied destination, with no repeat
     );
     assert.equal(place.dateRange.start, null);
     if (photos.length) {
-      assert.ok(place.coverImage.src.endsWith(".webp"));
+      assert.ok(place.coverImage.src.startsWith("/api/private-media/"));
       assert.equal(place.galleryImages.length, photos.length - 1);
       assert.ok(
         place.galleryImages.every(
           (photo) =>
             photo.relatedPlace === place.slug &&
-            photo.src.endsWith(".webp") &&
+            photo.src.startsWith("/api/private-media/") &&
             photo.id !== place.coverImage.id,
         ),
       );
@@ -222,7 +227,7 @@ test("Map: photographs belong only to their supplied destination, with no repeat
   assert.equal(
     places
       .find((place) => place.slug === "london")
-      .coverImage.src.endsWith(".webp"),
+      .coverImage.src.startsWith("/api/private-media/"),
     true,
   );
 });

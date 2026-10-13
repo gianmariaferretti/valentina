@@ -17,6 +17,14 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // Do not allow the public optimizer to proxy authenticated API media.
+  images: {
+    localPatterns: [
+      { pathname: "/images/map/**", search: "" },
+      { pathname: "/images/awards/**", search: "" },
+      { pathname: "/images/year-one-cover.svg", search: "" },
+    ],
+  },
   // Bounded deterministic paddle transcripts can exceed the default 1MB.
   experimental: { serverActions: { bodySizeLimit: "2mb" } },
   async headers() {

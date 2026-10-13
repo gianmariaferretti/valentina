@@ -19,7 +19,7 @@ import {
   TreePine,
   Umbrella,
 } from "lucide-react";
-import Image from "next/image";
+import Image from "@/features/media/components/media-image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ARCADE } from "@/data/arcade-config";
 import { arcadeMemories } from "@/data/arcade-memories";
@@ -60,6 +60,7 @@ const symbols = [
 export function MemoriesGame(props: GameEngineProps) {
   const { onFinish, seed, paused } = props;
   const [snapshot, setSnapshot] = useState(() => createMemoryState(seed)),
+    [seenCards, setSeenCards] = useState(() => new Set<number>()),
     [result, setResult] = useState<GameRunResult | null>(null);
   const model = useRef({
     ...snapshot,
@@ -125,6 +126,9 @@ export function MemoriesGame(props: GameEngineProps) {
       const now = Math.floor(performance.now()),
         before = state.matched.size;
       if (flipMemory(state, index, now)) {
+        setSeenCards((previous) =>
+          previous.has(index) ? previous : new Set([...previous, index]),
+        );
         transcript.current.push(index);
         times.current.push(now - state.startedAt!);
         sound(state.matched.size > before ? "correct" : "move");
@@ -188,7 +192,10 @@ export function MemoriesGame(props: GameEngineProps) {
               card.variant === 1
                 ? (memory.matchingImage ?? memory.image)
                 : memory.image;
-          const media = open && mediaId ? getMediaAsset(mediaId) : null;
+          // Retain already revealed faces behind card backs, so re-flipping
+          // never downloads the same private photograph again.
+          const seen = seenCards.has(index);
+          const media = seen && mediaId ? getMediaAsset(mediaId) : null;
           return (
             <button
               key={card.instanceId}
@@ -208,7 +215,7 @@ export function MemoriesGame(props: GameEngineProps) {
               <span className={styles.cardInner} aria-hidden="true">
                 <span className={styles.cardBack}>V+G</span>
                 <span className={styles.cardFace}>
-                  {open ? (
+                  {seen ? (
                     <>
                       {media ? (
                         <Image

@@ -18,6 +18,7 @@ import {
   queueSnakeDirection,
   snakeStatus,
   snakeStepMs,
+  snakeObstacles,
   stepSnake,
 } from "@/features/games/lib/snake-domain";
 import type { GameEngineProps, GameRunResult } from "@/features/games/types";
@@ -29,7 +30,8 @@ const directions: Record<GameDirection, number> = {
   left: 3,
 };
 export function SnakeGame(props: GameEngineProps) {
-  const model = useRef(createSnakeState(props.seed));
+  const [initialModel] = useState(() => createSnakeState(props.seed));
+  const model = useRef(initialModel);
   const [score, setScore] = useState(0),
     [started, setStarted] = useState(false),
     [result, setResult] = useState<GameRunResult | null>(null);
@@ -51,20 +53,32 @@ export function SnakeGame(props: GameEngineProps) {
       context.fillRect(0, 0, 360, 360);
       context.strokeStyle = "#e8dfd2";
       context.lineWidth = 0.6;
-      for (let i = 0; i <= 18; i++) {
+      const size = ARCADE.snake.size,
+        cellSize = 360 / size;
+      for (let i = 0; i <= size; i++) {
         context.beginPath();
-        context.moveTo(i * 20, 0);
-        context.lineTo(i * 20, 360);
-        context.moveTo(0, i * 20);
-        context.lineTo(360, i * 20);
+        context.moveTo(i * cellSize, 0);
+        context.lineTo(i * cellSize, 360);
+        context.moveTo(0, i * cellSize);
+        context.lineTo(360, i * cellSize);
         context.stroke();
+      }
+      const moving = new Set(state.movingObstacles.map((o) => o.position));
+      for (const cell of snakeObstacles(state)) {
+        context.fillStyle = moving.has(cell) ? "#b57a49" : "#b8afa1";
+        context.fillRect(
+          (cell % size) * cellSize + 2,
+          Math.floor(cell / size) * cellSize + 2,
+          cellSize - 4,
+          cellSize - 4,
+        );
       }
       context.fillStyle = "#ad6c46";
       context.beginPath();
       context.arc(
-        (state.food % 18) * 20 + 10,
-        Math.floor(state.food / 18) * 20 + 10,
-        5,
+        (state.food % size) * cellSize + cellSize / 2,
+        Math.floor(state.food / size) * cellSize + cellSize / 2,
+        4,
         0,
         Math.PI * 2,
       );
@@ -80,17 +94,23 @@ export function SnakeGame(props: GameEngineProps) {
                 (performance.now() - visual.current.movedAt) /
                   snakeStepMs(state.score),
               );
-        const x = (from % 18) + ((cell % 18) - (from % 18)) * fraction;
+        const x = (from % size) + ((cell % size) - (from % size)) * fraction;
         const y =
-          Math.floor(from / 18) +
-          (Math.floor(cell / 18) - Math.floor(from / 18)) * fraction;
+          Math.floor(from / size) +
+          (Math.floor(cell / size) - Math.floor(from / size)) * fraction;
         context.fillStyle = i === 0 ? "#743441" : "#463938";
         context.beginPath();
-        context.roundRect(x * 20 + 1, y * 20 + 1, 18, 18, i === 0 ? 5 : 3);
+        context.roundRect(
+          x * cellSize + 1,
+          y * cellSize + 1,
+          cellSize - 2,
+          cellSize - 2,
+          i === 0 ? 4 : 2,
+        );
         context.fill();
         if (i === 0) {
           context.fillStyle = "#fff8ef";
-          context.fillRect(x * 20 + 7, y * 20 + 7, 3, 3);
+          context.fillRect(x * cellSize + 5, y * cellSize + 5, 3, 3);
         }
       }
     },
@@ -122,7 +142,13 @@ export function SnakeGame(props: GameEngineProps) {
       finished.current = true;
       const next: GameRunResult = {
         score: state.score * 10,
-        progress: status === "won" ? 100 : Math.min(99, state.score * 2),
+        progress:
+          status === "won"
+            ? 100
+            : Math.min(
+                99,
+                Math.floor((state.score / ARCADE.snake.target) * 100),
+              ),
         ending: status === "won" ? "snake-complete" : "snake-collision",
         durationMs: state.elapsedMs,
         evidence: { seed: props.seed, inputs: transcript.current },
@@ -175,7 +201,7 @@ export function SnakeGame(props: GameEngineProps) {
             onRestart={props.onRestart}
             details={[
               { label: "Score", value: score },
-              { label: "Target", value: 50 },
+              { label: "Target", value: ARCADE.snake.target },
             ]}
           />
         ) : null}

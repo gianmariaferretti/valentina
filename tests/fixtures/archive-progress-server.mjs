@@ -5,6 +5,7 @@
 import { createServer } from "node:http";
 import { readFileSync, readdirSync } from "node:fs";
 import { pathToFileURL } from "node:url";
+import manifest from "../../src/data/private-media-manifest.json" with { type: "json" };
 
 const modulePath = process.env.VG_QA_PGLITE_MODULE;
 if (!modulePath)
@@ -33,6 +34,81 @@ const server = createServer(async (request, response) => {
   try {
     if (request.headers.apikey !== "archive-qa-only")
       throw new Error("Fixture authorization missing.");
+    if (
+      request.method === "GET" &&
+      url.pathname === "/storage/v1/bucket/vg-private-photos"
+    ) {
+      response.end(
+        JSON.stringify({
+          id: "vg-private-photos",
+          name: "vg-private-photos",
+          public: false,
+        }),
+      );
+      return;
+    }
+    const photo = manifest.find((entry) =>
+      [
+        "/storage/v1/object/vg-private-photos/" + entry.object,
+        "/storage/v1/object/authenticated/vg-private-photos/" + entry.object,
+      ].includes(url.pathname),
+    );
+    if (request.method === "GET" && photo) {
+      response.setHeader("Content-Type", "image/webp");
+      let bytes;
+      try {
+        bytes = readFileSync(photo.source);
+      } catch {
+        bytes = readFileSync(
+          ".private-media-source-backup/" + photo.id + ".webp",
+        );
+      }
+      response.end(bytes);
+      return;
+    }
+    if (
+      request.method === "POST" &&
+      [
+        "/rest/v1/rpc/begin_arcade_run",
+        "/rest/v1/rpc/finish_arcade_run",
+      ].includes(url.pathname)
+    ) {
+      let body = "";
+      for await (const chunk of request) body += chunk;
+      const p = JSON.parse(body);
+      const begin = url.pathname.endsWith("/begin_arcade_run");
+      const result = begin
+        ? await db.query(
+            "select * from public.begin_arcade_run($1,$2,$3,$4,$5)",
+            [
+              p.p_run_id,
+              p.p_user_id,
+              p.p_game_id,
+              p.p_difficulty,
+              p.p_started_at,
+            ],
+          )
+        : await db.query(
+            "select * from public.finish_arcade_run($1,$2,$3,$4,$5,$6,$7::smallint,$8,$9,$10::jsonb,$11::text[],$12,$13)",
+            [
+              p.p_run_id,
+              p.p_user_id,
+              p.p_game_id,
+              p.p_score,
+              p.p_duration_ms,
+              p.p_difficulty,
+              p.p_progress,
+              p.p_ending,
+              p.p_won,
+              JSON.stringify(p.p_reward_grants),
+              p.p_discovered_secrets,
+              p.p_finished_at,
+              p.p_moves ?? null,
+            ],
+          );
+      response.end(JSON.stringify(result.rows));
+      return;
+    }
     if (
       request.method === "POST" &&
       url.pathname === "/rest/v1/rpc/grant_experience_coupon"

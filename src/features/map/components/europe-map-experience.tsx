@@ -8,7 +8,7 @@ import {
   Marker,
   NavigationControl,
 } from "maplibre-gl";
-import Image from "next/image";
+import Image from "@/features/media/components/media-image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -23,6 +23,35 @@ interface DestinationMarker {
   readonly marker: Marker;
   readonly element: HTMLButtonElement;
   readonly handleClick: (event: MouseEvent) => void;
+}
+
+function nearbyGroups(
+  destinations: readonly Destination[],
+  map: MapLibreMap,
+): Destination[][] {
+  const positions = destinations.map((destination) =>
+    map.project(toMapLibreLngLat(destination.coordinates)),
+  );
+  const visited = new Set<number>();
+  return destinations.flatMap((destination, start) => {
+    if (visited.has(start)) return [];
+    const group: Destination[] = [];
+    const pending = [start];
+    visited.add(start);
+    while (pending.length > 0) {
+      const index = pending.pop()!;
+      group.push(destinations[index]);
+      for (let next = 0; next < destinations.length; next += 1) {
+        if (visited.has(next)) continue;
+        const dx = positions[index].x - positions[next].x;
+        const dy = positions[index].y - positions[next].y;
+        if (dx * dx + dy * dy >= 58 * 58) continue;
+        visited.add(next);
+        pending.push(next);
+      }
+    }
+    return [group];
+  });
 }
 
 function buildBounds(destinations: readonly Destination[]): LngLatBounds {
@@ -68,6 +97,29 @@ function createMarkerElement(destination: Destination): HTMLButtonElement {
   return element;
 }
 
+function createClusterElement(
+  group: readonly Destination[],
+): HTMLButtonElement {
+  const element = document.createElement("button");
+  element.type = "button";
+  element.className = "vg-map-marker vg-map-marker--cluster";
+  element.setAttribute(
+    "aria-label",
+    `Choose among ${group.map((destination) => destination.city).join(", ")}`,
+  );
+  const monogram = document.createElement("span");
+  monogram.className = "vg-map-marker__monogram";
+  monogram.textContent = "V+G";
+  const count = document.createElement("span");
+  count.className = "vg-map-marker__code";
+  count.textContent = String(group.length).padStart(2, "0");
+  const point = document.createElement("span");
+  point.className = "vg-map-marker__point";
+  point.setAttribute("aria-hidden", "true");
+  element.append(monogram, count, point);
+  return element;
+}
+
 export function EuropeMapExperience({
   destinations,
 }: {
@@ -76,8 +128,12 @@ export function EuropeMapExperience({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markersRef = useRef<DestinationMarker[]>([]);
+  const clusterMarkersRef = useRef<DestinationMarker[]>([]);
   const lastTriggerRef = useRef<HTMLElement | null>(null);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
+  const [selectedCluster, setSelectedCluster] = useState<Destination[] | null>(
+    null,
+  );
   const [mapError, setMapError] = useState(false);
   const selectedPlace =
     destinations.find((destination) => destination.slug === selectedSlug) ??
@@ -88,9 +144,11 @@ export function EuropeMapExperience({
     if (!map || destinations.length === 0) return;
 
     map.fitBounds(buildBounds(destinations), {
-      duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? 0
-        : 650,
+      duration:
+        map.getContainer().clientWidth < 640 ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? 0
+          : 650,
       maxZoom: 4.7,
       padding: {
         top: 72,
@@ -131,9 +189,11 @@ export function EuropeMapExperience({
 
     const markers = destinations.map((destination) => {
       const element = createMarkerElement(destination);
+      element.style.visibility = "hidden";
       const handleClick = (event: MouseEvent) => {
         event.stopPropagation();
         lastTriggerRef.current = element;
+        setSelectedCluster(null);
         setSelectedSlug(destination.slug);
       };
       element.addEventListener("click", handleClick);
@@ -148,9 +208,50 @@ export function EuropeMapExperience({
     });
     markersRef.current = markers;
 
+    const updateClusters = () => {
+      clusterMarkersRef.current.forEach(({ marker, element, handleClick }) => {
+        element.removeEventListener("click", handleClick);
+        marker.remove();
+      });
+      clusterMarkersRef.current = [];
+      markers.forEach(({ element }) => {
+        element.style.display = "none";
+      });
+      for (const group of nearbyGroups(destinations, map)) {
+        if (group.length === 1) {
+          const index = destinations.indexOf(group[0]);
+          markers[index].element.style.display = "grid";
+          markers[index].element.style.visibility = "visible";
+          continue;
+        }
+        const element = createClusterElement(group);
+        const handleClick = (event: MouseEvent) => {
+          event.stopPropagation();
+          lastTriggerRef.current = element;
+          setSelectedSlug(null);
+          setSelectedCluster(group);
+        };
+        element.addEventListener("click", handleClick);
+        const longitude =
+          group.reduce((sum, place) => sum + place.coordinates[0], 0) /
+          group.length;
+        const latitude =
+          group.reduce((sum, place) => sum + place.coordinates[1], 0) /
+          group.length;
+        clusterMarkersRef.current.push({
+          marker: new Marker({ anchor: "bottom", element })
+            .setLngLat([longitude, latitude])
+            .addTo(map),
+          element,
+          handleClick,
+        });
+      }
+    };
+
     const handleLoad = () => {
       setMapError(false);
       frameAllDestinations();
+      updateClusters();
     };
     const handleError = () => {
       if (!map.isStyleLoaded()) setMapError(true);
@@ -158,6 +259,7 @@ export function EuropeMapExperience({
 
     map.once("load", handleLoad);
     map.on("error", handleError);
+    map.on("moveend", updateClusters);
 
     const resizeObserver = new ResizeObserver(() => {
       map.resize();
@@ -167,12 +269,18 @@ export function EuropeMapExperience({
 
     return () => {
       resizeObserver.disconnect();
+      clusterMarkersRef.current.forEach(({ marker, element, handleClick }) => {
+        element.removeEventListener("click", handleClick);
+        marker.remove();
+      });
+      clusterMarkersRef.current = [];
       markers.forEach(({ marker, element, handleClick }) => {
         element.removeEventListener("click", handleClick);
         marker.remove();
       });
       markersRef.current = [];
       map.off("error", handleError);
+      map.off("moveend", updateClusters);
       map.remove();
       mapRef.current = null;
     };
@@ -202,6 +310,7 @@ export function EuropeMapExperience({
   }, [destinations, selectedSlug]);
 
   function selectDestination(slug: string) {
+    setSelectedCluster(null);
     setSelectedSlug(slug);
     requestAnimationFrame(() => {
       mapContainerRef.current?.scrollIntoView({
@@ -214,9 +323,33 @@ export function EuropeMapExperience({
   }
 
   function closePreview() {
+    const closingSlug = selectedSlug;
     setSelectedSlug(null);
-    frameAllDestinations();
-    requestAnimationFrame(() => lastTriggerRef.current?.focus());
+    setSelectedCluster(null);
+    if (closingSlug) frameAllDestinations();
+    requestAnimationFrame(() => {
+      if (
+        !closingSlug &&
+        lastTriggerRef.current?.isConnected &&
+        lastTriggerRef.current.getClientRects().length > 0
+      ) {
+        lastTriggerRef.current.focus();
+        return;
+      }
+      const destination =
+        destinations.find((candidate) => candidate.slug === closingSlug) ??
+        selectedCluster?.[0];
+      const fallback = [
+        ...document.querySelectorAll<HTMLButtonElement>(
+          ".map-destination-row button",
+        ),
+      ].find(
+        (button) =>
+          button.getAttribute("aria-label") ===
+          `Locate ${destination?.city} on the map`,
+      );
+      fallback?.focus();
+    });
   }
 
   return (
@@ -244,6 +377,39 @@ export function EuropeMapExperience({
               </span>
             </div>
           </div>
+        ) : null}
+
+        {selectedCluster ? (
+          <article
+            aria-labelledby="map-cluster-heading"
+            className="map-place-preview map-place-preview--cluster"
+            data-testid="map-cluster-preview"
+          >
+            <button
+              aria-label="Close place preview"
+              className="map-place-preview__close"
+              onClick={closePreview}
+              type="button"
+            >
+              <X aria-hidden="true" size={16} />
+            </button>
+            <div className="map-place-preview__body">
+              <p>Nearby pins</p>
+              <h2 id="map-cluster-heading">Choose a memory</h2>
+              <div className="map-place-preview__choices">
+                {selectedCluster.map((destination) => (
+                  <button
+                    key={destination.id}
+                    onClick={() => selectDestination(destination.slug)}
+                    type="button"
+                  >
+                    <span>{destination.city}</span>
+                    <small>{destination.country}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </article>
         ) : null}
 
         {selectedPlace ? (
