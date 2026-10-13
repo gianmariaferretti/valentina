@@ -223,6 +223,16 @@ The final archive image is **not** part of the public media registry. Leave both
 
 Archive progress is ephemeral: an HTTP-only session cookie contains the signed stage and explicit adult confirmation, expires logically after 30 minutes, and is cleared on exit. Refreshing starts the visible sequence again; no date of birth or identity document is stored. Reduced motion uses a 700ms non-flashing reveal. The durable completion is stored only in the existing `coupon_state` and `discoveries` tables through `grant_experience_coupon`; retries never redeem a coupon or change an existing redemption.
 
+### Private Collection: requests arranged in person
+
+Two seconds after the final archive reveal, **WANTED SOMETHING ACTUALLY SPICY?** opens a lazy-loaded Private Collection, without leaving the archive's accessible modal. A confidential product presentation offers **PAY €100** or **EXCHANGE 10 PHOTOS**, with the same accessible button treatment.
+
+This is an invitation to arrange the purchase/exchange directly with Gianmaria, **not an integrated payment service**. The checkout's contact and card fields are read-only display elements, not HTML inputs: no card number, CVV, expiry, email or other personal data can be typed, pasted, autofilled, submitted or stored. A payment request ends at **AWAITING PAYMENT**; an exchange ends at **AGREEMENT CONFIRMED**. Neither sends an email, notifies Gianmaria, initiates delivery, uploads photographs or creates a durable order. The player must contact him personally. No uploads, exchange bucket, new database table, payment dependency or environment variable is needed.
+
+Opening the collection and confirming either choice use authenticated Server Actions. Every request rechecks the existing session-bound archive proof, adult confirmation, successful image service, reveal duration and expiry. The server accepts only an allowlisted intent, never contact/card/media data. Confirmation views are ephemeral acknowledgements, reset when returning to the collection or restarting the archive. **GV-032 remains independent of both choices**: its existing atomic completion grant runs immediately after the reveal, even if the collection is never opened. The collection also remains available if saving that coupon temporarily fails; it cannot claim that the reward was saved.
+
+Content is in `src/data/private-collection.ts`; UI, domain guards and actions live under `src/features/secret/`. See [the Private Collection verification report](docs/private-collection-report.md). No automatic merge or deployment is part of this implementation.
+
 See [the implementation and QA report](docs/spicy-archive-report.md) for photo availability, award changes, testing evidence and remaining setup.
 
 Gianmaria can finish the private content without changing presentation components:
