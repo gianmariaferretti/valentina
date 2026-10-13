@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import ts from "typescript";
 import {
   mediaAssets,
@@ -10,6 +10,7 @@ import {
 import { arcadeMemories } from "../src/data/arcade-memories.ts";
 import sharp from "sharp";
 import { matchPhotoPlace } from "../src/features/media/lib/match-photo-place.ts";
+import privateMediaManifest from "../src/data/private-media-manifest.json" with { type: "json" };
 import {
   archiveStages,
   nextArchiveStage,
@@ -142,16 +143,41 @@ test("Media: ten destinations have correctly attributed covers, with no fabricat
     );
   }
 });
-test("Media: 26 supplied photos are decodable, correctly oriented, optimized and metadata-free", async () => {
+test("Media: 26 private photos are registered and no longer shipped as public assets", async () => {
   assert.equal(travelPhotos.length, 26);
+  assert.equal(privateMediaManifest.length, 26);
   assert.equal(
     new Set(mediaAssets.map((asset) => asset.id)).size,
     mediaAssets.length,
   );
+  const archived = travelPhotos.filter((photo) =>
+    existsSync(
+      new URL(
+        "../.private-media-source-backup/" + photo.id + ".webp",
+        import.meta.url,
+      ),
+    ),
+  );
+  assert.ok(archived.length === 0 || archived.length === 26);
   let totalBytes = 0;
   for (const photo of travelPhotos) {
+    const manifestEntry = privateMediaManifest.find(
+      (entry) => entry.id === photo.id,
+    );
+    assert.equal(manifestEntry?.object, "travel/" + photo.id + ".webp");
+    assert.equal(photo.src, "/api/private-media/" + photo.id);
+    assert.equal(
+      existsSync(new URL("../" + manifestEntry.source, import.meta.url)),
+      false,
+    );
+    assert.ok(Math.max(photo.width, photo.height) <= 1600);
+    assert.equal(photo.date, null);
+    if (!archived.length) continue;
     const file = readFileSync(
-      new URL("../public/images/travel/" + photo.id + ".webp", import.meta.url),
+      new URL(
+        "../.private-media-source-backup/" + photo.id + ".webp",
+        import.meta.url,
+      ),
     );
     const metadata = await sharp(file).metadata();
     await sharp(file).raw().toBuffer();
@@ -163,12 +189,10 @@ test("Media: 26 supplied photos are decodable, correctly oriented, optimized and
     assert.equal(metadata.icc, undefined);
     assert.equal(metadata.iptc, undefined);
     assert.equal(metadata.orientation, undefined);
-    assert.ok(Math.max(photo.width, photo.height) <= 1600);
-    assert.equal(photo.date, null);
     assert.ok(file.length < 450_000);
     totalBytes += file.length;
   }
-  assert.ok(totalBytes < 6_000_000);
+  if (archived.length) assert.ok(totalBytes < 6_000_000);
 });
 test("Media: map-only Paris frame is excluded from Gallery and Memory; gallery uses real unique photos", () => {
   const gallery = getGalleryMedia();
