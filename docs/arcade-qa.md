@@ -1,5 +1,7 @@
 # Five-game Arcade — QA and handoff
 
+Historical review: current difficulty, photographic Memory, coupon rules and privacy work supersede the older settings below. See [the follow-up completion report](follow-up-completion.md) for the current implementation and explicitly outstanding release requirements.
+
 Reviewed 8 October 2026 on the dedicated `feat/five-game-arcade` branch. No automatic production merge.
 
 ## Scope and files

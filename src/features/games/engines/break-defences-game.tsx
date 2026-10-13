@@ -21,7 +21,7 @@ export function BreakDefencesGame(props: GameEngineProps) {
     [hud, setHud] = useState({
       score: 0,
       lives: 3,
-      remaining: 80,
+      remaining: ARCADE.breakout.rows * ARCADE.breakout.columns,
       serve: true,
     });
   const [result, setResult] = useState<GameRunResult | null>(null);
@@ -183,11 +183,22 @@ export function BreakDefencesGame(props: GameEngineProps) {
         {result ? (
           <ArcadeResult
             result={result}
-            title={result.progress === 100 ? "LEVEL CLEARED" : "GAME OVER"}
+            title={
+              result.ending === "defences-perfect"
+                ? "PERFECT CLEARANCE"
+                : result.progress === 100
+                  ? "DEFENCES BREACHED"
+                  : "GAME OVER"
+            }
             onRestart={props.onRestart}
             details={[
               { label: "Score", value: result.score },
-              { label: "Bricks cleared", value: 80 - hud.remaining },
+              {
+                label: "Bricks cleared",
+                value:
+                  ARCADE.breakout.rows * ARCADE.breakout.columns -
+                  hud.remaining,
+              },
             ]}
           />
         ) : null}
@@ -250,7 +261,7 @@ export function BreakDefencesGame(props: GameEngineProps) {
         </button>
       </div>
       <p className={styles.caption}>
-        80 bricks · 3 lives · geometric marks show remaining hits
+        90 bricks · 3 lives · zero lost lives earns perfect clearance
       </p>
     </section>
   );

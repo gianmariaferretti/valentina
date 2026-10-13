@@ -24,6 +24,8 @@ export function evaluateGameResult(
     (id) => permittedSecrets.has(id),
   );
   const rewards = game.rewards.filter((reward) => {
+    if (reward.requiredEnding && reward.requiredEnding !== result.ending)
+      return false;
     if (reward.trigger === "completion") return result.progress === 100;
     if (reward.trigger === "victory") return won;
     if (reward.trigger === "collection") {

@@ -10,7 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import Image from "next/image";
+import Image from "@/features/media/components/media-image";
 import type { CSSProperties, KeyboardEvent, MouseEvent } from "react";
 import { useCallback, useMemo, useRef, useState } from "react";
 

@@ -9,7 +9,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import Image from "next/image";
+import Image from "@/features/media/components/media-image";
 import { useId, useState } from "react";
 
 import { Sticker } from "@/components/design-system";

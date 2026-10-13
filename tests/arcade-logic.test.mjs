@@ -28,6 +28,7 @@ import {
   queueSnakeDirection,
   stepSnake,
   snakeStepMs,
+  snakeSafeCycle,
 } from "../src/features/games/lib/snake-domain.ts";
 import {
   createMazeState,
@@ -48,9 +49,9 @@ function hitBrick(state, brick) {
   });
   stepDefence(state, 210, false, true);
 }
-test("Breakout: exactly 80 bricks, three durability classes, three lives, one level", () => {
+test("Breakout: exactly 90 bricks, three durability classes, three lives, one level", () => {
   const state = createDefenceState();
-  assert.equal(state.bricks.length, 80);
+  assert.equal(state.bricks.length, 90);
   assert.equal(state.lives, 3);
   assert.deepEqual(new Set(state.bricks.map((b) => b.hp)), new Set([1, 2, 3]));
   assert.equal("boss" in state, false);
@@ -115,7 +116,7 @@ test("Breakout: missing the paddle costs a life, only the third miss ends the ru
   const reset = createDefenceState();
   assert.equal(reset.lives, 3);
   assert.equal(reset.score, 0);
-  assert.equal(reset.bricks.filter((b) => b.hp).length, 80);
+  assert.equal(reset.bricks.filter((b) => b.hp).length, 90);
 });
 test("Breakout: victory requires the last remaining destructible brick", () => {
   const state = createDefenceState();
@@ -420,12 +421,10 @@ test("Snake: moves one cell, grows on food, never spawns food inside its body", 
   assert.equal(state.body.length, 4);
   assert.equal(state.score, 1);
   assert.equal(state.body.includes(state.food), false);
+  const cycle = snakeSafeCycle();
   assert.equal(
-    spawnSnakeFood(
-      Array.from({ length: 323 }, (_, i) => i),
-      () => 0.99,
-    ),
-    323,
+    spawnSnakeFood(cycle.slice(0, -1), () => 0.99),
+    cycle.at(-1),
   );
 });
 test("Snake: rapid queued inputs cannot produce a 180° reversal", () => {
@@ -442,14 +441,17 @@ test("Snake: rapid queued inputs cannot produce a 180° reversal", () => {
 test("Snake: walls and the body are lethal, entering the vacating tail is allowed", () => {
   const wall = createSnakeState(1);
   wall.status = "playing";
-  wall.body = [17];
+  wall.body = [23];
   stepSnake(wall);
   assert.equal(wall.status, "lost");
   const body = createSnakeState(1);
   body.status = "playing";
   body.direction = 2;
   body.queued = 3;
-  body.body = [20, 21, 39, 38, 37, 19, 1, 2];
+  body.staticObstacles.clear();
+  body.movingObstacles = [];
+  body.obstacleCandidates = [];
+  body.body = [50, 51, 75, 74, 73, 49, 25, 26];
   body.food = 300;
   stepSnake(body);
   assert.equal(body.status, "lost");
@@ -457,7 +459,10 @@ test("Snake: walls and the body are lethal, entering the vacating tail is allowe
   tail.status = "playing";
   tail.direction = 2;
   tail.queued = 3;
-  tail.body = [20, 21, 39, 38, 37, 19];
+  tail.staticObstacles.clear();
+  tail.movingObstacles = [];
+  tail.obstacleCandidates = [];
+  tail.body = [50, 51, 75, 74, 73, 49];
   tail.food = 300;
   stepSnake(tail);
   assert.equal(tail.status, "playing");
@@ -467,32 +472,25 @@ test("Snake: increasing speed remains fixed-step and bounded", () => {
   assert.ok(snakeStepMs(30) < snakeStepMs(10));
   assert.equal(snakeStepMs(50), 65);
 });
-test("Snake: a legitimate cycle reaches 50 and the entire input sequence verifies", () => {
-  const cycle = [];
-  for (let x = 0; x < 18; x++) cycle.push(x);
-  for (let y = 1; y < 18; y++) {
-    if (y % 2) for (let x = 17; x >= 1; x--) cycle.push(y * 18 + x);
-    else for (let x = 1; x < 18; x++) cycle.push(y * 18 + x);
-  }
-  for (let y = 17; y >= 1; y--) cycle.push(y * 18);
-  cycle.reverse();
+test("Snake: a legitimate obstacle-safe cycle reaches 75 and the entire input sequence verifies", () => {
+  const cycle = snakeSafeCycle();
   const state = createSnakeState(17),
     inputs = [];
   state.status = "playing";
   while (state.status === "playing" && inputs.length < 30000) {
     const next = cycle[(cycle.indexOf(state.body[0]) + 1) % cycle.length],
       delta = next - state.body[0],
-      direction = delta === 1 ? 1 : delta === -1 ? 3 : delta === 18 ? 2 : 0;
+      direction = delta === 1 ? 1 : delta === -1 ? 3 : delta === 24 ? 2 : 0;
     inputs.push(direction);
     queueSnakeDirection(state, direction);
     stepSnake(state);
   }
   assert.equal(state.status, "won");
-  assert.equal(state.score, 50);
-  assert.equal(verifyArcadeResult("snake", { seed: 17, inputs }, 0).score, 500);
+  assert.equal(state.score, 75);
+  assert.equal(verifyArcadeResult("snake", { seed: 17, inputs }, 0).score, 750);
   const loss = verifyArcadeResult(
     "snake",
-    { seed: 17, inputs: Array(11).fill(1) },
+    { seed: 17, inputs: Array(21).fill(1) },
     0,
   );
   assert.equal(loss.ending, "snake-collision");
@@ -500,9 +498,9 @@ test("Snake: a legitimate cycle reaches 50 and the entire input sequence verifie
 
 function mazeCommand(from, to) {
   const delta = to - from;
-  return delta === -33 ? 1 : delta === 1 ? 2 : delta === 33 ? 3 : 4;
+  return delta === -45 ? 1 : delta === 1 ? 2 : delta === 45 ? 3 : 4;
 }
-test("Maze: 100 seeds produce connected 33×33 boards and safe actual-rule solutions", () => {
+test("Maze: 100 seeds produce connected 45×45 boards and safe actual-rule five-key solutions", () => {
   for (let seed = 0; seed < 100; seed++) {
     const board = generateMaze(seed),
       visited = new Set([board.start]),
@@ -513,10 +511,10 @@ test("Maze: 100 seeds produce connected 33×33 boards and safe actual-rule solut
           visited.add(n);
           queue.push(n);
         }
-    assert.equal(board.floor.size, 511);
+    assert.equal(board.floor.size, 967);
     assert.equal(visited.size, board.floor.size);
-    assert.equal(new Set(board.keys).size, 3);
-    assert.equal(new Set(board.doors).size, 3);
+    assert.equal(new Set(board.keys).size, 5);
+    assert.equal(new Set(board.doors).size, 5);
     const route = solveMaze(board);
     assert.ok(route);
     assert.ok(route.length > 80);
@@ -528,7 +526,7 @@ test("Maze: 100 seeds produce connected 33×33 boards and safe actual-rule solut
       assert.notEqual(state.status, "lost");
     }
     assert.equal(state.status, "won");
-    assert.equal(state.keys, 7);
+    assert.equal(state.keys, 31);
   }
   assert.deepEqual(generateMaze(31), generateMaze(31));
   assert.notDeepEqual(generateMaze(31).floor, generateMaze(32).floor);
@@ -575,7 +573,7 @@ test("Maze: complete key/door path and timeout transcripts verify, exit without 
     100,
   );
   assert.equal(
-    verifyArcadeResult("maze", { seed: 44, inputs: Array(3000).fill(0) }, 0)
+    verifyArcadeResult("maze", { seed: 44, inputs: Array(1875).fill(0) }, 0)
       .ending,
     "maze-lost",
   );

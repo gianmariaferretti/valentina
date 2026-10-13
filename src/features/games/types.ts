@@ -20,6 +20,7 @@ export interface GameRewardDefinition {
   readonly description: string;
   readonly trigger: GameRewardTrigger;
   readonly secretId?: string;
+  readonly requiredEnding?: string;
   readonly requiredSecrets?: readonly string[];
 }
 

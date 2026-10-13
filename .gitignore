@@ -21,3 +21,5 @@
 *.pem
 .vercel
 supabase/.temp/
+/.private-media-source-backup/
+/.private-media-receipt.json

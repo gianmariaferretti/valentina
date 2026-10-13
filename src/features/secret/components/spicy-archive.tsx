@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import {
@@ -10,6 +11,7 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  useTransition,
   type CSSProperties,
 } from "react";
 import { archiveScenes } from "@/data/spicy-archive";
@@ -21,6 +23,7 @@ import {
   goBackInArchive,
   replayArchiveReveal,
 } from "../actions/archive-actions";
+import { accessPrivateCollection } from "../actions/private-collection-actions";
 import {
   ARCHIVE_REDUCED_REVEAL_MS,
   ARCHIVE_REVEAL_MS,
@@ -29,6 +32,20 @@ import {
 import styles from "./spicy-archive.module.css";
 
 const subscribe = () => () => {};
+const PrivateCollection = dynamic(
+  () =>
+    import("./private-collection").then((module) => module.PrivateCollection),
+  {
+    loading: () => (
+      <section>
+        <h1 id="archive-title" className={styles.photoTitle}>
+          THE PRIVATE COLLECTION
+        </h1>
+        <p role="status">Opening the private collection...</p>
+      </section>
+    ),
+  },
+);
 
 export function SpicyArchive({ imageAlt }: { readonly imageAlt: string }) {
   const router = useRouter();
@@ -47,6 +64,9 @@ export function SpicyArchive({ imageAlt }: { readonly imageAlt: string }) {
   const [saved, setSaved] = useState(false);
   const [breakingSeal, setBreakingSeal] = useState(false);
   const [revealDuration, setRevealDuration] = useState(ARCHIVE_REVEAL_MS);
+  const [collectionOpen, setCollectionOpen] = useState(false);
+  const [collectionReady, setCollectionReady] = useState(false);
+  const [openingCollection, startCollectionTransition] = useTransition();
   const titleRef = useRef<HTMLHeadingElement>(null);
   const activeRef = useRef(true);
   const exitingRef = useRef(false);
@@ -100,6 +120,30 @@ export function SpicyArchive({ imageAlt }: { readonly imageAlt: string }) {
     return () => cancelAnimationFrame(frame);
   }, [stage]);
 
+  useEffect(() => {
+    if (stage !== "final-reveal") return;
+    const timer = setTimeout(() => setCollectionReady(true), 2000);
+    return () => clearTimeout(timer);
+  }, [stage]);
+
+  function openCollection() {
+    if (openingCollection || busy) return;
+    setMessage("");
+    startCollectionTransition(async () => {
+      try {
+        const result = await accessPrivateCollection("browse");
+        if (!activeRef.current || exitingRef.current) return;
+        if (result.ok) setCollectionOpen(true);
+        else setMessage(result.message);
+      } catch {
+        if (activeRef.current)
+          setMessage(
+            "The private collection could not be opened. Please retry.",
+          );
+      }
+    });
+  }
+
   function focusStage() {
     titleRef.current?.focus();
     dialogRef.current?.scrollTo({ top: 0 });
@@ -121,6 +165,7 @@ export function SpicyArchive({ imageAlt }: { readonly imageAlt: string }) {
         });
       if (!activeRef.current) return;
       if (result.ok) {
+        setCollectionReady(false);
         if (stage === "sealed-file")
           setRevealDuration(
             reducedMotion ? ARCHIVE_REDUCED_REVEAL_MS : ARCHIVE_REVEAL_MS,
@@ -176,13 +221,14 @@ export function SpicyArchive({ imageAlt }: { readonly imageAlt: string }) {
     void saveCompletion();
   }
   async function replay() {
-    if (busy) return;
+    if (busy || openingCollection) return;
     setBusy(true);
     setMessage("");
     try {
       const result = await replayArchiveReveal(Boolean(reducedMotion));
       if (!activeRef.current) return;
       if (result.ok) {
+        setCollectionReady(false);
         setImageLoaded(false);
         setRevealDuration(
           reducedMotion ? ARCHIVE_REDUCED_REVEAL_MS : ARCHIVE_REVEAL_MS,
@@ -235,9 +281,27 @@ export function SpicyArchive({ imageAlt }: { readonly imageAlt: string }) {
           Close archive <span aria-hidden="true">×</span>
         </button>
       </header>
-      <div className={styles.stageContainer}>
+      <div
+        className={`${styles.stageContainer} ${collectionOpen ? styles.collectionContainer : ""}`}
+      >
         <AnimatePresence mode="wait" initial={false}>
-          {!photoVisible ? (
+          {collectionOpen ? (
+            <motion.div
+              key="private-collection"
+              initial={reducedMotion ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reducedMotion ? 0 : 0.3 }}
+            >
+              <PrivateCollection
+                titleRef={titleRef}
+                onBack={() => {
+                  setCollectionOpen(false);
+                  setMessage("");
+                }}
+              />
+            </motion.div>
+          ) : !photoVisible ? (
             <motion.section
               className={`${styles.scene} ${stage === "sealed-file" ? styles.envelope : ""}`}
               key={stage}
@@ -430,7 +494,7 @@ export function SpicyArchive({ imageAlt }: { readonly imageAlt: string }) {
                   <>
                     <button
                       className={styles.secondary}
-                      disabled={busy}
+                      disabled={busy || openingCollection}
                       onClick={() => {
                         void replay();
                       }}
@@ -441,7 +505,7 @@ export function SpicyArchive({ imageAlt }: { readonly imageAlt: string }) {
                     {!saved ? (
                       <button
                         className={styles.primary}
-                        disabled={busy}
+                        disabled={busy || openingCollection}
                         onClick={() => {
                           void saveCompletion();
                         }}
@@ -459,6 +523,21 @@ export function SpicyArchive({ imageAlt }: { readonly imageAlt: string }) {
                   </>
                 ) : null}
               </div>
+              {stage === "final-reveal" && collectionReady ? (
+                <div className={styles.collectionInvitation}>
+                  <button
+                    className={styles.secondary}
+                    type="button"
+                    disabled={busy || openingCollection}
+                    onClick={openCollection}
+                  >
+                    {openingCollection
+                      ? "OPENING THE PRIVATE COLLECTION..."
+                      : "WANTED SOMETHING ACTUALLY SPICY?"}
+                  </button>
+                  <p>Careful what you wish for.</p>
+                </div>
+              ) : null}
             </motion.section>
           )}
         </AnimatePresence>
@@ -467,12 +546,15 @@ export function SpicyArchive({ imageAlt }: { readonly imageAlt: string }) {
             {message}
             <button
               type="button"
+              disabled={busy || openingCollection}
               onClick={() => {
                 setStage("discovery");
                 setMessage("");
                 setImageLoaded(false);
                 setImageFailed(false);
                 setSaved(false);
+                setCollectionOpen(false);
+                setCollectionReady(false);
               }}
             >
               Restart archive

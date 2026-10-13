@@ -63,7 +63,7 @@ export function createWalletItem(coupon: ResolvedCoupon): CouponWalletItem {
   }
 
   const requiresChallenge =
-    coupon.type === "challenge" && coupon.status !== "available";
+    coupon.type === "challenge" && coupon.status === "locked";
 
   return {
     id: coupon.id,

@@ -35,7 +35,7 @@
 }
 
 html {
-  min-width: 320px;
+  min-width: 0;
   background: var(--paper);
   scroll-behavior: smooth;
 }
@@ -1165,6 +1165,14 @@ a {
   pointer-events: none;
 }
 
+.vg-map-marker--cluster {
+  background: var(--ink);
+}
+
+.vg-map-marker--cluster .vg-map-marker__code {
+  font-size: 0.7rem;
+}
+
 .map-place-preview {
   position: absolute;
   z-index: 6;
@@ -1275,6 +1283,48 @@ a {
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.map-place-preview--cluster {
+  display: block;
+  max-height: min(45svh, 24rem);
+}
+
+.map-place-preview--cluster .map-place-preview__body {
+  padding: 1rem;
+}
+
+.map-place-preview--cluster .map-place-preview__body h2 {
+  padding-right: 2.5rem;
+}
+
+.map-place-preview__choices {
+  display: grid;
+  max-height: min(30svh, 15rem);
+  overflow-y: auto;
+  margin-top: 0.65rem;
+  overscroll-behavior: contain;
+}
+
+.map-place-preview__choices button {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+  text-align: left;
+}
+
+.map-place-preview__choices button:focus-visible {
+  outline: 2px solid var(--rust);
+  outline-offset: -2px;
+}
+
+.map-place-preview__choices small {
+  color: var(--muted);
+  font-size: 0.6rem;
 }
 
 .map-destination-index {

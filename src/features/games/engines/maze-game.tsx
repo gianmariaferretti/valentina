@@ -28,7 +28,7 @@ const commands: Record<GameDirection, number> = {
     down: 3,
     left: 4,
   },
-  keyLabels = ["I", "II", "III"];
+  keyLabels = ["I", "II", "III", "IV", "V"];
 export function MazeGame(props: GameEngineProps) {
   const [snapshot, setSnapshot] = useState(() => createMazeState(props.seed)),
     [started, setStarted] = useState(false),
@@ -93,10 +93,16 @@ export function MazeGame(props: GameEngineProps) {
     frame = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(frame);
   }, [props.paused, result, started]);
-  const playerX = snapshot.position % 33,
-    playerY = Math.floor(snapshot.position / 33),
-    originX = Math.max(0, Math.min(18, playerX - 7)),
-    originY = Math.max(0, Math.min(18, playerY - 7)),
+  const playerX = snapshot.position % ARCADE.maze.size,
+    playerY = Math.floor(snapshot.position / ARCADE.maze.size),
+    originX = Math.max(
+      0,
+      Math.min(ARCADE.maze.size - ARCADE.maze.viewSize, playerX - 7),
+    ),
+    originY = Math.max(
+      0,
+      Math.min(ARCADE.maze.size - ARCADE.maze.viewSize, playerY - 7),
+    ),
     hazards = new Set(mazeHazardPositions(snapshot));
   const visible = new Set<number>();
   for (let y = playerY - 4; y <= playerY + 4; y++)
@@ -104,15 +110,17 @@ export function MazeGame(props: GameEngineProps) {
       if (
         x >= 0 &&
         y >= 0 &&
-        x < 33 &&
-        y < 33 &&
+        x < ARCADE.maze.size &&
+        y < ARCADE.maze.size &&
         Math.hypot(x - playerX, y - playerY) <= 4.4
       )
-        visible.add(y * 33 + x);
+        visible.add(y * ARCADE.maze.size + x);
   return (
     <section className={styles.stage}>
       <ArcadeStats
-        urgent={snapshot.ticks * ARCADE.maze.stepMs > 420_000}
+        urgent={
+          snapshot.ticks * ARCADE.maze.stepMs > ARCADE.maze.limitMs - 60_000
+        }
         items={[
           {
             label: "Time",
@@ -126,7 +134,7 @@ export function MazeGame(props: GameEngineProps) {
               .map((label, i) => (snapshot.keys & (1 << i) ? label : "—"))
               .join(" · "),
           },
-          { label: "Grid", value: "33 × 33" },
+          { label: "Grid", value: "45 × 45" },
         ]}
       />
       <div className={styles.canvasWrap} {...touch}>
@@ -137,7 +145,9 @@ export function MazeGame(props: GameEngineProps) {
         >
           {Array.from({ length: 225 }, (_, i) => {
             const cell =
-                (originY + Math.floor(i / 15)) * 33 + originX + (i % 15),
+                (originY + Math.floor(i / 15)) * ARCADE.maze.size +
+                originX +
+                (i % 15),
               lit = visible.has(cell),
               known = lit || snapshot.visited.has(cell),
               key = snapshot.board.keys.indexOf(cell),
@@ -224,7 +234,7 @@ export function MazeGame(props: GameEngineProps) {
       />
       <p className={styles.caption}>
         Keys open matching numbered gates · × marks a moving hazard · exit
-        requires all three keys
+        requires all five keys
       </p>
     </section>
   );

@@ -89,14 +89,23 @@ export function defenceProgress(state: DefenceState) {
     ? 100
     : Math.min(
         99,
-        Math.floor((state.bricks.filter((b) => b.hp === 0).length / 80) * 100),
+        Math.floor(
+          (state.bricks.filter((b) => b.hp === 0).length /
+            (C.rows * C.columns)) *
+            100,
+        ),
       );
 }
 export function defenceResult(state: DefenceState): GameRunResult {
   return {
     score: state.score,
     progress: defenceProgress(state),
-    ending: state.mode === "victory" ? "defences-breached" : "file-resealed",
+    ending:
+      state.mode === "victory"
+        ? state.lives === C.lives
+          ? "defences-perfect"
+          : "defences-breached"
+        : "file-resealed",
     durationMs: Math.round(state.elapsed * 1000),
   };
 }

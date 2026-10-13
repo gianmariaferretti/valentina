@@ -438,7 +438,7 @@ export const travelPhotos: readonly MediaAsset[] = (
   ] satisfies readonly TravelPhotoDefinition[]
 ).map((definition: TravelPhotoDefinition): MediaAsset => ({
   id: definition.id,
-  src: `/images/travel/${definition.id}.webp`,
+  src: `/api/private-media/${definition.id}`,
   width: definition.dimensions?.[0] ?? (definition.landscape ? 1600 : 1200),
   height: definition.dimensions?.[1] ?? (definition.landscape ? 1200 : 1600),
   alt: definition.alt,

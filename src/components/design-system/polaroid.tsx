@@ -1,5 +1,6 @@
 import { ImageIcon } from "lucide-react";
-import Image, { type StaticImageData } from "next/image";
+import type { StaticImageData } from "next/image";
+import Image from "@/features/media/components/media-image";
 import type { CSSProperties } from "react";
 
 import { Tape } from "@/components/design-system/tape";
