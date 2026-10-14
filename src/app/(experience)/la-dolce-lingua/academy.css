@@ -103,6 +103,140 @@
   background: #fffcf5;
   box-shadow: 0 10px 24px rgba(62, 65, 44, 0.035);
 }
+.academy-atlas {
+  counter-reset: postcard;
+}
+.academy-postcard {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #d9cfb8;
+  border-radius: 0.8rem;
+  background: #fffcf5;
+  box-shadow: 0 8px 20px rgba(54, 65, 48, 0.055);
+}
+.academy-postcard-art {
+  position: relative;
+  height: 10rem;
+  overflow: hidden;
+  border: 0.45rem solid #fffcf5;
+  border-bottom: 0;
+  background: #e3d5bd;
+}
+.academy-postcard-art::before,
+.academy-postcard-art::after,
+.academy-postcard-scenery::before,
+.academy-postcard-scenery::after {
+  position: absolute;
+  display: block;
+  content: "";
+}
+.academy-postcard-stamp {
+  position: absolute;
+  z-index: 2;
+  top: 0.8rem;
+  right: 0.8rem;
+  display: grid;
+  width: 2.7rem;
+  height: 2.7rem;
+  place-items: center;
+  border: 1px dashed currentColor;
+  border-radius: 50%;
+  color: rgba(49, 70, 53, 0.75);
+  font-size: 0.48rem;
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: 0.08em;
+  text-align: center;
+  transform: rotate(11deg);
+}
+.academy-postcard--rome .academy-postcard-art {
+  background: linear-gradient(180deg, #d8dacd 0%, #e9dcc1 62%, #a9775f 63%);
+}
+.academy-postcard--rome .academy-postcard-art::before {
+  bottom: 0;
+  left: 15%;
+  width: 60%;
+  height: 70%;
+  border: 0.7rem solid #c6ab85;
+  border-bottom: 0;
+  border-radius: 48% 48% 0 0;
+  box-shadow:
+    0 0 0 0.6rem #9b725a,
+    4rem 1.2rem 0 -0.2rem #b58e6e;
+}
+.academy-postcard--rome .academy-postcard-art::after {
+  bottom: 0;
+  left: 32%;
+  width: 27%;
+  height: 46%;
+  border: 0.5rem solid #9b725a;
+  border-bottom: 0;
+  border-radius: 50% 50% 0 0;
+  background: #e9dcc1;
+}
+.academy-postcard--florence .academy-postcard-art {
+  background: url("/images/academy/italian-city-illustration.webp") center 64% /
+    cover;
+}
+.academy-postcard--florence .academy-postcard-art::after {
+  inset: 0;
+  background: linear-gradient(0deg, rgba(35, 62, 48, 0.25), transparent 60%);
+}
+.academy-postcard--venice .academy-postcard-art {
+  background: linear-gradient(
+    180deg,
+    #d5d9d0 0%,
+    #e9e1d0 56%,
+    #83a4a0 57%,
+    #b4c6b6 100%
+  );
+}
+.academy-postcard--venice .academy-postcard-art::before {
+  bottom: 44%;
+  left: 10%;
+  width: 70%;
+  height: 34%;
+  background: repeating-linear-gradient(
+    90deg,
+    #a98b72 0 10%,
+    #d7b99a 10% 15%,
+    #a98b72 15% 25%
+  );
+  clip-path: polygon(0 20%, 50% 0, 100% 20%, 100% 100%, 0 100%);
+}
+.academy-postcard--venice .academy-postcard-art::after {
+  right: -10%;
+  bottom: 0;
+  left: -10%;
+  height: 28%;
+  background: repeating-radial-gradient(
+    ellipse at 50% 0%,
+    transparent 0 0.5rem,
+    rgba(255, 252, 245, 0.35) 0.55rem 0.61rem,
+    transparent 0.65rem 1.1rem
+  );
+}
+.academy-postcard--tuscany .academy-postcard-art {
+  background: linear-gradient(180deg, #e7d8b9 0%, #d0d1ad 52%, #9aaa7b 53%);
+}
+.academy-postcard--tuscany .academy-postcard-art::before {
+  right: -20%;
+  bottom: -45%;
+  left: -20%;
+  height: 85%;
+  border-radius: 50% 50% 0 0;
+  background: #849871;
+  transform: rotate(-10deg);
+}
+.academy-postcard--tuscany .academy-postcard-art::after {
+  right: -15%;
+  bottom: -56%;
+  left: 16%;
+  height: 85%;
+  border-radius: 50% 50% 0 0;
+  background: #b4a77f;
+  transform: rotate(13deg);
+}
 .academy-eyebrow {
   color: #a7563f;
   font-size: 0.65rem;

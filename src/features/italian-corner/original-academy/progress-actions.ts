@@ -11,6 +11,10 @@ import {
 
 import { gradeOriginalExercise, prepareLesson } from "./lesson-model";
 import { getOriginalLesson, lessonHref } from "./lesson-store";
+import {
+  buildSupplementalActivities,
+  gradeSupplementalActivity,
+} from "./supplemental-model";
 
 export type OriginalProgress = {
   lessons: {
@@ -169,6 +173,80 @@ export async function submitOriginalExercise(input: {
   }
 }
 
+export async function submitSupplementalActivity(input: {
+  lessonId: string;
+  activityId: string;
+  answer: string;
+}) {
+  if (!(await hasValidAccessSession()))
+    return { ok: false as const, message: "Sessione scaduta." };
+  if (
+    !input ||
+    typeof input.answer !== "string" ||
+    !input.answer.trim() ||
+    input.answer.length > 1000
+  )
+    return {
+      ok: false as const,
+      message: "Scrivi una risposta prima di inviare.",
+    };
+  const lesson = await getOriginalLesson(Number(input.lessonId?.slice(-3)));
+  if (!lesson || lesson.id !== input.lessonId)
+    return { ok: false as const, message: "Lezione inesistente." };
+  const activity = buildSupplementalActivities(lesson).find(
+    (item) => item.id === input.activityId,
+  );
+  if (!activity)
+    return { ok: false as const, message: "Attività inesistente." };
+  if (
+    activity.kind === "flashcard" &&
+    !["known", "again"].includes(input.answer)
+  )
+    return { ok: false as const, message: "Ripasso non valido." };
+  const score =
+    activity.kind === "flashcard"
+      ? input.answer === "known"
+        ? 100
+        : 0
+      : (gradeSupplementalActivity(activity, input.answer) ?? 0);
+  try {
+    const { client, userId } = getSupabaseServerContext();
+    const saved = await client.rpc("record_italian_exercise", {
+      p_user_id: userId,
+      p_lesson_id: lesson.id,
+      p_exercise_id: activity.id,
+      p_score: score,
+      p_answer: input.answer,
+    });
+    assertSupabaseResult(
+      "Unable to save supplemental Italian activity.",
+      saved.error,
+    );
+    revalidatePath(lessonHref(lesson.number));
+    revalidatePath("/la-dolce-lingua");
+    return {
+      ok: true as const,
+      score: activity.kind === "flashcard" ? null : score,
+      feedback: activity.explanation,
+      modelAnswer: activity.kind === "flashcard" ? null : activity.answer,
+      message:
+        activity.kind === "flashcard"
+          ? "Ripasso registrato."
+          : score === 100
+            ? "Corretto: hai ritrovato la forma nell'esempio."
+            : activity.kind === "translation"
+              ? "Confronta con la soluzione guida; una variante equivalente può essere corretta."
+              : "Rileggi l'esempio e riprova.",
+    };
+  } catch (error) {
+    reportPersistenceFailure("save supplemental Italian activity", error);
+    return {
+      ok: false as const,
+      message: "La risposta non è stata salvata. Riprova.",
+    };
+  }
+}
+
 export async function revealOriginalSolutions(lessonId: string) {
   if (!(await hasValidAccessSession())) return [];
   const lesson = await getOriginalLesson(Number(lessonId.slice(-3)));
@@ -200,12 +278,15 @@ export async function completeOriginalLesson(lessonId: string) {
         ok: false as const,
         message: "Prova almeno un’attività prima di completare la lezione.",
       };
-    const gradable = new Set(
-      prepareLesson(lesson)
+    const gradable = new Set([
+      ...prepareLesson(lesson)
         .flatMap((section) => section.exercises)
         .filter((item) => ["choice", "fill", "order"].includes(item.mode))
         .map((item) => item.id),
-    );
+      ...buildSupplementalActivities(lesson)
+        .filter((item) => item.kind !== "flashcard")
+        .map((item) => item.id),
+    ]);
     const scores = data
       .filter((row) => gradable.has(row.exercise_id))
       .map((row) => row.best_score);

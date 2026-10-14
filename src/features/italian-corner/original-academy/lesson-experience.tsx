@@ -11,6 +11,8 @@ import {
   submitOriginalExercise,
   visitOriginalLesson,
 } from "./progress-actions";
+import { SupplementalLab } from "./supplemental-lab";
+import type { publicSupplementalActivities } from "./supplemental-model";
 
 type Section = ReturnType<typeof publicSections>[number];
 type Exercise = Section["exercises"][number];
@@ -308,6 +310,7 @@ export function LessonExperience({
   level,
   volume,
   sections,
+  supplemental,
   responses,
   previousHref,
   nextHref,
@@ -319,6 +322,7 @@ export function LessonExperience({
   level: string;
   volume: number;
   sections: Section[];
+  supplemental: ReturnType<typeof publicSupplementalActivities>;
   responses: Response[];
   previousHref: string | null;
   nextHref: string | null;
@@ -337,23 +341,27 @@ export function LessonExperience({
     });
   }, [lessonId]);
   const section = sections[step];
-  const percent = Math.round(((step + 1) / sections.length) * 100);
-  const gradableIds = new Set(
-    sections.flatMap((item) =>
+  const totalSteps = sections.length + 1;
+  const percent = Math.round(((step + 1) / totalSteps) * 100);
+  const gradableIds = new Set([
+    ...sections.flatMap((item) =>
       item.exercises
         .filter((exercise) =>
           ["choice", "fill", "order"].includes(exercise.mode),
         )
         .map((exercise) => exercise.id),
     ),
-  );
+    ...supplemental
+      .filter((activity) => activity.kind !== "flashcard")
+      .map((activity) => activity.id),
+  ]);
   const gradedResponses = savedResponses.filter((response) =>
     gradableIds.has(response.exerciseId),
   );
   const correctCount = gradedResponses.filter(
     (response) => response.score === 100,
   ).length;
-  const reviewSection = sections.findIndex((item) =>
+  const originalReviewSection = sections.findIndex((item) =>
     item.exercises.some(
       (exercise) =>
         gradableIds.has(exercise.id) &&
@@ -363,6 +371,26 @@ export function LessonExperience({
         ),
     ),
   );
+  const supplementalNeedsReview = supplemental.some(
+    (activity) =>
+      activity.kind !== "flashcard" &&
+      savedResponses.some(
+        (response) =>
+          response.exerciseId === activity.id && response.score < 100,
+      ),
+  );
+  const reviewSection =
+    originalReviewSection >= 0
+      ? originalReviewSection
+      : supplementalNeedsReview
+        ? sections.length
+        : -1;
+  function onSaved(response: Response) {
+    setSavedResponses((current) => [
+      ...current.filter((item) => item.exerciseId !== response.exerciseId),
+      response,
+    ]);
+  }
   function go(nextStep: number) {
     setStep(nextStep);
     window.scrollTo({
@@ -398,7 +426,7 @@ export function LessonExperience({
         ) : null}
         <div className="mt-8 flex items-center gap-4">
           <span className="text-xs">
-            Sezione {step + 1} / {sections.length}
+            Sezione {step + 1} / {totalSteps}
           </span>
           <div
             aria-label={`${percent}% della lezione visualizzato`}
@@ -421,20 +449,22 @@ export function LessonExperience({
       ) : null}
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_15rem]">
         <div className="min-w-0">
-          <SectionScreen
-            key={section.id}
-            lessonId={lessonId}
-            onSaved={(response) =>
-              setSavedResponses((current) => [
-                ...current.filter(
-                  (item) => item.exerciseId !== response.exerciseId,
-                ),
-                response,
-              ])
-            }
-            responses={savedResponses}
-            section={section}
-          />
+          {section ? (
+            <SectionScreen
+              key={section.id}
+              lessonId={lessonId}
+              onSaved={onSaved}
+              responses={savedResponses}
+              section={section}
+            />
+          ) : (
+            <SupplementalLab
+              activities={supplemental}
+              lessonId={lessonId}
+              onSaved={onSaved}
+              responses={savedResponses}
+            />
+          )}
           <div className="mt-6 flex items-center justify-between gap-3">
             <button
               className="academy-focus inline-flex min-h-12 items-center gap-2 rounded-full border border-[#718471]/35 px-5 text-sm disabled:opacity-35"
@@ -446,14 +476,14 @@ export function LessonExperience({
             </button>
             <button
               className="academy-focus inline-flex min-h-12 items-center gap-2 rounded-full bg-[#355244] px-5 text-sm text-white disabled:opacity-35"
-              disabled={step === sections.length - 1}
+              disabled={step === totalSteps - 1}
               onClick={() => go(step + 1)}
               type="button"
             >
               Avanti <ArrowRight aria-hidden="true" size={16} />
             </button>
           </div>
-          {step === sections.length - 1 ? (
+          {step === totalSteps - 1 ? (
             <section className="mt-8 rounded-[1.5rem] border border-[#718471]/25 bg-[#fffcf5] p-6">
               <h2 className="font-display text-3xl text-[#304b3d]">
                 La chiave e il traguardo.
@@ -547,7 +577,8 @@ export function LessonExperience({
               da ripassare
             </p>
             <p className="mt-1 text-[#59695b]">
-              Le risposte aperte restano fuori dal punteggio.
+              Le risposte aperte e le carte di ripasso restano fuori dal
+              punteggio.
             </p>
             {reviewSection >= 0 ? (
               <button
@@ -575,6 +606,19 @@ export function LessonExperience({
                 </button>
               </li>
             ))}
+            <li>
+              <button
+                aria-current={step === sections.length ? "step" : undefined}
+                className={`academy-focus min-h-11 w-full rounded-lg px-3 py-2 text-left text-xs leading-5 ${step === sections.length ? "bg-[#355244] text-white" : "hover:bg-white/60"}`}
+                onClick={() => go(sections.length)}
+                type="button"
+              >
+                <span className="mr-2 font-mono opacity-60">
+                  {String(totalSteps).padStart(2, "0")}
+                </span>
+                Atelier supplementare
+              </button>
+            </li>
           </ol>
         </aside>
       </div>

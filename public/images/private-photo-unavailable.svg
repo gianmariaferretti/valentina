@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-labelledby="title">
+  <title id="title">Private photograph temporarily unavailable</title>
+  <rect width="1200" height="900" fill="#e8e1d5"/>
+  <rect x="94" y="78" width="1012" height="744" fill="#f9f6ef" stroke="#b5a895" stroke-width="2"/>
+  <path d="M94 155h1012M94 745h1012" stroke="#b5a895" stroke-width="2"/>
+  <circle cx="600" cy="400" r="87" fill="none" stroke="#8c786a" stroke-width="4"/>
+  <path d="M550 425l36-43 30 30 22-21 30 34" fill="none" stroke="#8c786a" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+  <text x="600" y="235" text-anchor="middle" fill="#8a493f" font-family="Arial,sans-serif" font-size="22" font-weight="700" letter-spacing="7">PRIVATE ARCHIVE</text>
+  <text x="600" y="575" text-anchor="middle" fill="#33483e" font-family="Georgia,serif" font-size="47" font-style="italic">Photograph temporarily unavailable</text>
+  <text x="600" y="630" text-anchor="middle" fill="#6d7067" font-family="Arial,sans-serif" font-size="22">Please refresh this page in a moment.</text>
+</svg>

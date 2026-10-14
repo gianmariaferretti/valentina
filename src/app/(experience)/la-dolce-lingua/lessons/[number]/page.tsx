@@ -11,6 +11,10 @@ import {
   lessonHref,
 } from "@/features/italian-corner/original-academy/lesson-store";
 import { loadOriginalResponses } from "@/features/italian-corner/original-academy/progress-actions";
+import {
+  buildSupplementalActivities,
+  publicSupplementalActivities,
+} from "@/features/italian-corner/original-academy/supplemental-model";
 
 export const metadata: Metadata = {
   title: "La Dolce Lingua · Lezione",
@@ -28,6 +32,9 @@ export default async function OriginalLessonPage({
   if (!lesson) notFound();
   const responses = await loadOriginalResponses(lesson.id);
   const sections = publicSections(prepareLesson(lesson));
+  const supplemental = publicSupplementalActivities(
+    buildSupplementalActivities(lesson),
+  );
   const objective = lesson.paragraphs
     .find((paragraph) => /^OBIETTIVO\b/i.test(paragraph.text))
     ?.text.replace(/^OBIETTIVO\s*[•·:]?\s*/i, "");
@@ -41,6 +48,7 @@ export default async function OriginalLessonPage({
       previousHref={lesson.number > 1 ? lessonHref(lesson.number - 1) : null}
       responses={responses}
       sections={sections}
+      supplemental={supplemental}
       title={lesson.title}
       volume={lesson.volume}
     />

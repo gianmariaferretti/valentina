@@ -29,7 +29,12 @@ export async function GET(
     return new Response(image, {
       headers: { ...headers, "Content-Type": "image/webp" },
     });
-  } catch {
+  } catch (error) {
+    console.error(
+      "Private media request failed",
+      (await context.params).id,
+      error instanceof Error ? error.message : "unknown error",
+    );
     return new Response("Private photograph temporarily unavailable", {
       status: 503,
       headers,

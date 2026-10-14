@@ -20,7 +20,7 @@ export default function MediaImage({
   return (
     <Image
       {...props}
-      src={failed ? "/images/map/city-placeholder.svg" : src}
+      src={failed ? "/images/private-photo-unavailable.svg" : src}
       alt={failed ? "Private photograph temporarily unavailable" : alt}
       unoptimized={isPrivate || props.unoptimized}
       onError={(event) => {

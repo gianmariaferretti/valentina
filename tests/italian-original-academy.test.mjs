@@ -9,6 +9,11 @@ import {
   prepareLesson,
   publicSections,
 } from "../src/features/italian-corner/original-academy/lesson-model.ts";
+import {
+  buildSupplementalActivities,
+  gradeSupplementalActivity,
+  publicSupplementalActivities,
+} from "../src/features/italian-corner/original-academy/supplemental-model.ts";
 
 const root = join(process.cwd(), "src/content/italian/original-lessons");
 const index = JSON.parse(readFileSync(join(root, "index.json"), "utf8"));
@@ -136,4 +141,62 @@ test("Answer checking uses the original teacher key, not client-shipped answers"
   assert.equal(gradeOriginalExercise(choice, "parlano"), 0);
   assert.equal(gradeOriginalExercise(fill, "prendo"), 100);
   assert.equal(gradeOriginalExercise(order, "Loro studiano ogni sera"), 100);
+});
+
+test("Every original lesson has ten distinct supplemental interactions grounded in its source examples", () => {
+  const modes = new Set();
+  let total = 0;
+  for (const entry of index) {
+    const lesson = originalLessonSchema.parse(read(`lessons/${entry.id}.json`));
+    const activities = buildSupplementalActivities(lesson);
+    assert.equal(activities.length, 10, lesson.id);
+    assert.equal(
+      new Set(activities.map((activity) => activity.id)).size,
+      10,
+      lesson.id,
+    );
+    const publicActivities = publicSupplementalActivities(activities);
+    for (const [position, activity] of activities.entries()) {
+      modes.add(activity.kind);
+      assert.ok(activity.prompt.trim(), `${lesson.id} ${position}`);
+      assert.ok(activity.answer.trim(), `${lesson.id} ${position}`);
+      assert.equal(
+        gradeSupplementalActivity(activity, activity.answer),
+        activity.kind === "flashcard" ? null : 100,
+      );
+      if (activity.kind !== "flashcard") {
+        assert.ok(!("answer" in publicActivities[position]));
+        assert.ok(!("explanation" in publicActivities[position]));
+        assert.equal(
+          gradeSupplementalActivity(activity, "deliberately wrong answer"),
+          0,
+        );
+      }
+    }
+    total += activities.length;
+  }
+  assert.equal(total, 800);
+  assert.deepEqual([...modes].sort(), [
+    "choice",
+    "fill",
+    "flashcard",
+    "matching",
+    "order",
+    "translation",
+  ]);
+  const present = buildSupplementalActivities(read("lessons/a2-001.json"));
+  assert.equal(present[2].answer, "parlo");
+  const particles = buildSupplementalActivities(read("lessons/a2-041.json"));
+  assert.equal(particles[2].answer, "ci");
+  assert.equal(particles[3].answer, "Ne");
+  const congiuntivo = buildSupplementalActivities(read("lessons/b1-061.json"));
+  assert.equal(congiuntivo[0].prompt, "Penso che Maria ____ a casa.");
+  assert.equal(congiuntivo[1].answer, "è");
+  const pronouns = buildSupplementalActivities(read("lessons/b1-071.json"));
+  assert.equal(
+    pronouns[1].prompt,
+    "Ho telefonato a Giulia: ____ ho telefonato.",
+  );
+  const combined = buildSupplementalActivities(read("lessons/b1-072.json"));
+  assert.equal(combined[0].answer, "Glielo");
 });

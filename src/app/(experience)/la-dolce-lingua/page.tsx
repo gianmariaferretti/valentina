@@ -243,6 +243,81 @@ export default async function LaDolceLinguaPage() {
           </p>
         ) : null}
 
+        <section aria-labelledby="atlas-title" className="mt-14 sm:mt-20">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="academy-eyebrow">Cartoline dall&apos;Italia</p>
+              <h2
+                className="mt-2 font-display text-4xl text-[#284333] sm:text-5xl"
+                id="atlas-title"
+              >
+                La lingua ha <em className="font-normal">un paesaggio.</em>
+              </h2>
+            </div>
+            <p className="max-w-xs text-sm leading-6 text-[#616b5b]">
+              Quattro appunti visivi, dalla pietra romana alle colline toscane.
+            </p>
+          </div>
+          <div className="academy-atlas mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                city: "Roma",
+                cue: "Pietra · archi · storia",
+                style: "rome",
+                mark: "RM",
+              },
+              {
+                city: "Firenze",
+                cue: "Cupole · arte · parole",
+                style: "florence",
+                mark: "FI",
+              },
+              {
+                city: "Venezia",
+                cue: "Acqua · riflessi · dialoghi",
+                style: "venice",
+                mark: "VE",
+              },
+              {
+                city: "Toscana",
+                cue: "Colline · tavole · racconti",
+                style: "tuscany",
+                mark: "TO",
+              },
+            ].map((place) => (
+              <article
+                className={`academy-postcard academy-postcard--${place.style}`}
+                key={place.city}
+              >
+                <div aria-hidden="true" className="academy-postcard-art">
+                  <span className="academy-postcard-scenery" />
+                  <span className="academy-postcard-stamp">
+                    {place.mark}
+                    <br />
+                    ITALIA
+                  </span>
+                </div>
+                <div className="flex items-end justify-between gap-2 px-4 py-4">
+                  <div>
+                    <h3 className="font-display text-2xl italic text-[#284333]">
+                      {place.city}
+                    </h3>
+                    <p className="mt-1 text-[.64rem] tracking-[.08em] text-[#65705e] uppercase">
+                      {place.cue}
+                    </p>
+                  </div>
+                  <span
+                    aria-hidden="true"
+                    className="font-display text-xl text-[#a7563f]"
+                  >
+                    ✶
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
         <section aria-labelledby="volumes-title" className="mt-14 sm:mt-20">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
