@@ -1,0 +1,117 @@
+{
+  "id": "a2-001",
+  "level": "A2",
+  "number": 1,
+  "status": "unpublished",
+  "title": "Development fixture — ordering at a café",
+  "description": "A demonstration of the lesson format. Not personal course content.",
+  "estimatedMinutes": 15,
+  "objectives": [
+    "Ask politely for a drink",
+    "Recognize a simple café exchange"
+  ],
+  "prerequisites": [],
+  "explanations": [
+    {
+      "id": "polite-request",
+      "it": "Per chiedere qualcosa con cortesia, puoi usare 'vorrei'.",
+      "es": "Para pedir algo con cortesía, puedes usar 'quisiera'."
+    }
+  ],
+  "grammarExamples": [
+    {
+      "italian": "Vorrei un caffè, per favore.",
+      "spanish": "Quisiera un café, por favor.",
+      "note": "Vorrei is the conditional of volere."
+    }
+  ],
+  "vocabulary": [
+    {
+      "id": "caffe",
+      "italian": "un caffè",
+      "spanish": "un café",
+      "example": "Vorrei un caffè."
+    }
+  ],
+  "exercises": [
+    {
+      "id": "mc-1",
+      "type": "multiple-choice",
+      "prompt": "Which phrase is a polite request?",
+      "options": [
+        { "id": "a", "text": "Vorrei un caffè." },
+        { "id": "b", "text": "Dammi un caffè!" },
+        { "id": "c", "text": "Il caffè sono io." },
+        { "id": "d", "text": "Ieri caffè." }
+      ],
+      "correctOptionId": "a",
+      "explanation": "Vorrei is a polite way to request something."
+    },
+    {
+      "id": "blank-1",
+      "type": "fill-blank",
+      "prompt": "Complete: ___ un caffè, per favore.",
+      "acceptedAnswers": ["Vorrei"],
+      "explanation": "Vorrei expresses a polite wish."
+    },
+    {
+      "id": "match-1",
+      "type": "matching",
+      "prompt": "Match the café words.",
+      "pairs": [
+        { "id": "coffee", "left": "caffè", "right": "café" },
+        { "id": "water", "left": "acqua", "right": "agua" }
+      ],
+      "explanation": "Caffè is café; acqua is agua."
+    },
+    {
+      "id": "order-1",
+      "type": "sentence-order",
+      "prompt": "Build the polite request.",
+      "tokens": ["per", "Vorrei", "favore", "un caffè,", "."],
+      "correctOrder": ["Vorrei", "un caffè,", "per", "favore", "."],
+      "explanation": "The request is 'Vorrei un caffè, per favore.'"
+    },
+    {
+      "id": "read-1",
+      "type": "reading",
+      "prompt": "What does the customer order?",
+      "text": "Buongiorno. Vorrei un caffè, per favore.",
+      "options": [
+        { "id": "a", "text": "A coffee" },
+        { "id": "b", "text": "A tea" },
+        { "id": "c", "text": "A sandwich" },
+        { "id": "d", "text": "Water" }
+      ],
+      "correctOptionId": "a",
+      "explanation": "The customer says 'un caffè'."
+    },
+    {
+      "id": "listen-1",
+      "type": "listening",
+      "prompt": "What is the polite word?",
+      "script": "Vorrei un caffè, per favore.",
+      "options": [
+        { "id": "a", "text": "Vorrei" },
+        { "id": "b", "text": "Prendo" },
+        { "id": "c", "text": "Voglio" },
+        { "id": "d", "text": "Compro" }
+      ],
+      "correctOptionId": "a",
+      "explanation": "The speaker says 'Vorrei'."
+    },
+    {
+      "id": "write-1",
+      "type": "writing",
+      "prompt": "Write a polite request for a drink.",
+      "reviewNote": "Compare your answer with 'Vorrei un caffè, per favore.'"
+    }
+  ],
+  "finalAssessment": {
+    "exerciseIds": ["mc-1", "blank-1", "read-1"],
+    "passingPercent": 70
+  },
+  "reviewNotes": [
+    "This fixture is development-only and must never be published as a real lesson."
+  ]
+}

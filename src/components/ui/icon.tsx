@@ -1,6 +1,7 @@
 import {
   ArrowUpRight,
   BadgeCheck,
+  BookOpen,
   CircleHelp,
   Gamepad2,
   Gift,
@@ -27,6 +28,7 @@ const iconMap: Record<IconName, LucideIcon> = {
   coupons: Ticket,
   gallery: Images,
   home: House,
+  "italian-corner": BookOpen,
   map: MapPinned,
   "open-when": MailOpen,
   quiz: CircleHelp,

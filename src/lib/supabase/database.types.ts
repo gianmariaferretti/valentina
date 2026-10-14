@@ -14,6 +14,174 @@ export type Database = {
   };
   public: {
     Tables: {
+      italian_corner_attempts: {
+        Row: {
+          id: string;
+          user_id: string;
+          quiz_id: string;
+          status: string;
+          started_at: string;
+          expires_at: string;
+          completed_at: string | null;
+          question_ids: Json;
+          option_orders: Json;
+          answers: Json;
+          score: number | null;
+          passed: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          user_id: string;
+          quiz_id: string;
+          status?: string;
+          started_at?: string;
+          expires_at: string;
+          completed_at?: string | null;
+          question_ids: Json;
+          option_orders: Json;
+          answers?: Json;
+          score?: number | null;
+          passed?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          quiz_id?: string;
+          status?: string;
+          started_at?: string;
+          expires_at?: string;
+          completed_at?: string | null;
+          question_ids?: Json;
+          option_orders?: Json;
+          answers?: Json;
+          score?: number | null;
+          passed?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      italian_lesson_progress: {
+        Row: {
+          user_id: string;
+          lesson_id: string;
+          status: string;
+          last_activity_at: string;
+          completed_at: string | null;
+          best_score: number | null;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          lesson_id: string;
+          status?: string;
+          last_activity_at?: string;
+          completed_at?: string | null;
+          best_score?: number | null;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          lesson_id?: string;
+          status?: string;
+          last_activity_at?: string;
+          completed_at?: string | null;
+          best_score?: number | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      italian_exercise_results: {
+        Row: {
+          user_id: string;
+          lesson_id: string;
+          exercise_id: string;
+          attempts: number;
+          best_score: number;
+          latest_score: number;
+          last_answer: Json;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          lesson_id: string;
+          exercise_id: string;
+          attempts?: number;
+          best_score: number;
+          latest_score: number;
+          last_answer?: Json;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          lesson_id?: string;
+          exercise_id?: string;
+          attempts?: number;
+          best_score?: number;
+          latest_score?: number;
+          last_answer?: Json;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      italian_vocabulary_review: {
+        Row: {
+          user_id: string;
+          vocabulary_id: string;
+          correct_count: number;
+          incorrect_count: number;
+          due_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          vocabulary_id: string;
+          correct_count?: number;
+          incorrect_count?: number;
+          due_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          vocabulary_id?: string;
+          correct_count?: number;
+          incorrect_count?: number;
+          due_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      italian_level_exams: {
+        Row: {
+          id: string;
+          user_id: string;
+          level: string;
+          score: number;
+          passed: boolean;
+          completed_at: string;
+        };
+        Insert: {
+          id: string;
+          user_id: string;
+          level: string;
+          score: number;
+          passed: boolean;
+          completed_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          level?: string;
+          score?: number;
+          passed?: boolean;
+          completed_at?: string;
+        };
+        Relationships: [];
+      };
       achievements: {
         Row: {
           achievement_id: string;
@@ -268,6 +436,65 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      record_italian_exercise: {
+        Args: {
+          p_user_id: string;
+          p_lesson_id: string;
+          p_exercise_id: string;
+          p_score: number;
+          p_answer: Json;
+        };
+        Returns: {
+          attempts: number;
+          best_score: number;
+          latest_score: number;
+        }[];
+      };
+      record_italian_vocabulary_review: {
+        Args: { p_user_id: string; p_vocabulary_id: string; p_known: boolean };
+        Returns: {
+          correct_count: number;
+          incorrect_count: number;
+          due_at: string;
+        }[];
+      };
+      complete_italian_lesson: {
+        Args: { p_user_id: string; p_lesson_id: string; p_score: number };
+        Returns: undefined;
+      };
+      record_italian_level_exam: {
+        Args: {
+          p_user_id: string;
+          p_id: string;
+          p_level: string;
+          p_score: number;
+        };
+        Returns: { score: number; passed: boolean }[];
+      };
+      start_italian_corner_attempt: {
+        Args: {
+          p_user_id: string;
+          p_id: string;
+          p_quiz_id: string;
+          p_question_ids: Json;
+          p_option_orders: Json;
+        };
+        Returns: Database["public"]["Tables"]["italian_corner_attempts"]["Row"][];
+      };
+      finish_italian_corner_attempt: {
+        Args: {
+          p_user_id: string;
+          p_id: string;
+          p_answers: Json;
+          p_score: number;
+        };
+        Returns: {
+          final_score: number;
+          passed: boolean;
+          reward_was_new: boolean;
+          attempts_remaining: number;
+        }[];
+      };
       grant_experience_coupon: {
         Args: {
           p_user_id: string;

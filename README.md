@@ -64,6 +64,15 @@ The current route foundation includes:
 - `/open-when`, `/open-when/[slug]`
 - `/awards`, `/quiz`, `/gallery`, `/achievements`, `/secret`, `/year-two`
 - `/design-system` for development review of visual tokens and components
+- `/italian-corner` with separate challenge, Gianmaria exam and Academy routes
+
+### Italian Corner (feature branch)
+
+`/italian-corner` adds two **new** server-scored, ten-minute examinations without changing the historical `/quiz`. The Italian Challenge selects 15 balanced A2/B1 questions from a 60-question server-only bank (three attempts, pass at 12); the Gianmaria Exam uses the owner's exact ten personal questions (two attempts, pass at eight). Supabase functions atomically reserve attempts, enforce the timer and attempt limits, and grant each distinct coupon/discovery once. Answer keys never enter the pre-submit client bundle. GV-037 and GV-038 are intentionally **sealed, unredeemable reward placeholders** until Gianmaria supplies actual prizes and terms; the app does not invent or silently redeem them.
+
+`/italian-corner/academy` provides a 100-slot A2/B1/B2 curriculum, bilingual lesson reader, vocabulary review, seven exercise types, lesson assessment, mistake review, resume state and level-exam framework. All real slots start unpublished. The sole development fixture is visible only at `/italian-corner/academy/preview` in development. The content schema and owner import workflow are in [`docs/italian-academy-content-guide.md`](docs/italian-academy-content-guide.md). Use `npm run validate:lessons` before publishing a lesson and `npm run schema:lessons` to inspect the generated JSON Schema.
+
+The additive migration `supabase/migrations/20261013225943_italian_corner_state.sql` is **not applied automatically**. Apply it only after separate production approval and a database review. Without it, the editorial routes render but result-bearing actions fail closed. The branch is not merged into `main` or deployed by this work.
 
 Navigation is driven by `src/data/navigation.ts`, so future sections can be added without rewriting the shell.
 

@@ -17,6 +17,10 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // Lesson JSON is read server-side; include future owner-authored files in deploy traces.
+  outputFileTracingIncludes: {
+    "/italian-corner/academy/**/*": ["./src/content/italian/**/*.json"],
+  },
   // Do not allow the public optimizer to proxy authenticated API media.
   images: {
     localPatterns: [

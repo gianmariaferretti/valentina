@@ -6,6 +6,7 @@ export type IconName =
   | "coupons"
   | "gallery"
   | "home"
+  | "italian-corner"
   | "map"
   | "open-when"
   | "quiz"

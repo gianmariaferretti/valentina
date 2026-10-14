@@ -35,6 +35,8 @@ export interface Coupon {
   readonly type: CouponType;
   readonly status: CouponStatus;
   readonly redeemable: boolean;
+  /** Reward may be discovered before its owner supplies actual prize terms. */
+  readonly fulfillmentReady?: boolean;
   readonly challengeId: string | null;
   readonly unlockCondition: string | null;
   readonly secret: boolean;
