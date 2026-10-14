@@ -22,9 +22,8 @@ const dashboardCards = [
       "Promises, dates, useful favors and at least one suspiciously specific loophole.",
     eyebrow: "The main event",
     icon: "coupons" as const,
-    index: "01 / 07",
+    index: "01 / 08",
     tone: "burgundy" as const,
-    featured: true,
     sticker: "girlfriend-approved" as const,
   },
   {
@@ -33,7 +32,7 @@ const dashboardCards = [
     description: "The places that became ours, whether they agreed or not.",
     eyebrow: "Coordinates",
     icon: "map" as const,
-    index: "02 / 07",
+    index: "02 / 08",
     tone: "paper" as const,
     sticker: "location" as const,
   },
@@ -44,7 +43,7 @@ const dashboardCards = [
       "Emergency correspondence for very specific emotional weather.",
     eyebrow: "For later",
     icon: "open-when" as const,
-    index: "03 / 07",
+    index: "03 / 08",
     tone: "ink" as const,
   },
   {
@@ -54,7 +53,7 @@ const dashboardCards = [
       "Five private operations involving memory, timing and avoidable pressure.",
     eyebrow: "Playable files",
     icon: "challenges" as const,
-    index: "04 / 07",
+    index: "04 / 08",
     tone: "taupe" as const,
     sticker: "classified" as const,
   },
@@ -65,17 +64,18 @@ const dashboardCards = [
       "Recognition for excellence in snacks, patience and being right.",
     eyebrow: "Official-ish",
     icon: "awards" as const,
-    index: "05 / 07",
+    index: "05 / 08",
     tone: "taupe" as const,
     sticker: "legendary" as const,
   },
   {
     href: "/quiz",
-    title: "THE QUIZ",
-    description: "A rigorous examination with emotionally binding results.",
+    title: "Do You Actually Know Your Boyfriend?",
+    description: "Let's find out how well you really know me.",
     eyebrow: "No pressure",
+    cta: "Take the Quiz",
     icon: "quiz" as const,
-    index: "06 / 07",
+    index: "06 / 08",
     tone: "paper" as const,
   },
   {
@@ -85,8 +85,18 @@ const dashboardCards = [
       "Evidence that we went outside and occasionally looked composed.",
     eyebrow: "Selected evidence",
     icon: "gallery" as const,
-    index: "07 / 07",
+    index: "07 / 08",
     tone: "ink" as const,
+  },
+  {
+    href: "/la-dolce-lingua",
+    title: "La Dolce Lingua",
+    description: "Your little Italian adventure starts here.",
+    eyebrow: "The Italian Academy",
+    cta: "Learn Italian",
+    icon: "italian-corner" as const,
+    index: "08 / 08",
+    tone: "sage" as const,
   },
 ] as const;
 
@@ -168,14 +178,10 @@ export default function HomePage() {
           </div>
         </FadeIn>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
           {dashboardCards.map((card, index) => (
             <FadeIn
-              className={
-                card.href === "/coupons"
-                  ? "min-w-0 md:col-span-2 lg:row-span-2"
-                  : "min-w-0"
-              }
+              className="h-full min-w-0"
               delay={0.1 + index * 0.035}
               key={card.href}
             >
@@ -183,8 +189,8 @@ export default function HomePage() {
             </FadeIn>
           ))}
 
-          <FadeIn className="min-w-0" delay={0.32}>
-            <article className="flex min-h-64 flex-col rounded-[1.75rem] border border-dashed border-[var(--line-strong)] bg-transparent p-6 text-[var(--muted)] sm:p-7">
+          <FadeIn className="h-full min-w-0" delay={0.32}>
+            <article className="flex h-full min-h-[21rem] flex-col rounded-[1.75rem] border border-dashed border-[var(--line-strong)] bg-transparent p-6 text-[var(--muted)] sm:p-7">
               <div className="flex items-start justify-between gap-5">
                 <span className="grid size-12 place-items-center rounded-full border border-dashed border-[var(--line-strong)]">
                   <LockKeyhole aria-hidden="true" size={19} strokeWidth={1.5} />

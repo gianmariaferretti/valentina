@@ -226,7 +226,7 @@ test("All Academy exercise types score correctly and malformed content fails sch
 test("Migration keeps new quiz and lesson tables private, uses server-only RPC grants", () => {
   const sql = readFileSync(
     new URL(
-      "../supabase/migrations/20261013225943_italian_corner_state.sql",
+      "../supabase/migrations/20261014171835_italian_corner_state.sql",
       import.meta.url,
     ),
     "utf8",
