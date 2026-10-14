@@ -100,7 +100,7 @@ begin
     raise exception 'Invalid quiz attempt';
   end if;
   v_limit := case p_quiz_id when 'italian' then 3 else 2 end;
-  if jsonb_array_length(p_question_ids) <> case p_quiz_id when 'italian' then 15 else 10 end then
+  if jsonb_array_length(p_question_ids) <> (case p_quiz_id when 'italian' then 15 else 10 end) then
     raise exception 'Invalid question count';
   end if;
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_user_id::text || ':' || p_quiz_id, 0));
