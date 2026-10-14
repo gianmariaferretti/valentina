@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test:games": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/*.test.mjs",
     "validate:lessons": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types scripts/validate-italian-lessons.mjs",
+    "validate:italian-laboratory": "node scripts/validate-italian-laboratory.mjs",
     "schema:lessons": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types scripts/show-italian-lesson-schema.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
