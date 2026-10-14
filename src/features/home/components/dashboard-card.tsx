@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 import type { StickerVariant } from "@/types/design-system";
 import type { IconName } from "@/types/navigation";
 
-type DashboardCardTone = "paper" | "taupe" | "ink" | "burgundy";
+type DashboardCardTone = "paper" | "taupe" | "ink" | "burgundy" | "sage";
 
 const toneClassNames: Record<DashboardCardTone, string> = {
   paper:
@@ -17,6 +17,7 @@ const toneClassNames: Record<DashboardCardTone, string> = {
   ink: "border-[var(--ink)] bg-[var(--ink)] text-[var(--paper-white)]",
   burgundy:
     "border-[var(--oxblood)] bg-[var(--oxblood)] text-[var(--paper-white)]",
+  sage: "border-[#879b83] bg-[#dce5d5] text-[#273d31] hover:border-[#3e624d]",
 };
 
 interface DashboardCardProps {
@@ -29,6 +30,7 @@ interface DashboardCardProps {
   tone?: DashboardCardTone;
   featured?: boolean;
   sticker?: StickerVariant;
+  cta?: string;
 }
 
 export function DashboardCard({
@@ -41,6 +43,7 @@ export function DashboardCard({
   tone = "paper",
   featured = false,
   sticker,
+  cta,
 }: DashboardCardProps) {
   const isDark = tone === "ink" || tone === "burgundy";
 
@@ -110,6 +113,11 @@ export function DashboardCard({
         >
           {description}
         </p>
+        {cta ? (
+          <span className="mt-6 inline-flex min-h-10 items-center rounded-full border border-current/35 px-4 text-xs font-bold tracking-[.11em] uppercase">
+            {cta}
+          </span>
+        ) : null}
       </div>
     </Link>
   );

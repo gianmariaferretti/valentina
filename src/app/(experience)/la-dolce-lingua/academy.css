@@ -1,0 +1,38 @@
+.academy-surface {
+  background:
+    radial-gradient(circle at 88% 6%, #d8ddcd 0, transparent 22rem), #f3efe4;
+}
+.academy-arch {
+  border-radius: 11rem 11rem 1.3rem 1.3rem;
+  background: linear-gradient(145deg, #e5d9c8, #d8d2bd 55%, #aaae92);
+}
+.academy-rule {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #9d785a 18%,
+    #9d785a 82%,
+    transparent
+  );
+  height: 1px;
+}
+.academy-paper {
+  background-color: #fffcf5;
+  background-image: linear-gradient(
+    transparent 1.75rem,
+    rgba(102, 113, 83, 0.075) 1.8rem
+  );
+  background-size: 100% 1.8rem;
+}
+.academy-focus:focus-visible {
+  outline: 3px solid #a75943;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .academy-surface *,
+  .academy-surface *::before,
+  .academy-surface *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
