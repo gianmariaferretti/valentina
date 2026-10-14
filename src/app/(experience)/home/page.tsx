@@ -24,7 +24,6 @@ const dashboardCards = [
     icon: "coupons" as const,
     index: "01 / 08",
     tone: "burgundy" as const,
-    featured: true,
     sticker: "girlfriend-approved" as const,
   },
   {
@@ -179,14 +178,10 @@ export default function HomePage() {
           </div>
         </FadeIn>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
           {dashboardCards.map((card, index) => (
             <FadeIn
-              className={
-                card.href === "/coupons"
-                  ? "min-w-0 md:col-span-2 lg:row-span-2"
-                  : "min-w-0"
-              }
+              className="h-full min-w-0"
               delay={0.1 + index * 0.035}
               key={card.href}
             >
@@ -194,8 +189,8 @@ export default function HomePage() {
             </FadeIn>
           ))}
 
-          <FadeIn className="min-w-0" delay={0.32}>
-            <article className="flex min-h-64 flex-col rounded-[1.75rem] border border-dashed border-[var(--line-strong)] bg-transparent p-6 text-[var(--muted)] sm:p-7">
+          <FadeIn className="h-full min-w-0" delay={0.32}>
+            <article className="flex h-full min-h-[21rem] flex-col rounded-[1.75rem] border border-dashed border-[var(--line-strong)] bg-transparent p-6 text-[var(--muted)] sm:p-7">
               <div className="flex items-start justify-between gap-5">
                 <span className="grid size-12 place-items-center rounded-full border border-dashed border-[var(--line-strong)]">
                   <LockKeyhole aria-hidden="true" size={19} strokeWidth={1.5} />

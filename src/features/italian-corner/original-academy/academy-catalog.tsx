@@ -76,6 +76,7 @@ export function AcademyCatalog({
           return (
             <details
               className="group overflow-hidden rounded-[1.6rem] border border-[#6e7e6b]/25 bg-[#fffcf5] shadow-[0_16px_40px_rgba(52,66,49,.045)]"
+              id={`volume-${numeral}`}
               key={numeral}
               open={normalized ? true : undefined}
             >
