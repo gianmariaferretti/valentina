@@ -28,12 +28,16 @@ export default async function OriginalLessonPage({
   if (!lesson) notFound();
   const responses = await loadOriginalResponses(lesson.id);
   const sections = publicSections(prepareLesson(lesson));
+  const objective = lesson.paragraphs
+    .find((paragraph) => /^OBIETTIVO\b/i.test(paragraph.text))
+    ?.text.replace(/^OBIETTIVO\s*[•·:]?\s*/i, "");
   return (
     <LessonExperience
       lessonId={lesson.id}
       level={lesson.level}
       nextHref={lesson.number < 80 ? lessonHref(lesson.number + 1) : null}
       number={lesson.number}
+      objective={objective ?? null}
       previousHref={lesson.number > 1 ? lessonHref(lesson.number - 1) : null}
       responses={responses}
       sections={sections}

@@ -61,7 +61,7 @@ export function DashboardCard({
         )}
       />
 
-      <div className="relative flex items-start justify-between gap-5">
+      <div className="relative flex min-h-[5.5rem] items-start justify-between gap-5">
         <span
           className={cn(
             "grid size-12 place-items-center rounded-full border",
@@ -70,25 +70,26 @@ export function DashboardCard({
         >
           <Icon name={icon} size={20} />
         </span>
-        <span className="font-mono text-[0.62rem] tracking-[0.15em] opacity-45">
-          {index}
-        </span>
+        <div className="flex flex-col items-end gap-2">
+          <span className="font-mono text-[0.62rem] tracking-[0.15em] opacity-45">
+            {index}
+          </span>
+          {sticker ? (
+            <span className="pointer-events-none">
+              <Sticker rotation={-2} size="sm" variant={sticker} />
+            </span>
+          ) : null}
+        </div>
       </div>
 
-      {sticker ? (
-        <span className="pointer-events-none absolute top-24 right-5 z-10 sm:right-8">
-          <Sticker rotation={-2} size="sm" variant={sticker} />
-        </span>
-      ) : null}
-
-      <div className="relative flex flex-1 flex-col pt-12">
+      <div className="relative flex flex-1 flex-col pt-5">
         <p className="text-[0.58rem] font-bold tracking-[0.18em] uppercase opacity-55">
           {eyebrow}
         </p>
-        <h2 className="mt-3 max-w-xl font-display text-3xl leading-[0.98] tracking-[-0.045em] sm:text-4xl lg:min-h-[7.5rem]">
+        <h2 className="mt-3 max-w-xl font-display text-3xl leading-[0.98] tracking-[-0.045em] sm:text-4xl lg:min-h-[5.5rem]">
           {title}
         </h2>
-        <p className="mt-4 max-w-lg text-sm leading-6 opacity-60 lg:min-h-[4.5rem]">
+        <p className="mt-4 max-w-lg text-sm leading-6 opacity-60 lg:min-h-[3.5rem]">
           {description}
         </p>
         <span className="mt-auto inline-flex min-h-11 w-fit items-center gap-3 rounded-full border border-current/35 px-4 text-xs font-bold tracking-[.11em] uppercase">

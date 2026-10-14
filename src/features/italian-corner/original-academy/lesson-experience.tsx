@@ -304,6 +304,7 @@ export function LessonExperience({
   lessonId,
   number,
   title,
+  objective,
   level,
   volume,
   sections,
@@ -314,6 +315,7 @@ export function LessonExperience({
   lessonId: string;
   number: number;
   title: string;
+  objective: string | null;
   level: string;
   volume: number;
   sections: Section[];
@@ -336,6 +338,31 @@ export function LessonExperience({
   }, [lessonId]);
   const section = sections[step];
   const percent = Math.round(((step + 1) / sections.length) * 100);
+  const gradableIds = new Set(
+    sections.flatMap((item) =>
+      item.exercises
+        .filter((exercise) =>
+          ["choice", "fill", "order"].includes(exercise.mode),
+        )
+        .map((exercise) => exercise.id),
+    ),
+  );
+  const gradedResponses = savedResponses.filter((response) =>
+    gradableIds.has(response.exerciseId),
+  );
+  const correctCount = gradedResponses.filter(
+    (response) => response.score === 100,
+  ).length;
+  const reviewSection = sections.findIndex((item) =>
+    item.exercises.some(
+      (exercise) =>
+        gradableIds.has(exercise.id) &&
+        savedResponses.some(
+          (response) =>
+            response.exerciseId === exercise.id && response.score < 100,
+        ),
+    ),
+  );
   function go(nextStep: number) {
     setStep(nextStep);
     window.scrollTo({
@@ -361,6 +388,14 @@ export function LessonExperience({
         <h1 className="mt-5 max-w-4xl font-display text-[clamp(2.4rem,6vw,5rem)] leading-[.98] tracking-tight">
           {title}
         </h1>
+        {objective ? (
+          <p className="mt-6 max-w-2xl border-l-2 border-[#d6ba86] pl-4 text-sm leading-7 text-[#f1ead9]">
+            <span className="mr-2 font-bold tracking-[.12em] text-[#e6c5a6] uppercase">
+              Obiettivo
+            </span>
+            {objective}
+          </p>
+        ) : null}
         <div className="mt-8 flex items-center gap-4">
           <span className="text-xs">
             Sezione {step + 1} / {sections.length}
@@ -502,6 +537,28 @@ export function LessonExperience({
           <p className="text-[.65rem] font-bold tracking-[.16em] text-[#a75943] uppercase">
             Nel quaderno
           </p>
+          <div className="mt-4 border-y border-[#718471]/30 py-4 text-xs leading-6 text-[#355244]">
+            <p>
+              {gradedResponses.length} / {gradableIds.size} attività
+              verificabili provate
+            </p>
+            <p>
+              {correctCount} corrette · {gradedResponses.length - correctCount}{" "}
+              da ripassare
+            </p>
+            <p className="mt-1 text-[#59695b]">
+              Le risposte aperte restano fuori dal punteggio.
+            </p>
+            {reviewSection >= 0 ? (
+              <button
+                className="academy-focus mt-3 min-h-11 rounded-full border border-[#355244] px-4 text-xs font-semibold"
+                onClick={() => go(reviewSection)}
+                type="button"
+              >
+                Ripassa gli errori
+              </button>
+            ) : null}
+          </div>
           <ol className="mt-4 space-y-1">
             {sections.map((item, index) => (
               <li key={item.id}>
