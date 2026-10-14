@@ -8,13 +8,38 @@ import { quizAchievementRule } from "@/data/quiz";
 import { getChallengeProgress } from "@/features/challenges/lib/challenge-domain";
 import { loadChallengeState } from "@/features/challenges/repositories/get-challenge-state-repository";
 import { loadQuizState } from "@/features/quiz/repositories/get-quiz-state-repository";
+import { loadAcademyProgress } from "@/features/italian-corner/academy/academy-actions";
+
+const academyBadges = [
+  {
+    id: "italian-academy-first-lesson",
+    title: "First Italian Page",
+    description: "The first real Academy lesson, completed and filed.",
+  },
+  {
+    id: "italian-academy-a2",
+    title: "A2 · In Conversazione",
+    description: "The A2 level examination has been passed.",
+  },
+  {
+    id: "italian-academy-b1",
+    title: "B1 · Con Intenzione",
+    description: "The B1 level examination has been passed.",
+  },
+  {
+    id: "italian-academy-b2",
+    title: "B2 · Quasi Italiana",
+    description: "The B2 level examination has been passed.",
+  },
+] as const;
 
 export const metadata: Metadata = { title: "Achievements" };
 
 export default async function AchievementsPage() {
-  const [quizState, gameState] = await Promise.all([
+  const [quizState, gameState, academy] = await Promise.all([
     loadQuizState(),
     loadChallengeState(),
+    loadAcademyProgress(),
   ]);
   const quizAchievementUnlocked = quizAchievementRule
     ? quizState.unlockedAchievementIds.includes(
@@ -62,6 +87,16 @@ export default async function AchievementsPage() {
             unlocked={quizAchievementUnlocked}
           />
         ) : null}
+        {academyBadges.map((badge) => (
+          <AchievementCard
+            description={badge.description}
+            eyebrow="La Dolce Lingua"
+            key={badge.id}
+            lockedCopy="Complete the associated Academy milestone to open this record."
+            title={badge.title}
+            unlocked={academy.badges.includes(badge.id)}
+          />
+        ))}
       </section>
     </RouteScaffold>
   );

@@ -66,6 +66,14 @@ export const navigationItems = [
     group: "more",
   },
   {
+    title: "Italian Corner",
+    shortTitle: "Italian Corner",
+    href: "/italian-corner",
+    description: "Two examinations and one very Italian academy.",
+    icon: "italian-corner",
+    group: "more",
+  },
+  {
     title: "Achievements",
     shortTitle: "Achievements",
     href: "/achievements",

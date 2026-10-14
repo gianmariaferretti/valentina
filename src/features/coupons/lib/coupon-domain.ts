@@ -26,7 +26,7 @@ export function resolveCoupon(
     return {
       ...coupon,
       status: "available",
-      redeemable: true,
+      redeemable: coupon.fulfillmentReady !== false,
       redeemedAt: null,
     };
   }
@@ -42,7 +42,11 @@ export function resolveCoupons(
 }
 
 export function canRedeemCoupon(coupon: ResolvedCoupon): boolean {
-  return coupon.status === "available" && coupon.redeemable;
+  return (
+    coupon.status === "available" &&
+    coupon.redeemable &&
+    coupon.fulfillmentReady !== false
+  );
 }
 
 export function createWalletItem(coupon: ResolvedCoupon): CouponWalletItem {

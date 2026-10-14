@@ -784,6 +784,48 @@ export const coupons = [
       "Dinner and the activity are decided together. Common sense remains in force.",
     ],
   },
+  {
+    id: "italian-challenge-secret",
+    code: "GV-037",
+    title: "Italian Challenge · sealed reward",
+    shortDescription:
+      "A sealed reward. Gianmaria has not supplied the prize yet.",
+    description:
+      "You earned this reward by passing The Italian Challenge. Its actual prize and redemption terms will be added by Gianmaria before it can be redeemed.",
+    category: "romantic",
+    rarity: "premium",
+    type: "standard",
+    status: "undiscovered",
+    redeemable: false,
+    fulfillmentReady: false,
+    challengeId: null,
+    unlockCondition: "Pass The Italian Challenge; prize details pending.",
+    secret: true,
+    createdAt: "2025-10-31T20:00:00.000Z",
+    redeemedAt: null,
+    terms: ["Prize and terms will be supplied by Gianmaria before redemption."],
+  },
+  {
+    id: "gianmaria-exam-secret",
+    code: "GV-038",
+    title: "Gianmaria Exam · sealed reward",
+    shortDescription:
+      "A sealed reward. Gianmaria has not supplied the prize yet.",
+    description:
+      "You earned this reward by passing The Gianmaria Exam. Its actual prize and redemption terms will be added by Gianmaria before it can be redeemed.",
+    category: "romantic",
+    rarity: "premium",
+    type: "standard",
+    status: "undiscovered",
+    redeemable: false,
+    fulfillmentReady: false,
+    challengeId: null,
+    unlockCondition: "Pass The Gianmaria Exam; prize details pending.",
+    secret: true,
+    createdAt: "2025-10-31T21:00:00.000Z",
+    redeemedAt: null,
+    terms: ["Prize and terms will be supplied by Gianmaria before redemption."],
+  },
 ] as const satisfies readonly Coupon[];
 
 export function getCoupon(id: string): Coupon | undefined {

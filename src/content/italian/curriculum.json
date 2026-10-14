@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "levels": [
+    {
+      "level": "A2",
+      "firstLesson": 1,
+      "lastLesson": 30,
+      "examPassingPercent": 70
+    },
+    {
+      "level": "B1",
+      "firstLesson": 31,
+      "lastLesson": 65,
+      "examPassingPercent": 75
+    },
+    {
+      "level": "B2",
+      "firstLesson": 66,
+      "lastLesson": 100,
+      "examPassingPercent": 80
+    }
+  ],
+  "defaultStatus": "unpublished"
+}
