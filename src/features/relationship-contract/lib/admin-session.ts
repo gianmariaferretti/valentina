@@ -1,34 +1,37 @@
 import "server-only";
 
-import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { cookies, headers } from "next/headers";
 
 import { getAuthSecret, hasValidAccessSession } from "@/lib/auth/session";
 import { getSupabaseServerContext } from "@/lib/supabase/server";
 
+import {
+  adminConfigurationIssue,
+  adminSessionSignature,
+  matchesAdminPassphrase,
+  type AdminConfigurationIssue,
+} from "./admin-crypto";
+
 const ADMIN_COOKIE = "vg_contract_admin";
 const SESSION_SECONDS = 60 * 60;
 
-function configuredPassphrase(): string | null {
-  const value = process.env.CONTRACT_ADMIN_PASSPHRASE;
-  return value && value.length >= 24 ? value : null;
-}
-
-function digest(value: string): Buffer {
-  return createHash("sha256").update(value).digest();
+export function getContractAdminConfigurationIssue(): AdminConfigurationIssue {
+  return adminConfigurationIssue(
+    getAuthSecret(),
+    process.env.CONTRACT_ADMIN_PASSPHRASE,
+    process.env.SITE_ACCESS_CODE,
+  );
 }
 
 async function mac(expires: string): Promise<string | null> {
   const authSecret = getAuthSecret();
-  const passphrase = configuredPassphrase();
-  if (!authSecret || authSecret.length < 32 || !passphrase) return null;
+  const passphrase = process.env.CONTRACT_ADMIN_PASSPHRASE;
+  if (getContractAdminConfigurationIssue() || !authSecret || !passphrase)
+    return null;
   const accessToken = (await cookies()).get("vg_access")?.value ?? "";
-  return createHmac("sha256", authSecret)
-    .update(
-      `relationship-contract:${accessToken}:${digest(passphrase).toString("hex")}:${expires}`,
-    )
-    .digest("base64url");
+  return adminSessionSignature(authSecret, passphrase, accessToken, expires);
 }
 
 export async function hasContractAdminSession(): Promise<boolean> {
@@ -55,9 +58,10 @@ export async function tryContractAdminLogin(
   candidate: string,
 ): Promise<boolean> {
   if (!(await hasValidAccessSession())) return false;
-  const passphrase = configuredPassphrase();
+  const passphrase = process.env.CONTRACT_ADMIN_PASSPHRASE;
   const authSecret = getAuthSecret();
-  if (!passphrase || !authSecret || authSecret.length < 32) return false;
+  if (getContractAdminConfigurationIssue() || !passphrase || !authSecret)
+    return false;
 
   const requestHeaders = await headers();
   const ip =
@@ -74,8 +78,7 @@ export async function tryContractAdminLogin(
   );
   if (error || !allowed) return false;
 
-  const actual = candidate.length <= 256 ? digest(candidate) : digest("");
-  if (!timingSafeEqual(actual, digest(passphrase))) return false;
+  if (!matchesAdminPassphrase(candidate, passphrase)) return false;
 
   const expires = String(Math.floor(Date.now() / 1000) + SESSION_SECONDS);
   const signature = await mac(expires);

@@ -9,6 +9,7 @@ import { reportPersistenceFailure } from "@/lib/persistence/persistence-error";
 
 import {
   clearContractAdminSession,
+  getContractAdminConfigurationIssue,
   hasContractAdminSession,
   tryContractAdminLogin,
 } from "./lib/admin-session";
@@ -161,6 +162,17 @@ export async function authoriseGianmaria(
   passphrase: string,
 ): Promise<ContractActionResult> {
   if (!(await hasValidAccessSession())) return denied;
+  const configurationIssue = getContractAdminConfigurationIssue();
+  if (configurationIssue) {
+    return {
+      ok: false,
+      message:
+        configurationIssue === "missing_or_short_passphrase" ||
+        configurationIssue === "reused_site_code"
+          ? "The separate administrator passphrase is not configured correctly. Gianmaria must set a unique secret of at least 24 characters in Vercel Production and redeploy."
+          : "The private signing service is not configured. Gianmaria must check the server access secret and redeploy.",
+    };
+  }
   try {
     const valid = await tryContractAdminLogin(passphrase);
     if (valid) {

@@ -17,6 +17,7 @@ import type {
   ContractSignature,
   ContractState,
 } from "../types";
+import type { AdminConfigurationIssue } from "../lib/admin-crypto";
 import { SignaturePad } from "./signature-pad";
 
 function RomeDate({ value }: { value: string }) {
@@ -59,9 +60,11 @@ function ArchivedSignature({ signature }: { signature: ContractSignature }) {
 export function SigningDesk({
   state,
   isAdmin,
+  adminConfigurationIssue,
 }: {
   state: ContractState;
   isAdmin: boolean;
+  adminConfigurationIssue: AdminConfigurationIssue;
 }) {
   const router = useRouter();
   const [image, setImage] = useState<string | null>(null);
@@ -74,12 +77,20 @@ export function SigningDesk({
   function run(operation: () => Promise<ContractActionResult>) {
     setFeedback(null);
     startTransition(async () => {
-      const result = await operation();
-      setFeedback(result);
-      if (result.ok) {
-        setImage(null);
-        setReviewed(false);
-        router.refresh();
+      try {
+        const result = await operation();
+        setFeedback(result);
+        if (result.ok) {
+          setImage(null);
+          setReviewed(false);
+          router.refresh();
+        }
+      } catch {
+        setFeedback({
+          ok: false,
+          message:
+            "The signing service did not respond. Your current signature and reward state have not been changed; refresh and try again.",
+        });
       }
     });
   }
@@ -178,6 +189,11 @@ export function SigningDesk({
             Once both have signed, the archived document is final for this
             version.
           </p>
+          <p>
+            The reward request opens only after both handwritten signatures are
+            archived. The general site password does not replace
+            Gianmaria&apos;s separate authorisation.
+          </p>
           <button
             className="contract-text-button"
             disabled={pending}
@@ -235,40 +251,50 @@ export function SigningDesk({
         </div>
       ) : null}
 
-      {!isAdmin && !isFinal ? (
+      {!state.loadFailed &&
+      !isAdmin &&
+      state.status === "awaiting_countersignature" ? (
         <details className="contract-admin-entry">
           <summary>Gianmaria&apos;s private signing desk</summary>
           <p>
             A separate passphrase is required. The general site code is not
             sufficient.
           </p>
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              run(() => authoriseGianmaria(passphrase));
-              setPassphrase("");
-            }}
-          >
-            <label htmlFor="contract-admin-code">
-              Private administrator passphrase
-            </label>
-            <input
-              autoComplete="off"
-              id="contract-admin-code"
-              maxLength={256}
-              onChange={(event) => setPassphrase(event.target.value)}
-              required
-              type="password"
-              value={passphrase}
-            />
-            <button
-              className="contract-secondary-button"
-              disabled={pending}
-              type="submit"
+          {adminConfigurationIssue ? (
+            <p className="contract-alert" role="status">
+              {adminConfigurationIssue === "missing_access_secret"
+                ? "The private signing service is not configured. Gianmaria must check the server access secret and redeploy."
+                : "The separate signing passphrase is unavailable or invalid. Gianmaria must set a unique secret of at least 24 characters in Vercel Production and redeploy."}
+            </p>
+          ) : (
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                run(() => authoriseGianmaria(passphrase));
+                setPassphrase("");
+              }}
             >
-              Open signing desk
-            </button>
-          </form>
+              <label htmlFor="contract-admin-code">
+                Private administrator passphrase
+              </label>
+              <input
+                autoComplete="off"
+                id="contract-admin-code"
+                maxLength={256}
+                onChange={(event) => setPassphrase(event.target.value)}
+                required
+                type="password"
+                value={passphrase}
+              />
+              <button
+                className="contract-secondary-button"
+                disabled={pending}
+                type="submit"
+              >
+                Open signing desk
+              </button>
+            </form>
+          )}
         </details>
       ) : null}
 

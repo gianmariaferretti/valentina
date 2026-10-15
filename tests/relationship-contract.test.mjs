@@ -9,6 +9,11 @@ import {
   treatyTitles,
   treatyVersion,
 } from "../src/data/relationship-contract.ts";
+import {
+  adminConfigurationIssue,
+  adminSessionSignature,
+  matchesAdminPassphrase,
+} from "../src/features/relationship-contract/lib/admin-crypto.ts";
 
 const articles = treatyTitles.flatMap((title) => title.articles);
 
@@ -58,4 +63,72 @@ test("the sealed note remains in a server-only module", () => {
   );
   assert.match(secretModule, /^import "server-only";/);
   assert.match(secretModule, /I would choose you again\./);
+});
+
+test("administrator configuration requires a distinct, long passphrase", () => {
+  const longPassphrase = "a-long-independent-contract-passphrase";
+  assert.equal(
+    adminConfigurationIssue(null, longPassphrase, "site"),
+    "missing_access_secret",
+  );
+  assert.equal(
+    adminConfigurationIssue("site-secret", "short", "site"),
+    "missing_or_short_passphrase",
+  );
+  assert.equal(
+    adminConfigurationIssue("site-secret", longPassphrase, longPassphrase),
+    "reused_site_code",
+  );
+  assert.equal(
+    adminConfigurationIssue("site-secret", longPassphrase, "site"),
+    null,
+  );
+});
+
+test("administrator cookie signature is bound to the site session, passphrase and expiry", () => {
+  const passphrase = "a-long-independent-contract-passphrase";
+  const signature = adminSessionSignature(
+    "site-secret",
+    passphrase,
+    "access-cookie",
+    "1800000000",
+  );
+  assert.equal(
+    signature,
+    adminSessionSignature(
+      "site-secret",
+      passphrase,
+      "access-cookie",
+      "1800000000",
+    ),
+  );
+  assert.notEqual(
+    signature,
+    adminSessionSignature(
+      "site-secret",
+      passphrase,
+      "other-cookie",
+      "1800000000",
+    ),
+  );
+  assert.notEqual(
+    signature,
+    adminSessionSignature(
+      "site-secret",
+      passphrase,
+      "access-cookie",
+      "1800000001",
+    ),
+  );
+  assert.notEqual(
+    signature,
+    adminSessionSignature(
+      "site-secret",
+      `${passphrase}-rotated`,
+      "access-cookie",
+      "1800000000",
+    ),
+  );
+  assert.equal(matchesAdminPassphrase(passphrase, passphrase), true);
+  assert.equal(matchesAdminPassphrase("wrong", passphrase), false);
 });

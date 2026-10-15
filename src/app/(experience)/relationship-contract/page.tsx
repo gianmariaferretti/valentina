@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { SigningDesk } from "@/features/relationship-contract/components/signing-desk";
-import { hasContractAdminSession } from "@/features/relationship-contract/lib/admin-session";
+import {
+  getContractAdminConfigurationIssue,
+  hasContractAdminSession,
+} from "@/features/relationship-contract/lib/admin-session";
 import { loadContract } from "@/features/relationship-contract/lib/repository";
 
 import "./relationship-contract.css";
@@ -19,6 +22,7 @@ export default async function RelationshipContractPage() {
     loadContract(),
     hasContractAdminSession(),
   ]);
+  const adminConfigurationIssue = getContractAdminConfigurationIssue();
   const fullyExecuted = state.status === "fully_executed" && !state.loadFailed;
 
   return (
@@ -211,7 +215,11 @@ export default async function RelationshipContractPage() {
               </a>
             </section>
 
-            <SigningDesk isAdmin={isAdmin} state={state} />
+            <SigningDesk
+              adminConfigurationIssue={adminConfigurationIssue}
+              isAdmin={isAdmin}
+              state={state}
+            />
 
             {fullyExecuted ? (
               <section
