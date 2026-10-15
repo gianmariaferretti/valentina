@@ -3,6 +3,11 @@
 import { revalidatePath } from "next/cache";
 
 import { hasValidAccessSession } from "@/lib/auth/session";
+import {
+  collectibleDiscoveryId,
+  collectibleForLesson,
+  italianWorldCollectibles,
+} from "@/data/italian-world-collectibles";
 import { reportPersistenceFailure } from "@/lib/persistence/persistence-error";
 import {
   assertSupabaseResult,
@@ -48,6 +53,30 @@ export async function loadOriginalProgress(): Promise<OriginalProgress> {
     };
   } catch (error) {
     reportPersistenceFailure("load original Italian lesson progress", error);
+    return fallback;
+  }
+}
+
+export async function loadWorldCollectibles() {
+  const fallback = { unlocked: [] as string[], failed: true };
+  if (!(await hasValidAccessSession())) return fallback;
+  try {
+    const { client, userId } = getSupabaseServerContext();
+    const { data, error } = await client
+      .from("discoveries")
+      .select("discovery_id")
+      .eq("user_id", userId)
+      .in(
+        "discovery_id",
+        italianWorldCollectibles.map((item) => collectibleDiscoveryId(item.id)),
+      );
+    assertSupabaseResult("Unable to load Italian World souvenirs.", error);
+    return {
+      unlocked: (data ?? []).map((row) => row.discovery_id),
+      failed: false,
+    };
+  } catch (error) {
+    reportPersistenceFailure("load Italian World souvenirs", error);
     return fallback;
   }
 }
@@ -304,10 +333,43 @@ export async function completeOriginalLesson(lessonId: string) {
       "Unable to complete original Italian lesson.",
       saved.error,
     );
+    const collectible = collectibleForLesson(lesson.number);
+    let reward: string | null = null;
+    let rewardFailed = false;
+    if (collectible) {
+      const discovered = await client
+        .from("discoveries")
+        .upsert(
+          {
+            user_id: userId,
+            discovery_id: collectibleDiscoveryId(collectible.id),
+            discovery_type: "item",
+            source: `italian-world:lesson-${lesson.number}`,
+            metadata: { collectible: collectible.id, lesson: lesson.number },
+          },
+          { onConflict: "user_id,discovery_id", ignoreDuplicates: true },
+        )
+        .select("discovery_id");
+      if (discovered.error) {
+        rewardFailed = true;
+        reportPersistenceFailure(
+          "grant Italian World souvenir",
+          discovered.error,
+        );
+      } else if (discovered.data?.length) {
+        reward = collectible.name;
+      }
+    }
     revalidatePath("/la-dolce-lingua");
     revalidatePath(lessonHref(lesson.number));
     revalidatePath("/achievements");
-    return { ok: true as const, message: "Lezione completata. Bravissima!" };
+    return {
+      ok: true as const,
+      message: rewardFailed
+        ? "Lezione completata. Il souvenir non è stato salvato; riprova il completamento più tardi."
+        : "Lezione completata. Bravissima!",
+      reward,
+    };
   } catch (error) {
     reportPersistenceFailure("complete original Italian lesson", error);
     return {

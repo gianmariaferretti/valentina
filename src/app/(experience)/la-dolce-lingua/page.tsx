@@ -14,7 +14,12 @@ import {
   originalCurriculum,
   lessonHref,
 } from "@/features/italian-corner/original-academy/lesson-store";
-import { loadOriginalProgress } from "@/features/italian-corner/original-academy/progress-actions";
+import {
+  loadOriginalProgress,
+  loadWorldCollectibles,
+} from "@/features/italian-corner/original-academy/progress-actions";
+import { WorldCollection } from "@/features/italian-corner/world/world-collection";
+import { WorldMap } from "@/features/italian-corner/world/world-map";
 
 export const metadata: Metadata = {
   title: "La Dolce Lingua",
@@ -39,7 +44,10 @@ const volumes = [
 ] as const;
 
 export default async function LaDolceLinguaPage() {
-  const progress = await loadOriginalProgress();
+  const [progress, collectibles] = await Promise.all([
+    loadOriginalProgress(),
+    loadWorldCollectibles(),
+  ]);
   const curriculumIds = new Set(originalCurriculum.map((lesson) => lesson.id));
   const completedIds = progress.lessons
     .filter(
@@ -61,6 +69,9 @@ export default async function LaDolceLinguaPage() {
   const lastLesson = last
     ? originalCurriculum.find((entry) => entry.id === last.lessonId)
     : null;
+  const completedNumbers = originalCurriculum
+    .filter((lesson) => completedIds.includes(lesson.id))
+    .map((lesson) => lesson.number);
 
   return (
     <>
@@ -89,11 +100,11 @@ export default async function LaDolceLinguaPage() {
             <h1 className="mt-8 max-w-xl font-display text-[clamp(3.55rem,8.5vw,7.4rem)] leading-[.88] tracking-[-.065em] text-[#284333]">
               La Dolce
               <br />
-              <em className="font-normal text-[#a7563f]">Lingua.</em>
+              <em className="font-normal text-[#a7563f]">Lingua World.</em>
             </h1>
             <div className="academy-rule my-7 max-w-xs" />
             <p className="max-w-md font-display text-xl italic leading-7 text-[#2f3f32] sm:text-2xl">
-              Un viaggio nella lingua e nella cultura italiana.
+              Learn Italian. Live Italy.
             </p>
             <p className="mt-4 max-w-md text-sm leading-7 text-[#4f5949]">
               Ottanta lezioni originali, quattro volumi e una pagina nuova da
@@ -243,80 +254,11 @@ export default async function LaDolceLinguaPage() {
           </p>
         ) : null}
 
-        <section aria-labelledby="atlas-title" className="mt-14 sm:mt-20">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="academy-eyebrow">Cartoline dall&apos;Italia</p>
-              <h2
-                className="mt-2 font-display text-4xl text-[#284333] sm:text-5xl"
-                id="atlas-title"
-              >
-                La lingua ha <em className="font-normal">un paesaggio.</em>
-              </h2>
-            </div>
-            <p className="max-w-xs text-sm leading-6 text-[#616b5b]">
-              Quattro appunti visivi, dalla pietra romana alle colline toscane.
-            </p>
-          </div>
-          <div className="academy-atlas mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                city: "Roma",
-                cue: "Pietra · archi · storia",
-                style: "rome",
-                mark: "RM",
-              },
-              {
-                city: "Firenze",
-                cue: "Cupole · arte · parole",
-                style: "florence",
-                mark: "FI",
-              },
-              {
-                city: "Venezia",
-                cue: "Acqua · riflessi · dialoghi",
-                style: "venice",
-                mark: "VE",
-              },
-              {
-                city: "Toscana",
-                cue: "Colline · tavole · racconti",
-                style: "tuscany",
-                mark: "TO",
-              },
-            ].map((place) => (
-              <article
-                className={`academy-postcard academy-postcard--${place.style}`}
-                key={place.city}
-              >
-                <div aria-hidden="true" className="academy-postcard-art">
-                  <span className="academy-postcard-scenery" />
-                  <span className="academy-postcard-stamp">
-                    {place.mark}
-                    <br />
-                    ITALIA
-                  </span>
-                </div>
-                <div className="flex items-end justify-between gap-2 px-4 py-4">
-                  <div>
-                    <h3 className="font-display text-2xl italic text-[#284333]">
-                      {place.city}
-                    </h3>
-                    <p className="mt-1 text-[.64rem] tracking-[.08em] text-[#65705e] uppercase">
-                      {place.cue}
-                    </p>
-                  </div>
-                  <span
-                    aria-hidden="true"
-                    className="font-display text-xl text-[#a7563f]"
-                  >
-                    ✶
-                  </span>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
+        <WorldMap completedNumbers={completedNumbers} />
+        <WorldCollection
+          unavailable={collectibles.failed}
+          unlocked={collectibles.unlocked}
+        />
 
         <section aria-labelledby="volumes-title" className="mt-14 sm:mt-20">
           <div className="flex flex-wrap items-end justify-between gap-4">

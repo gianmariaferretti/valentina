@@ -26,6 +26,7 @@ const nextConfig: NextConfig = {
     localPatterns: [
       { pathname: "/images/map/**", search: "" },
       { pathname: "/images/awards/**", search: "" },
+      { pathname: "/images/academy/**", search: "" },
       { pathname: "/images/year-one-cover.svg", search: "" },
     ],
   },

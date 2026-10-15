@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import "./academy.css";
+import "./world.css";
 
 export default function DolceLinguaLayout({
   children,

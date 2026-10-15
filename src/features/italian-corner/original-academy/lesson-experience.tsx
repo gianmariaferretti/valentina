@@ -13,6 +13,7 @@ import {
 } from "./progress-actions";
 import { SupplementalLab } from "./supplemental-lab";
 import type { publicSupplementalActivities } from "./supplemental-model";
+import { WorldScene } from "../world/world-scene";
 
 type Section = ReturnType<typeof publicSections>[number];
 type Exercise = Section["exercises"][number];
@@ -333,6 +334,8 @@ export function LessonExperience({
     ReturnType<typeof revealOriginalSolutions>
   > | null>(null);
   const [savedResponses, setSavedResponses] = useState(responses);
+  const [completed, setCompleted] = useState(false);
+  const [newSouvenir, setNewSouvenir] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -409,36 +412,16 @@ export function LessonExperience({
       >
         <ArrowLeft aria-hidden="true" size={16} /> Tutte le lezioni
       </Link>
-      <header className="mt-6 rounded-[1.6rem] bg-[#304b3d] px-6 py-8 text-[#f7f1e5] sm:px-10 sm:py-11">
-        <p className="text-[.65rem] font-bold tracking-[.18em] text-[#e6c5a6] uppercase">
-          Volume {volume} · {level} · Lezione {String(number).padStart(3, "0")}
-        </p>
-        <h1 className="mt-5 max-w-4xl font-display text-[clamp(2.4rem,6vw,5rem)] leading-[.98] tracking-tight">
-          {title}
-        </h1>
-        {objective ? (
-          <p className="mt-6 max-w-2xl border-l-2 border-[#d6ba86] pl-4 text-sm leading-7 text-[#f1ead9]">
-            <span className="mr-2 font-bold tracking-[.12em] text-[#e6c5a6] uppercase">
-              Obiettivo
-            </span>
-            {objective}
-          </p>
-        ) : null}
-        <div className="mt-8 flex items-center gap-4">
-          <span className="text-xs">
-            Sezione {step + 1} / {totalSteps}
-          </span>
-          <div
-            aria-label={`${percent}% della lezione visualizzato`}
-            className="h-1.5 w-40 overflow-hidden rounded-full bg-white/25"
-          >
-            <div
-              className="h-full bg-[#e6c5a6]"
-              style={{ width: `${percent}%` }}
-            />
-          </div>
-        </div>
-      </header>
+      <WorldScene
+        level={level}
+        number={number}
+        objective={objective}
+        percent={percent}
+        step={step}
+        title={title}
+        totalSteps={totalSteps}
+        volume={volume}
+      />
       {message ? (
         <p
           aria-live="polite"
@@ -510,9 +493,13 @@ export function LessonExperience({
                   disabled={pending}
                   onClick={() =>
                     startTransition(() => {
-                      void completeOriginalLesson(lessonId).then((result) =>
-                        setMessage(result.message),
-                      );
+                      void completeOriginalLesson(lessonId).then((result) => {
+                        setMessage(result.message);
+                        if (result.ok) {
+                          setCompleted(true);
+                          setNewSouvenir(result.reward);
+                        }
+                      });
                     })
                   }
                   type="button"
@@ -520,6 +507,40 @@ export function LessonExperience({
                   <Check aria-hidden="true" size={16} /> Segna come completata
                 </button>
               </div>
+              {completed ? (
+                <div
+                  aria-live="polite"
+                  className="academy-completion mt-6"
+                  role="status"
+                >
+                  <span className="academy-completion-stamp">APPROVATO</span>
+                  <div>
+                    <p className="academy-completion-kicker">
+                      Lezione {String(number).padStart(3, "0")} · salvata
+                    </p>
+                    <h3>Bravissima, Valentina!</h3>
+                    <p>
+                      {reviewSection >= 0
+                        ? "Hai completato la lezione. Alcune risposte restano da ripassare nel quaderno."
+                        : "La lezione è stata aggiunta al tuo passaporto italiano."}
+                    </p>
+                    {newSouvenir ? (
+                      <p className="academy-completion-reward">
+                        Souvenir scoperto: {newSouvenir}
+                      </p>
+                    ) : null}
+                    {nextHref ? (
+                      <Link
+                        className="academy-focus academy-completion-next"
+                        href={nextHref}
+                      >
+                        Continua con la prossima lezione{" "}
+                        <ArrowRight aria-hidden="true" size={16} />
+                      </Link>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
               {solutions ? (
                 <div className="mt-6 space-y-5" aria-live="polite">
                   {solutions.map((item) => (
