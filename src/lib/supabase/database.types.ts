@@ -407,6 +407,90 @@ export type Database = {
         };
         Relationships: [];
       };
+      relationship_contracts: {
+        Row: {
+          id: string;
+          user_id: string;
+          agreement_number: string;
+          version: string;
+          content_hash: string;
+          content_snapshot: Json;
+          status: string;
+          created_at: string;
+          executed_at: string | null;
+          reward_requested_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          agreement_number: string;
+          version: string;
+          content_hash: string;
+          content_snapshot: Json;
+          status?: string;
+          created_at?: string;
+          executed_at?: string | null;
+          reward_requested_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          agreement_number?: string;
+          version?: string;
+          content_hash?: string;
+          content_snapshot?: Json;
+          status?: string;
+          created_at?: string;
+          executed_at?: string | null;
+          reward_requested_at?: string | null;
+        };
+        Relationships: [];
+      };
+      relationship_contract_signatures: {
+        Row: {
+          id: string;
+          contract_id: string;
+          signer_role: string;
+          signer_name: string;
+          signature_png: string;
+          signed_at: string;
+        };
+        Insert: {
+          id?: string;
+          contract_id: string;
+          signer_role: string;
+          signer_name: string;
+          signature_png: string;
+          signed_at?: string;
+        };
+        Update: {
+          id?: string;
+          contract_id?: string;
+          signer_role?: string;
+          signer_name?: string;
+          signature_png?: string;
+          signed_at?: string;
+        };
+        Relationships: [];
+      };
+      relationship_contract_admin_attempts: {
+        Row: {
+          fingerprint: string;
+          window_started_at: string;
+          attempts: number;
+        };
+        Insert: {
+          fingerprint: string;
+          window_started_at?: string;
+          attempts?: number;
+        };
+        Update: {
+          fingerprint?: string;
+          window_started_at?: string;
+          attempts?: number;
+        };
+        Relationships: [];
+      };
       site_progress: {
         Row: {
           created_at: string;
@@ -436,6 +520,43 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      sign_relationship_contract: {
+        Args: {
+          p_user_id: string;
+          p_agreement_number: string;
+          p_version: string;
+          p_content_hash: string;
+          p_content_snapshot: Json;
+          p_signer_role: string;
+          p_signer_name: string;
+          p_signature_png: string;
+        };
+        Returns: {
+          contract_id: string;
+          contract_status: string;
+          signed_at: string;
+        }[];
+      };
+      withdraw_relationship_signature: {
+        Args: {
+          p_user_id: string;
+          p_agreement_number: string;
+          p_version: string;
+        };
+        Returns: boolean;
+      };
+      claim_relationship_reward: {
+        Args: {
+          p_user_id: string;
+          p_agreement_number: string;
+          p_version: string;
+        };
+        Returns: string;
+      };
+      register_relationship_admin_attempt: {
+        Args: { p_fingerprint: string };
+        Returns: boolean;
+      };
       record_italian_exercise: {
         Args: {
           p_user_id: string;

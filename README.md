@@ -66,6 +66,17 @@ The current route foundation includes:
 - `/design-system` for development review of visual tokens and components
 - `/italian-corner` with separate challenge, Gianmaria exam and Academy routes
 - `/la-dolce-lingua` and `/la-dolce-lingua/lessons/[number]` for the private, original 80-lesson Academy
+- `/relationship-contract` and its authenticated PDF endpoint for the commemorative treaty
+
+### The Relationship Contract™
+
+`/relationship-contract` is an English, editorial keepsake with eight titles and 40 articles. The source text lives in `src/data/relationship-contract.ts`; the sealed Article 41 lives in the server-only `src/features/relationship-contract/lib/document.ts` and is shown only after both signatures. The document states explicitly that it has **no legal effect** and creates no marriage or engagement promise. The relationship anniversary remains 31 October 2025; the commemorative agreement is dated 31 October 2026 with a five-year term. Changes to signed wording require a new `treatyVersion`, not an in-place edit of the archived snapshot.
+
+Valentina signs a real pointer/keyboard-accessible canvas after confirming review. Before countersignature she can withdraw. Gianmaria must independently unlock his signing desk with `CONTRACT_ADMIN_PASSPHRASE` (at least 24 characters, distinct from `SITE_ACCESS_CODE`); the resulting HTTP-only, one-hour cookie is bound to the active V&G access session and the configured passphrase. Failed administrator attempts are limited in Postgres to five per 15-minute window per HMAC-obscured request fingerprint. If the passphrase is absent, countersignature is deliberately unavailable. Configure it only as a server-side Production secret in Vercel and never in a `NEXT_PUBLIC_` variable. Rotate it in Vercel to invalidate outstanding administrator cookies.
+
+The additive `supabase/migrations/20261014231343_relationship_contract.sql` migration creates three isolated, service-role-only tables: `relationship_contracts` (content snapshot, hash, status, reward request), `relationship_contract_signatures` (PNG canvas strokes and timestamps), and `relationship_contract_admin_attempts` (rate limiting). Atomic SQL functions sign, withdraw, claim the reward request, and register administrator attempts; browser roles have no table/function access and RLS is forced. No existing progress, coupon, media or Academy table is altered. This migration was applied to the connected production project on 14 October 2026 and verified with fully rolled-back signature/withdraw/reward transactions. **Do not run `supabase db push` against production:** older unrelated migrations remain pending.
+
+The PDF endpoint `/api/relationship-contract/pdf` requires the signed V&G session and returns a no-store unsigned review copy or, after execution, a certificate with both archived signatures, real timestamps, content hash and the sealed article. The endpoint uses `pdf-lib`; see `THIRD_PARTY_NOTICES.md`. A reward claim records a request for Gianmaria, not an automatic coupon grant. There is no client-side or localStorage signature persistence. Run `npm run test:contract` to check the article set and sealed-content separation.
 
 ### Italian Corner and La Dolce Lingua
 

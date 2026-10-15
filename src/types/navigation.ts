@@ -3,6 +3,7 @@ export type IconName =
   | "arrow"
   | "awards"
   | "challenges"
+  | "contract"
   | "coupons"
   | "gallery"
   | "home"

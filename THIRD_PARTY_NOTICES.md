@@ -1,5 +1,9 @@
 # Third-party notices
 
+## Relationship Contract PDF
+
+The private certificate is generated with `pdf-lib` 1.17.1, licensed under MIT. Source and license: <https://github.com/Hopding/pdf-lib/blob/master/LICENSE.md>. The published npm package retains its license; V&G's document layout, wording and signature workflow are original project code. No third-party fonts, photographs or contract templates are bundled for this feature.
+
 ## Spicy Archive
 
 The envelope illustration, stage choreography and single-image strip reveal are original V&G code using the existing Motion and Next.js dependencies. No new runtime or project dependency was added, and no stock or generated personal photographs are used.
