@@ -302,6 +302,25 @@ export default async function LaDolceLinguaPage() {
             ))}
           </div>
         </section>
+        <section className="academy-paper mt-8 rounded-[1.5rem] border border-[#718471]/25 p-6 sm:p-8">
+          <p className="text-[0.62rem] font-bold tracking-[.18em] text-[#a75943] uppercase">
+            Dopo il quarto volume
+          </p>
+          <h2 className="mt-3 font-display text-3xl text-[#304b3d] sm:text-4xl">
+            Il laboratorio B1/B2.
+          </h2>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-[#566355]">
+            I fascicoli 081–149 e la prova pilota B1 della lezione 100 sono
+            consultabili in anteprima. Puoi salvare le risposte; il materiale è
+            ancora in revisione e non rilascia una certificazione di livello.
+          </p>
+          <Link
+            className="academy-focus mt-5 inline-flex min-h-12 items-center gap-2 rounded-full bg-[#355244] px-6 text-xs font-bold tracking-[.1em] text-white uppercase"
+            href="/la-dolce-lingua/laboratorio"
+          >
+            Esplora il laboratorio <ArrowRight aria-hidden="true" size={15} />
+          </Link>
+        </section>
       </div>
       <AcademyCatalog completed={completedIds} lessons={originalCurriculum} />
     </>
