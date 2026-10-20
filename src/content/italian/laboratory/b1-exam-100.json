@@ -1,0 +1,574 @@
+{
+  "sourceSha256": "a0d51a1b27ac39662d7456461fe11f7054f03a1325bbbbcd9c7bc29fb5ccccd0",
+  "exam_id": "LDL-B1-100-2026-R2",
+  "lesson_number": 100,
+  "title": "Esame finale B1 — La Dolce Lingua",
+  "level": "B1",
+  "status": "COMPLETE_CONTENT_PENDING_HUMAN_PILOT",
+  "official_certification": false,
+  "language": "it",
+  "candidate_instructions_es": "Examen interno de fin de nivel B1. Lee las instrucciones en italiano. No consultes las soluciones durante la prueba. Las pruebas escritas y orales necesitan revisión humana. La parte auditiva requiere que alguien reproduzca una grabación del guion; leer el guion no equivale a evaluar comprensión oral.",
+  "duration_minutes": 120,
+  "total_points": 100,
+  "sections": [
+    {
+      "id": "READ",
+      "title": "Comprensione scritta",
+      "duration_minutes": 25,
+      "points": 20,
+      "passages": [
+        {
+          "id": "R1",
+          "title": "Una biblioteca che cambia il quartiere",
+          "genre": "articolo informativo",
+          "text": "Da sei mesi, nel quartiere San Paolo di Torino, un vecchio mercato coperto ospita una biblioteca di comunità. Il progetto è nato da una proposta di alcuni residenti, che desideravano uno spazio tranquillo dove studiare e incontrarsi. La biblioteca apre dal martedì al sabato; il giovedì rimane aperta fino alle ventuno per chi lavora durante il giorno. Per consultare libri e riviste non è necessario iscriversi, mentre per portarli a casa bisogna presentare un documento e richiedere una tessera gratuita. Ogni mercoledì pomeriggio alcuni volontari organizzano incontri di conversazione in italiano per persone arrivate da poco in città. All’inizio partecipavano soltanto otto persone; oggi i posti disponibili sono quasi sempre occupati. Non tutti, però, sono soddisfatti: alcuni studenti vorrebbero più prese elettriche e una connessione Internet più stabile. Il Comune ha promesso di valutare questi interventi nel prossimo bilancio, senza indicare una data precisa. Secondo la responsabile, il risultato più importante non è il numero dei prestiti, ma il fatto che persone di età e provenienze diverse abbiano iniziato a conoscersi.",
+          "questions": [
+            {
+              "id": "R1Q1",
+              "type": "multiple_choice",
+              "question": "Perché è nata la biblioteca?",
+              "options": [
+                "Per sostituire tutte le scuole",
+                "Per offrire uno spazio di studio e incontro",
+                "Per vendere libri usati"
+              ],
+              "correct_answer": 1,
+              "feedback": "La proposta dei residenti nasceva dal bisogno di uno spazio condiviso.",
+              "points": 2
+            },
+            {
+              "id": "R1Q2",
+              "type": "multiple_choice",
+              "question": "Chi può consultare libri e riviste?",
+              "options": [
+                "Solo chi possiede una tessera",
+                "Chiunque, senza iscrizione",
+                "Solo i residenti del quartiere"
+              ],
+              "correct_answer": 1,
+              "feedback": "La tessera serve per il prestito, non per la consultazione.",
+              "points": 2
+            },
+            {
+              "id": "R1Q3",
+              "type": "multiple_choice",
+              "question": "Quale affermazione è corretta?",
+              "options": [
+                "Il giovedì chiude più tardi",
+                "È aperta ogni domenica",
+                "Gli incontri di italiano sono a pagamento"
+              ],
+              "correct_answer": 0,
+              "feedback": "Il giovedì la biblioteca resta aperta fino alle ventuno.",
+              "points": 2
+            },
+            {
+              "id": "R1Q4",
+              "type": "multiple_choice",
+              "question": "Che cosa significa «il Comune ha promesso di valutare»?",
+              "options": [
+                "Gli interventi sono già terminati",
+                "Gli interventi sono stati rifiutati",
+                "Gli interventi saranno esaminati, ma non sono garantiti"
+              ],
+              "correct_answer": 2,
+              "feedback": "Valutare non significa aver già approvato o realizzato.",
+              "points": 2
+            },
+            {
+              "id": "R1Q5",
+              "type": "multiple_choice",
+              "question": "Qual è, secondo la responsabile, il risultato principale?",
+              "options": [
+                "L’aumento delle vendite",
+                "La creazione di legami tra persone diverse",
+                "La chiusura del vecchio mercato"
+              ],
+              "correct_answer": 1,
+              "feedback": "La responsabile mette in evidenza la dimensione sociale.",
+              "points": 2
+            }
+          ]
+        },
+        {
+          "id": "R2",
+          "title": "Una scelta di lavoro",
+          "genre": "email personale",
+          "text": "Ciao Martina, ti scrivo perché finalmente ho deciso che cosa fare dopo il tirocinio. Come sai, l’azienda di Bologna mi ha proposto un contratto di sei mesi. Quando ho ricevuto la notizia ero felicissima, ma poi ho cominciato ad avere qualche dubbio: dovrei trasferirmi e cercare una stanza in poco tempo. Ieri ho parlato con la mia tutor, che mi ha consigliato di accettare perché il progetto mi permetterebbe di imparare molto. Anche i miei genitori pensano che sia una buona occasione, sebbene siano dispiaciuti all’idea di vedermi meno spesso. Alla fine ho detto di sì. Prima di partire, però, vorrei finire il corso di italiano che frequento il martedì sera. Ho chiesto alla scuola se fosse possibile seguire le ultime lezioni online e mi hanno risposto che mi faranno sapere entro venerdì. Se tutto andrà bene, mi trasferirò all’inizio del mese prossimo. Mi piacerebbe vederti prima della partenza: sabato pomeriggio saresti libera? Un abbraccio, Elena.",
+          "questions": [
+            {
+              "id": "R2Q1",
+              "type": "multiple_choice",
+              "question": "Quale opportunità ha ricevuto Elena?",
+              "options": [
+                "Un contratto di sei mesi",
+                "Una borsa di studio di due anni",
+                "Un posto di lavoro a Torino"
+              ],
+              "correct_answer": 0,
+              "feedback": "L’azienda di Bologna le ha offerto un contratto di sei mesi.",
+              "points": 2
+            },
+            {
+              "id": "R2Q2",
+              "type": "multiple_choice",
+              "question": "Perché Elena era incerta?",
+              "options": [
+                "Non le piaceva il progetto",
+                "Doveva trasferirsi rapidamente",
+                "Non conosceva la tutor"
+              ],
+              "correct_answer": 1,
+              "feedback": "La difficoltà pratica era organizzare il trasferimento.",
+              "points": 2
+            },
+            {
+              "id": "R2Q3",
+              "type": "multiple_choice",
+              "question": "Che cosa le ha consigliato la tutor?",
+              "options": [
+                "Di rifiutare",
+                "Di rimandare la risposta",
+                "Di accettare"
+              ],
+              "correct_answer": 2,
+              "feedback": "La tutor ritiene il progetto formativo.",
+              "points": 2
+            },
+            {
+              "id": "R2Q4",
+              "type": "multiple_choice",
+              "question": "Che cosa non è ancora stato deciso?",
+              "options": [
+                "Se Elena accetterà il lavoro",
+                "Se potrà seguire online le ultime lezioni",
+                "Se incontrerà la tutor"
+              ],
+              "correct_answer": 1,
+              "feedback": "La scuola deve ancora rispondere.",
+              "points": 2
+            },
+            {
+              "id": "R2Q5",
+              "type": "multiple_choice",
+              "question": "Quale tono usa Elena?",
+              "options": [
+                "Formale e burocratico",
+                "Amichevole e personale",
+                "Aggressivo"
+              ],
+              "correct_answer": 1,
+              "feedback": "Saluto, confidenze e invito indicano un registro informale.",
+              "points": 2
+            }
+          ]
+        }
+      ],
+      "scoring": "10 domande × 2 punti"
+    },
+    {
+      "id": "LANG",
+      "title": "Competenza linguistica",
+      "duration_minutes": 20,
+      "points": 40,
+      "questions": [
+        {
+          "id": "G01",
+          "type": "multiple_choice",
+          "question": "Quando sono arrivata, il film ___ già ___.",
+          "options": ["è / iniziato", "era / iniziato", "ha / iniziato"],
+          "correct_answer": 1,
+          "feedback": "Il trapassato indica un evento precedente a un altro evento passato.",
+          "points": 2
+        },
+        {
+          "id": "G02",
+          "type": "multiple_choice",
+          "question": "Se domani ___ bel tempo, andremo al mare.",
+          "options": ["farà", "facesse", "avrebbe fatto"],
+          "correct_answer": 0,
+          "feedback": "Periodo ipotetico della realtà: se + futuro è possibile in italiano.",
+          "points": 2
+        },
+        {
+          "id": "G03",
+          "type": "multiple_choice",
+          "question": "Penso che Giulia ___ ragione.",
+          "options": ["ha", "abbia", "avrà avuto"],
+          "correct_answer": 1,
+          "feedback": "Con «penso che», in registro sorvegliato, si usa normalmente il congiuntivo.",
+          "points": 2
+        },
+        {
+          "id": "G04",
+          "type": "multiple_choice",
+          "question": "Vorrei sapere se ___ inviarmi il documento.",
+          "options": ["può", "potrebbe", "potessi"],
+          "correct_answer": 1,
+          "feedback": "Il condizionale rende la richiesta particolarmente cortese.",
+          "points": 2
+        },
+        {
+          "id": "G05",
+          "type": "multiple_choice",
+          "question": "Non sono uscita ___ pioveva molto.",
+          "options": ["perché", "affinché", "sebbene"],
+          "correct_answer": 0,
+          "feedback": "La subordinata esprime una causa reale.",
+          "points": 2
+        },
+        {
+          "id": "G06",
+          "type": "multiple_choice",
+          "question": "Ti telefono ___ arrivo alla stazione.",
+          "options": ["affinché", "quando", "nonostante"],
+          "correct_answer": 1,
+          "feedback": "«Quando» introduce una subordinata temporale.",
+          "points": 2
+        },
+        {
+          "id": "G07",
+          "type": "multiple_choice",
+          "question": "Questi sono i colleghi ___ lavoro ogni giorno.",
+          "options": ["che", "con cui", "di che"],
+          "correct_answer": 1,
+          "feedback": "La preposizione «con» precede «cui».",
+          "points": 2
+        },
+        {
+          "id": "G08",
+          "type": "multiple_choice",
+          "question": "Hai comprato le mele? Sì, ___ ho comprate tre.",
+          "options": ["le", "ne", "ci"],
+          "correct_answer": 1,
+          "feedback": "«Ne» sostituisce un complemento partitivo; «comprate» concorda con «mele».",
+          "points": 2
+        },
+        {
+          "id": "G09",
+          "type": "multiple_choice",
+          "question": "Ho scritto a Paolo e ___ ho mandato le fotografie.",
+          "options": ["gli", "lo", "li"],
+          "correct_answer": 0,
+          "feedback": "«Gli» è pronome indiretto: a Paolo.",
+          "points": 2
+        },
+        {
+          "id": "G10",
+          "type": "multiple_choice",
+          "question": "___ sia stanca, Valentina vuole terminare il lavoro.",
+          "options": ["Perché", "Sebbene", "Dato che"],
+          "correct_answer": 1,
+          "feedback": "«Sebbene» introduce una concessiva con congiuntivo.",
+          "points": 2
+        },
+        {
+          "id": "G11",
+          "type": "multiple_choice",
+          "question": "Se ___ più tempo, frequenterei un corso di cucina.",
+          "options": ["ho", "avessi", "avrò"],
+          "correct_answer": 1,
+          "feedback": "Periodo ipotetico della possibilità: se + congiuntivo imperfetto, condizionale presente.",
+          "points": 2
+        },
+        {
+          "id": "G12",
+          "type": "multiple_choice",
+          "question": "Domani a quest’ora ___ già finito l’esame.",
+          "options": ["avrò", "avrei", "abbia"],
+          "correct_answer": 0,
+          "feedback": "Il futuro anteriore esprime un’azione completata prima di un momento futuro.",
+          "points": 2
+        },
+        {
+          "id": "G13",
+          "type": "multiple_choice",
+          "question": "Mi ha detto che ___ più tardi.",
+          "options": ["sarebbe arrivata", "arriverà sempre", "sia arrivata"],
+          "correct_answer": 0,
+          "feedback": "Il condizionale passato può esprimere il futuro nel passato.",
+          "points": 2
+        },
+        {
+          "id": "G14",
+          "type": "multiple_choice",
+          "question": "La mostra ___ inaugurata ieri dal sindaco.",
+          "options": ["ha", "è stata", "si è"],
+          "correct_answer": 1,
+          "feedback": "Passivo al passato prossimo: essere + participio.",
+          "points": 2
+        },
+        {
+          "id": "G15",
+          "type": "multiple_choice",
+          "question": "In questa scuola ___ studia anche il sabato.",
+          "options": ["si", "ci", "ne"],
+          "correct_answer": 0,
+          "feedback": "«Si» impersonale esprime un soggetto generico.",
+          "points": 2
+        },
+        {
+          "id": "G16",
+          "type": "multiple_choice",
+          "question": "Mi piacerebbe ___ in Italia per qualche mese.",
+          "options": ["vivere", "vivo", "vissuto"],
+          "correct_answer": 0,
+          "feedback": "Dopo «piacerebbe» si usa qui l’infinito.",
+          "points": 2
+        },
+        {
+          "id": "G17",
+          "type": "multiple_choice",
+          "question": "Non credo che loro ___ già partiti.",
+          "options": ["sono", "siano", "saranno"],
+          "correct_answer": 1,
+          "feedback": "Il congiuntivo passato indica anteriorità rispetto al presente della reggente.",
+          "points": 2
+        },
+        {
+          "id": "G18",
+          "type": "multiple_choice",
+          "question": "___ hai finito, mandami il file.",
+          "options": ["Appena", "Nonostante", "Affinché"],
+          "correct_answer": 0,
+          "feedback": "«Appena» indica successione temporale immediata.",
+          "points": 2
+        },
+        {
+          "id": "G19",
+          "type": "multiple_choice",
+          "question": "Le scrivo ___ chiedere informazioni sul corso.",
+          "options": ["per", "sebbene", "dato che"],
+          "correct_answer": 0,
+          "feedback": "«Per + infinito» esprime lo scopo quando il soggetto coincide.",
+          "points": 2
+        },
+        {
+          "id": "G20",
+          "type": "multiple_choice",
+          "question": "Questo è il libro ___ ti parlavo ieri.",
+          "options": ["che", "di cui", "a che"],
+          "correct_answer": 1,
+          "feedback": "«Parlare di» richiede «di cui».",
+          "points": 2
+        }
+      ],
+      "scoring": "20 domande × 2 punti"
+    },
+    {
+      "id": "WRITE",
+      "title": "Produzione scritta",
+      "duration_minutes": 35,
+      "points": 30,
+      "tasks": [
+        {
+          "id": "W1",
+          "title": "Email formale",
+          "task": "Hai visto l’annuncio di un corso serale di italiano presso una scuola. Scrivi alla segreteria per chiedere informazioni su orari, costo, livello richiesto e possibilità di recuperare una lezione persa. Spiega brevemente perché sei interessata.",
+          "words_min": 100,
+          "words_max": 130,
+          "points": 15,
+          "model": "Gentile Segreteria, ho letto sul vostro sito l’annuncio del corso serale di italiano e vorrei ricevere alcune informazioni. Studio italiano da circa un anno e mi piacerebbe migliorare soprattutto la conversazione. Potreste indicarmi in quali giorni si svolgono le lezioni, quanto costa il corso e quale livello è necessario per iscriversi? Inoltre, poiché a volte lavoro fino a tardi, vorrei sapere se è possibile recuperare una lezione persa. Se fosse previsto un test iniziale, sarei disponibile a sostenerlo online. Vi ringrazio in anticipo per la disponibilità e resto in attesa di una vostra risposta. Cordiali saluti, Valentina."
+        },
+        {
+          "id": "W2",
+          "title": "Racconto e opinione",
+          "task": "Racconta un’esperienza in cui hai dovuto cambiare un programma all’ultimo momento. Descrivi la situazione iniziale, il problema, la soluzione e ciò che hai imparato. Concludi con un consiglio a una persona che potrebbe vivere un’esperienza simile.",
+          "words_min": 120,
+          "words_max": 160,
+          "points": 15,
+          "model": "L’estate scorsa avevo organizzato un viaggio con due amiche. Avevamo già comprato i biglietti quando una di loro si è ammalata. All’inizio ero delusa perché aspettavo quel fine settimana da mesi. Abbiamo parlato e abbiamo deciso di rimandare il viaggio invece di partire senza di lei. Per non perdere tutto il denaro, ho telefonato all’albergo e ho spiegato la situazione. Fortunatamente, il proprietario ci ha permesso di cambiare le date senza pagare una penale. Due settimane dopo siamo finalmente partite e ci siamo divertite molto. Questa esperienza mi ha insegnato che è utile mantenere la calma e cercare una soluzione prima di rinunciare a un progetto. Se ti succede qualcosa di simile, ti consiglierei di contattare subito le persone coinvolte e di verificare le alternative disponibili."
+        }
+      ],
+      "rubric": {
+        "criteria": [
+          {
+            "name": "Adeguatezza alla consegna",
+            "max": 4,
+            "description": "Risponde a tutte le richieste, con contenuti pertinenti e sufficientemente sviluppati."
+          },
+          {
+            "name": "Coerenza e coesione",
+            "max": 4,
+            "description": "Ordine logico, paragrafi, connettivi e riferimenti chiari."
+          },
+          {
+            "name": "Correttezza grammaticale",
+            "max": 4,
+            "description": "Tempi, modi, accordi, preposizioni e pronomi; errori non impediscono la comprensione."
+          },
+          {
+            "name": "Lessico e registro",
+            "max": 3,
+            "description": "Lessico sufficientemente vario e registro adeguato al destinatario."
+          }
+        ],
+        "human_review_required": true,
+        "do_not_exact_match": true
+      }
+    },
+    {
+      "id": "LISTEN",
+      "title": "Comprensione orale",
+      "duration_minutes": 10,
+      "points": 10,
+      "availability": "ONLY_IF_AUDIO_PRESENTED_WITHOUT_TRANSCRIPT",
+      "audio_status": "SCRIPT_ONLY_AUDIO_NOT_PRODUCED",
+      "playback_instructions": "Registrare o leggere il testo in modo naturale, due ascolti senza mostrare la trascrizione; se non è possibile, segnare sezione non somministrata e non assegnare punteggio.",
+      "transcript_for_examiner_only": "Buongiorno, sono Francesca, della segreteria del Centro Culturale Aurora. La chiamo per confermare la sua iscrizione al laboratorio di fotografia. Il primo incontro, previsto inizialmente per lunedì 12, è stato spostato a mercoledì 14 alle diciotto perché l’insegnante sarà fuori città. Il corso si terrà nella sala al secondo piano, non nell’aula al piano terra indicata nella prima email. Le ricordo di portare una macchina fotografica, se ne possiede una; altrimenti potrà utilizzare uno dei dispositivi messi a disposizione dal centro. Non è necessario comprare materiali prima della prima lezione. Se non potesse partecipare, ci avvisi entro martedì pomeriggio. Può richiamarci oppure scriverci un’email. Grazie e a presto.",
+      "questions": [
+        {
+          "id": "LQ1",
+          "type": "multiple_choice",
+          "question": "Per quale motivo chiama Francesca?",
+          "options": [
+            "Per annullare il corso",
+            "Per confermare l’iscrizione e comunicare modifiche",
+            "Per chiedere il pagamento"
+          ],
+          "correct_answer": 1,
+          "feedback": "Conferma l’iscrizione e comunica il nuovo giorno e la nuova aula.",
+          "points": 2
+        },
+        {
+          "id": "LQ2",
+          "type": "multiple_choice",
+          "question": "Quando si terrà il primo incontro?",
+          "options": [
+            "Lunedì 12 alle 18",
+            "Mercoledì 14 alle 18",
+            "Martedì 13 alle 20"
+          ],
+          "correct_answer": 1,
+          "feedback": "È stato spostato a mercoledì 14 alle diciotto.",
+          "points": 2
+        },
+        {
+          "id": "LQ3",
+          "type": "multiple_choice",
+          "question": "Dove si svolgerà il corso?",
+          "options": [
+            "Nella sala al secondo piano",
+            "Nell’aula al piano terra",
+            "All’aperto"
+          ],
+          "correct_answer": 0,
+          "feedback": "La sala corretta è al secondo piano.",
+          "points": 2
+        },
+        {
+          "id": "LQ4",
+          "type": "multiple_choice",
+          "question": "Che cosa deve fare chi non possiede una macchina fotografica?",
+          "options": [
+            "Comprarene una prima della lezione",
+            "Rinunciare al corso",
+            "Può usare un dispositivo del centro"
+          ],
+          "correct_answer": 2,
+          "feedback": "Il centro mette a disposizione dispositivi.",
+          "points": 2
+        },
+        {
+          "id": "LQ5",
+          "type": "multiple_choice",
+          "question": "Entro quando bisogna comunicare un’eventuale assenza?",
+          "options": [
+            "Entro martedì pomeriggio",
+            "Entro venerdì",
+            "Non è necessario avvisare"
+          ],
+          "correct_answer": 0,
+          "feedback": "Il messaggio richiede di avvisare entro martedì pomeriggio.",
+          "points": 2
+        }
+      ],
+      "scoring": "5 domande × 2 punti"
+    }
+  ],
+  "optional_oral_assessment": {
+    "title": "Colloquio B1 facoltativo ma necessario per una valutazione delle quattro abilità",
+    "points": 20,
+    "not_in_base_100": true,
+    "tasks": [
+      {
+        "id": "S1",
+        "title": "Presentazione e esperienza",
+        "prompt": "Presentati brevemente, racconta un’esperienza di studio o lavoro recente e spiega quale difficoltà hai superato.",
+        "duration_seconds": [90, 120],
+        "points": 10,
+        "assessor_guidance": "Porre una domanda di approfondimento: Che cosa avresti fatto diversamente?"
+      },
+      {
+        "id": "S2",
+        "title": "Interazione: organizzare un evento",
+        "prompt": "Sei in un gruppo che deve organizzare una cena internazionale. Proponi un luogo e un orario, chiedi le preferenze alimentari, rispondi a un’obiezione e raggiungi un accordo.",
+        "duration_seconds": [120, 180],
+        "points": 10,
+        "assessor_guidance": "L’interlocutore obietta che il locale proposto è troppo caro; verificare negoziazione e cortesia."
+      }
+    ],
+    "rubric": {
+      "criteria": [
+        {
+          "name": "Efficacia comunicativa",
+          "max": 4
+        },
+        {
+          "name": "Interazione e sviluppo",
+          "max": 2
+        },
+        {
+          "name": "Correttezza e lessico",
+          "max": 2
+        },
+        {
+          "name": "Fluenza e intelligibilità",
+          "max": 2
+        }
+      ],
+      "human_review_required": true
+    }
+  },
+  "scoring_policy": {
+    "base_sections": ["READ", "LANG", "WRITE", "LISTEN"],
+    "pass_threshold": 60,
+    "minimum_per_section_percent": 40,
+    "condition": "Un esito B1 complessivo richiede tutte le quattro abilità, inclusa una prova orale separata; il superamento della prova scritta da solo non certifica il livello B1.",
+    "missing_section_policy": "Se manca audio o valutazione umana, non calcolare un esito finale globale; mostrare punteggi parziali e stato incompleto.",
+    "auto_scoring_only": ["READ", "LANG", "LISTEN"],
+    "answers_server_side_only": true,
+    "feedback_visibility": "AFTER_SUBMISSION_ONLY",
+    "writing_rubric": {
+      "criteria": [
+        {
+          "name": "Adeguatezza alla consegna",
+          "max": 4,
+          "description": "Risponde a tutte le richieste, con contenuti pertinenti e sufficientemente sviluppati."
+        },
+        {
+          "name": "Coerenza e coesione",
+          "max": 4,
+          "description": "Ordine logico, paragrafi, connettivi e riferimenti chiari."
+        },
+        {
+          "name": "Correttezza grammaticale",
+          "max": 4,
+          "description": "Tempi, modi, accordi, preposizioni e pronomi; errori non impediscono la comprensione."
+        },
+        {
+          "name": "Lessico e registro",
+          "max": 3,
+          "description": "Lessico sufficientemente vario e registro adeguato al destinatario."
+        }
+      ],
+      "human_review_required": true,
+      "do_not_exact_match": true
+    }
+  },
+  "teacher_notes": {
+    "pedagogical_scope": "Copertura cumulativa B1: narrazione al passato, trapassato, futuro, condizionale, congiuntivo presente/passato, pronomi, subordinate, periodo ipotetico, passivo, registro formale e argomentazione.",
+    "integrity": "Il file contiene chiavi e modelli: conservarlo lato server, non inviarli al client prima della consegna.",
+    "review_note": "Materiale originale scritto per questa prova; non è una certificazione ufficiale né un esame standardizzato validato. La sezione orale è una proposta da somministrare separatamente."
+  }
+}
