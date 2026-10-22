@@ -1,0 +1,228 @@
+.takeover {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  overflow: hidden;
+  isolation: isolate;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.wallpaper {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: repeating-linear-gradient(
+    45deg,
+    #faff00 0 25px,
+    #ff41b4 25px 50px,
+    #11f5db 50px 75px,
+    #ff5a1f 75px 100px
+  );
+  color: #171024;
+  text-align: center;
+}
+
+.wallpaper span {
+  display: block;
+  width: 150%;
+  padding: 0.5rem;
+  border-block: 8px solid #171024;
+  background: #fff;
+  font-size: clamp(2rem, 9vw, 8rem);
+  font-weight: 1000;
+  line-height: 0.95;
+  text-shadow: 5px 5px #ff41b4;
+  transform: rotate(-12deg);
+}
+
+.popup {
+  position: absolute;
+  box-sizing: border-box;
+  width: min(16rem, calc(100vw - 1rem));
+  min-height: 13rem;
+  border: 3px solid #171024;
+  border-radius: 0.25rem;
+  background: var(--ad-background);
+  box-shadow:
+    6px 7px 0 #171024,
+    0 0 0 4px #fff;
+  color: #171024;
+}
+
+.sunshine {
+  --ad-background: #ffed00;
+  --ad-accent: #f02d52;
+}
+
+.pink {
+  --ad-background: #ff9bd8;
+  --ad-accent: #5623d5;
+}
+
+.aqua {
+  --ad-background: #89fff0;
+  --ad-accent: #f34220;
+}
+
+.orange {
+  --ad-background: #ffab42;
+  --ad-accent: #321fe3;
+}
+
+.violet {
+  --ad-background: #c7a1ff;
+  --ad-accent: #d83131;
+}
+
+.lime {
+  --ad-background: #c8fc75;
+  --ad-accent: #c12b69;
+}
+
+.red {
+  --ad-background: #ff665b;
+  --ad-accent: #172ad0;
+}
+
+.titleBar {
+  display: flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.2rem 0.25rem 0.2rem 0.55rem;
+  background: #171024;
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.close {
+  display: grid;
+  width: 2.35rem;
+  height: 2.1rem;
+  flex: none;
+  place-items: center;
+  border: 2px outset #fff;
+  background: #eee;
+  color: #171024;
+  cursor: pointer;
+  font-size: 1.6rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.dodges:hover,
+.dodges:focus-visible {
+  transform: translateX(-2.5rem) rotate(-15deg);
+}
+
+.body {
+  padding: 0.65rem 0.7rem 0.75rem;
+  text-align: center;
+}
+
+.offer {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border: 2px dashed currentColor;
+  background: #fff;
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  transform: rotate(-3deg);
+}
+
+.headline {
+  margin: 0.5rem 0 0;
+  font-size: clamp(1.08rem, 5vw, 1.36rem);
+  font-weight: 1000;
+  line-height: 1.03;
+  text-transform: uppercase;
+  text-shadow: 2px 2px #fff;
+}
+
+.copy {
+  margin: 0.4rem 0 0;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.action {
+  width: 100%;
+  min-height: 2.75rem;
+  margin-top: 0.65rem;
+  padding: 0.4rem;
+  border: 2px solid #171024;
+  background: var(--ad-accent);
+  box-shadow: 3px 3px 0 #171024;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.action:active,
+.close:active {
+  box-shadow: none;
+  transform: translate(2px, 2px);
+}
+
+.mobileEscape {
+  position: fixed;
+  right: 0.35rem;
+  bottom: 0.35rem;
+  z-index: 100;
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border: 1px solid #171024;
+  border-radius: 50%;
+  background: #fbf8f3;
+  color: #241e1c;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  font-weight: 700;
+  opacity: 0.75;
+}
+
+.close:focus-visible,
+.action:focus-visible,
+.mobileEscape:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .popup:nth-last-of-type(-n + 8) .offer {
+    animation: blink 1.7s step-end infinite;
+  }
+
+  .popup:nth-last-of-type(-n + 8) .action {
+    animation: pulse 1.5s ease-in-out infinite alternate;
+  }
+
+  .close {
+    transition: transform 130ms ease;
+  }
+}
+
+@keyframes blink {
+  50% {
+    background: #ffec4d;
+  }
+}
+
+@keyframes pulse {
+  to {
+    box-shadow: 5px 5px 0 #171024;
+    filter: saturate(1.4);
+  }
+}
