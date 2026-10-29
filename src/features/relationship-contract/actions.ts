@@ -169,7 +169,7 @@ export async function authoriseGianmaria(
       message:
         configurationIssue === "missing_or_short_passphrase" ||
         configurationIssue === "reused_site_code"
-          ? "The separate administrator passphrase is not configured correctly. Gianmaria must set a unique secret of at least 24 characters in Vercel Production and redeploy."
+          ? "The separate administrator passphrase is not configured correctly. Gianmaria must set a unique secret of at least 4 characters in Vercel Production and redeploy."
           : "The private signing service is not configured. Gianmaria must check the server access secret and redeploy.",
     };
   }
