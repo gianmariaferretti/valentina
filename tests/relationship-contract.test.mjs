@@ -65,14 +65,14 @@ test("the sealed note remains in a server-only module", () => {
   assert.match(secretModule, /I would choose you again\./);
 });
 
-test("administrator configuration requires a distinct, long passphrase", () => {
+test("administrator configuration requires a distinct passphrase of at least four characters", () => {
   const longPassphrase = "a-long-independent-contract-passphrase";
   assert.equal(
     adminConfigurationIssue(null, longPassphrase, "site"),
     "missing_access_secret",
   );
   assert.equal(
-    adminConfigurationIssue("site-secret", "short", "site"),
+    adminConfigurationIssue("site-secret", "abc", "site"),
     "missing_or_short_passphrase",
   );
   assert.equal(
@@ -80,7 +80,7 @@ test("administrator configuration requires a distinct, long passphrase", () => {
     "reused_site_code",
   );
   assert.equal(
-    adminConfigurationIssue("site-secret", longPassphrase, "site"),
+    adminConfigurationIssue("site-secret", "abcd", "site"),
     null,
   );
 });
