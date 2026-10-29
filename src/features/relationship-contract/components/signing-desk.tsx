@@ -264,7 +264,7 @@ export function SigningDesk({
             <p className="contract-alert" role="status">
               {adminConfigurationIssue === "missing_access_secret"
                 ? "The private signing service is not configured. Gianmaria must check the server access secret and redeploy."
-                : "The separate signing passphrase is unavailable or invalid. Gianmaria must set a unique secret of at least 24 characters in Vercel Production and redeploy."}
+                : "The separate signing passphrase is unavailable or invalid. Gianmaria must set a unique secret of at least 4 characters in Vercel Production and redeploy."}
             </p>
           ) : (
             <form
