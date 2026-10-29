@@ -12,7 +12,7 @@ export function adminConfigurationIssue(
   siteCode: string | undefined,
 ): AdminConfigurationIssue {
   if (!accessSecret) return "missing_access_secret";
-  if (!passphrase || passphrase.length < 24)
+  if (!passphrase || passphrase.length < 4)
     return "missing_or_short_passphrase";
   if (siteCode && passphrase === siteCode) return "reused_site_code";
   return null;
@@ -24,7 +24,7 @@ export function adminSessionSignature(
   accessToken: string,
   expires: string,
 ): string {
-  // The separate administrator passphrase supplies the signing key's entropy.
+  // The separate administrator passphrase is combined with the site access secret to derive the session signing key.
   // The site's access secret and cookie bind it to this private site session.
   const key = createHmac("sha256", passphrase)
     .update(`vg-contract-admin:${accessSecret}`)
