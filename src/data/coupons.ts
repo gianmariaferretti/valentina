@@ -808,11 +808,11 @@ export const coupons = [
   {
     id: "gianmaria-exam-secret",
     code: "GV-038",
-    title: "Gianmaria Exam · sealed reward",
+    title: "Relationship Exam · sealed reward",
     shortDescription:
       "A sealed reward. Gianmaria has not supplied the prize yet.",
     description:
-      "You earned this reward by passing The Gianmaria Exam. Its actual prize and redemption terms will be added by Gianmaria before it can be redeemed.",
+      "You earned this reward by passing the unified relationship exam. Its actual prize and redemption terms will be added by Gianmaria before it can be redeemed.",
     category: "romantic",
     rarity: "premium",
     type: "standard",
@@ -820,7 +820,7 @@ export const coupons = [
     redeemable: false,
     fulfillmentReady: false,
     challengeId: null,
-    unlockCondition: "Pass The Gianmaria Exam; prize details pending.",
+    unlockCondition: "Pass the relationship exam; prize details pending.",
     secret: true,
     createdAt: "2025-10-31T21:00:00.000Z",
     redeemedAt: null,

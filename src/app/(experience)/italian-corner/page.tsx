@@ -1,16 +1,10 @@
-import {
-  ArrowUpRight,
-  BookOpen,
-  Clock3,
-  Languages,
-  LockKeyhole,
-} from "lucide-react";
+import { ArrowUpRight, BookOpen, Clock3, Languages } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Italian Corner",
-  description: "Two private examinations and La Dolce Lingua.",
+  description: "One Italian examination and La Dolce Lingua.",
 };
 
 const experiences = [
@@ -23,16 +17,8 @@ const experiences = [
     Icon: Languages,
   },
   {
-    href: "/italian-corner/gianmaria-exam",
+    href: "/la-dolce-lingua",
     number: "02",
-    title: "The Gianmaria Exam",
-    subtitle: "Do You Really Know Your Boyfriend?",
-    detail: "10 questions · 10 minutes · 2 attempts",
-    Icon: LockKeyhole,
-  },
-  {
-    href: "/italian-corner/academy",
-    number: "03",
     title: "La Dolce Lingua",
     subtitle: "An Italian Course Made with Love",
     detail: "A2 · B1 · B2 · lessons coming from Gianmaria",
@@ -59,7 +45,7 @@ export default function ItalianCornerPage() {
           <em>Corner.</em>
         </h1>
         <p className="relative mt-8 max-w-2xl text-sm leading-7 text-white/75 sm:text-base">
-          Two examinations. One language academy. A very small, entirely
+          One examination. One language academy. A very small, entirely
           unofficial embassy of us.
         </p>
         <span className="relative mt-10 inline-flex items-center gap-2 border-t border-white/20 pt-5 text-[0.62rem] font-semibold tracking-[0.18em] text-white/55 uppercase">
@@ -68,18 +54,18 @@ export default function ItalianCornerPage() {
       </header>
       <section
         aria-label="Italian Corner experiences"
-        className="mt-7 grid gap-5 lg:grid-cols-3"
+        className="mt-7 grid gap-5 lg:grid-cols-2"
       >
         {experiences.map(
           ({ href, number, title, subtitle, detail, Icon }, index) => (
             <Link
-              className={`group flex min-h-80 flex-col rounded-[1.75rem] border border-[var(--line)] p-6 shadow-[var(--shadow-paper)] transition-transform hover:-translate-y-1 motion-reduce:transform-none sm:p-8 ${index === 0 ? "bg-[var(--paper-white)]" : index === 1 ? "bg-[var(--paper-deep)]" : "bg-[var(--ink)] text-[var(--paper-white)]"}`}
+              className={`group flex min-h-80 flex-col rounded-[1.75rem] border border-[var(--line)] p-6 shadow-[var(--shadow-paper)] transition-transform hover:-translate-y-1 motion-reduce:transform-none sm:p-8 ${index === 0 ? "bg-[var(--paper-white)]" : "bg-[var(--ink)] text-[var(--paper-white)]"}`}
               href={href}
               key={href}
             >
               <div className="flex items-start justify-between">
                 <span className="font-mono text-xs opacity-50">
-                  {number} / 03
+                  {number} / 02
                 </span>
                 <Icon aria-hidden="true" size={25} strokeWidth={1.4} />
               </div>

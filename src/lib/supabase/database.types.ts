@@ -602,7 +602,31 @@ export type Database = {
         };
         Returns: Database["public"]["Tables"]["italian_corner_attempts"]["Row"][];
       };
+      start_unified_relationship_exam: {
+        Args: {
+          p_user_id: string;
+          p_id: string;
+          p_quiz_id: string;
+          p_question_ids: Json;
+          p_option_orders: Json;
+        };
+        Returns: Database["public"]["Tables"]["italian_corner_attempts"]["Row"][];
+      };
       finish_italian_corner_attempt: {
+        Args: {
+          p_user_id: string;
+          p_id: string;
+          p_answers: Json;
+          p_score: number;
+        };
+        Returns: {
+          final_score: number;
+          passed: boolean;
+          reward_was_new: boolean;
+          attempts_remaining: number;
+        }[];
+      };
+      finish_unified_relationship_exam: {
         Args: {
           p_user_id: string;
           p_id: string;

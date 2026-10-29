@@ -131,6 +131,47 @@ export default async function LaDolceLinguaPage() {
         </header>
 
         <section
+          aria-labelledby="italian-challenge-title"
+          className="mt-7 grid overflow-hidden rounded-[1.4rem] border border-[#ab9b79] bg-[#314a39] text-[#fbf5e7] shadow-[0_24px_56px_rgba(35,55,40,.16)] md:grid-cols-[minmax(0,1fr)_15rem]"
+        >
+          <div className="p-7 sm:p-9 lg:p-11">
+            <p className="text-[.62rem] font-bold tracking-[.22em] text-[#d6bd82] uppercase">
+              Fascicolo speciale · A2–B1
+            </p>
+            <h2
+              className="mt-4 font-display text-[clamp(2.7rem,7vw,5.2rem)] leading-[.95] tracking-[-.045em]"
+              id="italian-challenge-title"
+            >
+              The Italian <em>Challenge.</em>
+            </h2>
+            <p className="mt-4 font-display text-xl italic text-[#e6d8bc]">
+              Are You Italian Enough?
+            </p>
+            <p className="mt-4 text-sm leading-7 text-[#f5f0e5]/75">
+              15 Questions. 10 Minutes. One Secret Reward. Three attempts, with
+              the result safely recorded in your private passport.
+            </p>
+            <Link
+              className="academy-focus mt-7 inline-flex min-h-12 items-center gap-3 rounded-full bg-[#f8f2e5] px-6 text-xs font-bold tracking-[.12em] text-[#284333] uppercase transition-colors hover:bg-[#e5d3ae]"
+              href="/italian-corner/challenge"
+            >
+              Take the challenge <ArrowRight aria-hidden="true" size={16} />
+            </Link>
+          </div>
+          <div
+            aria-hidden="true"
+            className="flex min-h-32 items-center justify-center border-t border-[#d8c49b]/25 bg-[radial-gradient(circle_at_center,rgba(210,176,110,.14),transparent_65%)] md:border-t-0 md:border-l"
+          >
+            <span className="rotate-[-12deg] rounded-full border-2 border-[#d8c49b]/70 px-7 py-8 text-center font-mono text-xs leading-5 tracking-[.18em] text-[#d8c49b] uppercase">
+              Esame
+              <br />
+              Privato
+              <br />V + G
+            </span>
+          </div>
+        </section>
+
+        <section
           aria-label="Passaporto linguistico e progresso"
           className="mt-7 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]"
         >

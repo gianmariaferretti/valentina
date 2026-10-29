@@ -5,18 +5,19 @@ export const archiveScenes: Record<
   { title: string; paragraphs: readonly string[]; action?: string }
 > = {
   discovery: {
-    title: "YOU FOUND SOMETHING.",
-    paragraphs: ["Something you probably weren't supposed to find."],
-    action: "CONTINUE ANYWAY",
+    title: "CLASSIFIED ARCHIVE",
+    paragraphs: [
+      "Access restricted. A personal file has been recovered from the V&G archive.",
+    ],
+    action: "OPEN THE DOSSIER",
   },
   curiosity: {
-    title: "WHAT ARE YOU DOING HERE?",
+    title: "ACCESS RESTRICTED.",
     paragraphs: [
-      "Seriously, Valentina.",
-      "This part of the archive was supposed to remain confidential.",
-      "But since you're already here...",
+      "Subject: Gianmaria. Clearance level: Valentina Only.",
+      "The first lock is the date this archive began. Check the Year One cover if you need a clue.",
     ],
-    action: "I'M JUST CURIOUS",
+    action: "VERIFY DATE",
   },
   "age-confirmation": {
     title: "RESTRICTED AREA",
@@ -27,22 +28,21 @@ export const archiveScenes: Record<
     action: "I'M 18 OR OLDER",
   },
   "point-of-no-return": {
-    title: "ARE YOU ABSOLUTELY SURE?",
+    title: "THE INVESTIGATION",
     paragraphs: [
-      "Like... REALLY sure?",
-      "YOU HAVE REACHED THE POINT OF NO RETURN.",
-      "Well, technically you can still go back. But that would be terribly anticlimactic.",
+      "Three documents. One file reference.",
+      "Read each piece of evidence before assembling the seal.",
     ],
-    action: "YES. SHOW ME.",
+    action: "SUBMIT EVIDENCE",
   },
   "sealed-file": {
-    title: "CLASSIFIED FILE",
+    title: "FINAL DECRYPTION",
     paragraphs: [
-      "SUBJECT: VALENTINA",
-      "SECURITY LEVEL: SPICY",
-      "AUTHORIZATION: GRANTED",
+      "SUBJECT: GIANMARIA",
+      "CLEARANCE: VALENTINA ONLY",
+      "AUTHORIZATION: PENDING",
     ],
-    action: "BREAK THE SEAL",
+    action: "OPEN THE FILE",
   },
   "photo-reveal": { title: "DECRYPTING PRIVATE FILE...", paragraphs: [] },
   "final-reveal": {

@@ -1,6 +1,6 @@
 import "server-only";
 
-export type QuizId = "italian" | "gianmaria";
+export type QuizId = "italian" | "gianmaria" | "boyfriend-v2";
 export type ItalianCategory =
   "grammar" | "vocabulary" | "verb-tense" | "everyday" | "reading";
 
@@ -818,8 +818,20 @@ export const quizDefinitions = {
     rewardId: "gianmaria-exam-reward",
     couponId: "gianmaria-exam-secret",
   },
+  "boyfriend-v2": {
+    title: "Do You Actually Know Your Boyfriend?",
+    subtitle: "The definitive relationship examination",
+    count: 20,
+    passing: 16,
+    maxAttempts: 2,
+    durationSeconds: 900,
+    rewardId: "gianmaria-exam-reward",
+    couponId: "gianmaria-exam-secret",
+  },
 } as const;
 
-export function getBank(id: QuizId): readonly CornerQuestion[] {
+export function getBank(
+  id: Exclude<QuizId, "boyfriend-v2">,
+): readonly CornerQuestion[] {
   return id === "italian" ? italianQuestions : gianmariaQuestions;
 }

@@ -20,8 +20,13 @@ import {
   advanceArchive,
   closeArchive,
   completeArchive,
+  decryptArchive,
   goBackInArchive,
   replayArchiveReveal,
+  resumeArchive,
+  solveArchiveDate,
+  solveArchiveInvestigation,
+  type ArchiveProgress,
 } from "../actions/archive-actions";
 import { accessPrivateCollection } from "../actions/private-collection-actions";
 import {
@@ -32,6 +37,26 @@ import {
 import styles from "./spicy-archive.module.css";
 
 const subscribe = () => () => {};
+const investigationDocuments = [
+  {
+    id: "date",
+    token: "31",
+    label: "Document 01 · Origin",
+    clue: "The file begins on the day our Year One record starts: 31 October 2025.",
+  },
+  {
+    id: "recipient",
+    token: "V",
+    label: "Document 02 · Recipient",
+    clue: "Clearance belongs to Valentina, and to Valentina only.",
+  },
+  {
+    id: "subject",
+    token: "G",
+    label: "Document 03 · Subject",
+    clue: "The person under investigation is Gianmaria.",
+  },
+] as const;
 const PrivateCollection = dynamic(
   () =>
     import("./private-collection").then((module) => module.PrivateCollection),
@@ -47,7 +72,15 @@ const PrivateCollection = dynamic(
   },
 );
 
-export function SpicyArchive({ imageAlt }: { readonly imageAlt: string }) {
+export function SpicyArchive({
+  imageAlt,
+  initialStage,
+  progress: initialProgress,
+}: {
+  readonly imageAlt: string;
+  readonly initialStage: ArchiveStage;
+  readonly progress: ArchiveProgress;
+}) {
   const router = useRouter();
   const hydrated = useSyncExternalStore(
     subscribe,
@@ -55,7 +88,12 @@ export function SpicyArchive({ imageAlt }: { readonly imageAlt: string }) {
     () => false,
   );
   const reducedMotion = useReducedMotion();
-  const [stage, setStage] = useState<ArchiveStage>("discovery");
+  const [stage, setStage] = useState<ArchiveStage>(initialStage);
+  const [progress, setProgress] = useState(initialProgress);
+  const [dateParts, setDateParts] = useState({ day: "", month: "", year: "" });
+  const [inspected, setInspected] = useState<readonly string[]>([]);
+  const [fragments, setFragments] = useState<readonly string[]>([]);
+  const [authorizationStep, setAuthorizationStep] = useState(0);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -182,6 +220,81 @@ export function SpicyArchive({ imageAlt }: { readonly imageAlt: string }) {
       }
     }
   }
+  async function resume() {
+    if (busy) return;
+    setBusy(true);
+    setMessage("");
+    try {
+      const result = await resumeArchive();
+      if (!activeRef.current) return;
+      if (result.ok) setStage(result.stage);
+      else setMessage(result.message);
+    } catch {
+      if (activeRef.current) setMessage("The saved file could not be opened.");
+    } finally {
+      if (activeRef.current) setBusy(false);
+    }
+  }
+  async function submitDate() {
+    if (busy) return;
+    setBusy(true);
+    setMessage("");
+    try {
+      const result = await solveArchiveDate(dateParts);
+      if (!activeRef.current) return;
+      if (result.ok) {
+        setProgress((current) => ({ ...current, classifiedAccess: true }));
+        setStage(result.stage);
+      } else setMessage(result.message);
+    } catch {
+      if (activeRef.current) setMessage("The dossier could not be verified.");
+    } finally {
+      if (activeRef.current) setBusy(false);
+    }
+  }
+  async function submitInvestigation() {
+    if (busy) return;
+    setBusy(true);
+    setMessage("");
+    try {
+      const result = await solveArchiveInvestigation(fragments);
+      if (!activeRef.current) return;
+      if (result.ok) {
+        setProgress((current) => ({ ...current, investigation: true }));
+        setStage(result.stage);
+      } else setMessage(result.message);
+    } catch {
+      if (activeRef.current) setMessage("The evidence could not be archived.");
+    } finally {
+      if (activeRef.current) setBusy(false);
+    }
+  }
+  async function submitDecryption() {
+    if (busy || authorizationStep !== 3) return;
+    setBusy(true);
+    setBreakingSeal(true);
+    setMessage("");
+    try {
+      const result = await decryptArchive(
+        ["inspect", "unseal", "authorize"],
+        Boolean(reducedMotion),
+      );
+      if (!activeRef.current) return;
+      if (result.ok) {
+        setRevealDuration(
+          reducedMotion ? ARCHIVE_REDUCED_REVEAL_MS : ARCHIVE_REVEAL_MS,
+        );
+        setStage(result.stage);
+      } else setMessage(result.message);
+    } catch {
+      if (activeRef.current) setMessage("The seal could not be opened.");
+    } finally {
+      if (activeRef.current) {
+        setBusy(false);
+        setBreakingSeal(false);
+      }
+    }
+  }
   async function back() {
     if (busy) return;
     setBusy(true);
@@ -205,6 +318,7 @@ export function SpicyArchive({ imageAlt }: { readonly imageAlt: string }) {
       if (!activeRef.current) return;
       if (result.ok) {
         setSaved(true);
+        setProgress((current) => ({ ...current, completed: true }));
         router.refresh();
       } else setMessage(result.message);
     } catch {
@@ -382,15 +496,159 @@ export function SpicyArchive({ imageAlt }: { readonly imageAlt: string }) {
                   This is an age self-declaration, not a verified age check.
                 </small>
               ) : null}
+              {stage === "curiosity" ? (
+                <fieldset className={styles.dossierPuzzle}>
+                  <legend>
+                    Reconstruct the date recorded on the Year One cover.
+                  </legend>
+                  <p>
+                    Use day, month and year. The answer is already in this
+                    website; no private knowledge is required.
+                  </p>
+                  <div className={styles.dateControls}>
+                    {(
+                      [
+                        ["day", "Day", ["30", "31", "01"]],
+                        ["month", "Month", ["09", "10", "11"]],
+                        ["year", "Year", ["2024", "2025", "2026"]],
+                      ] as const
+                    ).map(([key, label, options]) => (
+                      <label key={key}>
+                        {label}
+                        <select
+                          value={dateParts[key]}
+                          onChange={(event) =>
+                            setDateParts((current) => ({
+                              ...current,
+                              [key]: event.target.value,
+                            }))
+                          }
+                        >
+                          <option value="">Select</option>
+                          {options.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              ) : null}
+              {stage === "point-of-no-return" ? (
+                <div className={styles.investigation}>
+                  <p>
+                    Open all three records. Then assemble the file reference in
+                    this order: starting day · recipient initial · subject
+                    initial.
+                  </p>
+                  <div className={styles.investigationDocuments}>
+                    {investigationDocuments.map((document) => (
+                      <div className={styles.evidence} key={document.id}>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setInspected((current) =>
+                              current.includes(document.id)
+                                ? current
+                                : [...current, document.id],
+                            )
+                          }
+                        >
+                          {document.label} <span aria-hidden="true">↗</span>
+                        </button>
+                        {inspected.includes(document.id) ? (
+                          <div>
+                            <p>{document.clue}</p>
+                            <button
+                              type="button"
+                              disabled={
+                                fragments.includes(document.token) ||
+                                fragments.length >= 3
+                              }
+                              onClick={() =>
+                                setFragments((current) => [
+                                  ...current,
+                                  document.token,
+                                ])
+                              }
+                            >
+                              Add fragment {document.token}
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                  <div className={styles.selectedFragments} aria-live="polite">
+                    <span>File reference</span>
+                    <strong>
+                      {fragments.length ? fragments.join(" — ") : "_ — _ — _"}
+                    </strong>
+                    <button
+                      type="button"
+                      disabled={!fragments.length}
+                      onClick={() => setFragments([])}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+              {stage === "sealed-file" ? (
+                <div className={styles.decryption}>
+                  <p>
+                    The evidence is accepted. Authorize this private file in
+                    three deliberate steps. The photograph is not requested
+                    until the seal opens.
+                  </p>
+                  {(
+                    [
+                      "Inspect the seal",
+                      "Break the seal",
+                      "Authorize private view",
+                    ] as const
+                  ).map((label, index) => (
+                    <button
+                      type="button"
+                      key={label}
+                      disabled={authorizationStep !== index || busy}
+                      onClick={() => setAuthorizationStep(index + 1)}
+                    >
+                      <span>{String(index + 1).padStart(2, "0")}</span>
+                      {label}
+                      <span aria-hidden="true">
+                        {authorizationStep > index ? "✓" : "→"}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               <div className={styles.actions}>
                 <motion.button
                   className={
                     stage === "sealed-file" ? styles.seal : styles.primary
                   }
                   type="button"
-                  disabled={busy}
+                  disabled={
+                    busy ||
+                    (stage === "curiosity" &&
+                      (!dateParts.day ||
+                        !dateParts.month ||
+                        !dateParts.year)) ||
+                    (stage === "point-of-no-return" &&
+                      (inspected.length !== 3 || fragments.length !== 3)) ||
+                    (stage === "sealed-file" && authorizationStep !== 3)
+                  }
                   onClick={() => {
-                    void advance();
+                    if (stage === "curiosity") void submitDate();
+                    else if (stage === "point-of-no-return")
+                      void submitInvestigation();
+                    else if (stage === "sealed-file") void submitDecryption();
+                    else if (stage === "discovery" && progress.classifiedAccess)
+                      void resume();
+                    else void advance();
                   }}
                   animate={{
                     rotate: breakingSeal && !reducedMotion ? -12 : 0,
@@ -401,7 +659,15 @@ export function SpicyArchive({ imageAlt }: { readonly imageAlt: string }) {
                     ? stage === "sealed-file"
                       ? "SEAL BROKEN"
                       : "Opening..."
-                    : scene.action}
+                    : stage === "discovery" && progress.classifiedAccess
+                      ? "RESUME YOUR FILE"
+                      : stage === "curiosity"
+                        ? "VERIFY DATE"
+                        : stage === "point-of-no-return"
+                          ? "SUBMIT EVIDENCE"
+                          : stage === "sealed-file"
+                            ? "OPEN THE FILE"
+                            : scene.action}
                 </motion.button>
                 {stage === "age-confirmation" ||
                 stage === "point-of-no-return" ? (
