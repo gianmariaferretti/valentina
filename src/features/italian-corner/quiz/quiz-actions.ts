@@ -13,6 +13,7 @@ import {
 import { reportPersistenceFailure } from "@/lib/persistence/persistence-error";
 
 import { getBank, quizDefinitions, type QuizId } from "./question-bank";
+import { relationshipExamQuestions } from "@/features/quiz/data/unified-bank";
 import {
   createOptionOrders,
   presentQuestions,
@@ -25,7 +26,9 @@ import {
 
 const random = () => randomInt(0, 0x100000000) / 0x100000000;
 const validQuiz = (id: string): id is QuizId =>
-  id === "italian" || id === "gianmaria";
+  id === "italian" || id === "gianmaria" || id === "boyfriend-v2";
+const examBank = (id: QuizId) =>
+  id === "boyfriend-v2" ? relationshipExamQuestions : getBank(id);
 
 function parsePaper(row: {
   id: string;
@@ -46,7 +49,11 @@ function parsePaper(row: {
     id: row.id,
     quizId: row.quiz_id,
     expiresAt: row.expires_at,
-    questions: presentQuestions(row.question_ids, orders, getBank(row.quiz_id)),
+    questions: presentQuestions(
+      row.question_ids,
+      orders,
+      examBank(row.quiz_id),
+    ),
   };
 }
 
@@ -110,14 +117,22 @@ export async function startCornerQuiz(
       message: "Private session expired. Unlock the archive again.",
     };
   if (!validQuiz(id)) return { ok: false, message: "Unknown examination." };
+  if (id === "gianmaria")
+    return { ok: false, message: "This paper has moved to /quiz." };
   try {
-    const bank = getBank(id);
+    const bank = examBank(id);
     const questions =
       id === "italian"
         ? selectItalianQuestions(bank, random)
-        : shuffled(bank, random);
+        : id === "boyfriend-v2"
+          ? [...bank]
+          : shuffled(bank, random);
     const { client, userId } = getSupabaseServerContext();
-    const { data, error } = await client.rpc("start_italian_corner_attempt", {
+    const operation =
+      id === "boyfriend-v2"
+        ? "start_unified_relationship_exam"
+        : "start_italian_corner_attempt";
+    const { data, error } = await client.rpc(operation, {
       p_user_id: userId,
       p_id: randomUUID(),
       p_quiz_id: id,
@@ -127,7 +142,7 @@ export async function startCornerQuiz(
     assertSupabaseResult("Unable to start quiz attempt.", error);
     if (!data?.[0]) throw new Error("No quiz attempt was returned.");
     revalidatePath(
-      `/italian-corner/${id === "italian" ? "challenge" : "gianmaria-exam"}`,
+      id === "boyfriend-v2" ? "/quiz" : "/italian-corner/challenge",
     );
     return {
       ok: true,
@@ -162,6 +177,7 @@ export async function submitCornerQuiz(input: {
   if (
     !input ||
     !validQuiz(input.quizId) ||
+    input.quizId === "gianmaria" ||
     !/^[\da-f-]{36}$/i.test(input.attemptId) ||
     !input.answers ||
     typeof input.answers !== "object" ||
@@ -205,10 +221,12 @@ export async function submitCornerQuiz(input: {
       ids,
       row.option_orders as Record<string, number[]>,
       input.answers,
-      getBank(input.quizId),
+      examBank(input.quizId),
     );
     const { data: saved, error: saveError } = await client.rpc(
-      "finish_italian_corner_attempt",
+      input.quizId === "boyfriend-v2"
+        ? "finish_unified_relationship_exam"
+        : "finish_italian_corner_attempt",
       {
         p_user_id: userId,
         p_id: row.id,
@@ -220,6 +238,7 @@ export async function submitCornerQuiz(input: {
     if (!saved?.[0]) throw new Error("No result was returned.");
     const result = saved[0];
     revalidatePath("/italian-corner");
+    revalidatePath("/quiz");
     revalidatePath("/coupons");
     revalidatePath(`/coupons/${quizDefinitions[input.quizId].couponId}`);
     return {

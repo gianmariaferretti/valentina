@@ -1,34 +1,24 @@
 import type { Metadata } from "next";
 
-import { quizAchievementRule, quizCouponRewardRule } from "@/data/quiz";
-import { getQuizQuestionViews } from "@/data/quiz-questions";
-import { RelationshipQuiz } from "@/features/quiz/components/relationship-quiz";
-import { loadQuizState } from "@/features/quiz/repositories/get-quiz-state-repository";
+import { CornerQuiz } from "@/features/italian-corner/quiz/corner-quiz";
+import { loadCornerQuiz } from "@/features/italian-corner/quiz/quiz-actions";
 
 export const metadata: Metadata = {
-  title: "The Boyfriend Exam",
-  description:
-    "Ten questions to determine whether Valentina actually knows her boyfriend.",
+  title: "Do You Actually Know Your Boyfriend?",
+  description: "Twenty questions. Fifteen minutes. One boyfriend.",
 };
 
 export default async function QuizPage() {
-  const state = await loadQuizState();
-
   return (
-    <RelationshipQuiz
-      initialStats={{
-        bestScore: state.bestScore,
-        attempts: state.attempts,
-        achievementUnlocked: quizAchievementRule
-          ? state.unlockedAchievementIds.includes(
-              quizAchievementRule.achievement.id,
-            )
-          : false,
-        rewardClaimed: quizCouponRewardRule
-          ? state.claimedRewardIds.includes(quizCouponRewardRule.rewardId)
-          : false,
-      }}
-      questions={getQuizQuestionViews()}
+    <CornerQuiz
+      quizId="boyfriend-v2"
+      title="Do You Actually Know Your Boyfriend?"
+      subtitle="The definitive relationship examination"
+      introduction="20 Questions. 15 Minutes. One Boyfriend. One Secret Reward."
+      maxAttempts={2}
+      passing={16}
+      rewardHref="/coupons/gianmaria-exam-secret"
+      snapshot={await loadCornerQuiz("boyfriend-v2")}
     />
   );
 }

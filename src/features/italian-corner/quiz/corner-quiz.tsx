@@ -82,9 +82,12 @@ export function CornerQuiz({
     return () => window.clearInterval(interval);
   }, [active]);
 
+  const isRelationship = quizId === "boyfriend-v2";
+  const totalQuestions = isRelationship ? 20 : quizId === "italian" ? 15 : 10;
+  const durationMinutes = isRelationship ? 15 : 10;
   const secondsLeft = active
     ? Math.min(
-        600,
+        durationMinutes * 60,
         Math.max(0, Math.ceil((Date.parse(active.expiresAt) - now) / 1000)),
       )
     : 0;
@@ -122,9 +125,10 @@ export function CornerQuiz({
     <div className="page-container py-8 sm:py-12 lg:py-16">
       <Link
         className="inline-flex min-h-11 items-center gap-2 text-xs font-bold tracking-[0.13em] text-[var(--muted)] uppercase"
-        href="/italian-corner"
+        href={isRelationship ? "/home" : "/la-dolce-lingua"}
       >
-        <ArrowLeft size={16} /> Italian Corner
+        <ArrowLeft size={16} />{" "}
+        {isRelationship ? "Year One" : "La Dolce Lingua"}
       </Link>
       <header className="mt-7 max-w-5xl">
         <p className="text-[0.64rem] font-bold tracking-[0.24em] text-[var(--rust)] uppercase">
@@ -145,16 +149,20 @@ export function CornerQuiz({
         >
           <div className="flex items-start justify-between gap-5">
             <span className="text-[0.65rem] font-bold tracking-[0.2em] text-[var(--rust)] uppercase">
-              Result sealed · {finished.score}/{quizId === "italian" ? 15 : 10}
+              Result sealed · {finished.score}/{totalQuestions}
             </span>
             <Medal aria-hidden="true" size={28} />
           </div>
           <h2 className="mt-7 max-w-3xl font-display text-[clamp(2.7rem,7vw,5.5rem)] leading-[0.92] tracking-[-0.05em]">
-            {quizId === "gianmaria"
-              ? personalResult(finished.score)
-              : finished.passed
-                ? "Italian enough. Officially."
-                : "Not quite yet, amor."}
+            {isRelationship
+              ? finished.passed
+                ? "Girlfriend verified."
+                : "The jury requests further evidence."
+              : quizId === "gianmaria"
+                ? personalResult(finished.score)
+                : finished.passed
+                  ? "Italian enough. Officially."
+                  : "Not quite yet, amor."}
           </h2>
           <p className="mt-5 text-sm leading-7 text-[var(--muted)]">
             {finished.passed
@@ -301,8 +309,8 @@ export function CornerQuiz({
               Examination rules
             </span>
             <p className="mt-4 text-sm leading-7 text-[var(--muted)]">
-              Ten minutes. One paper. No answer key until you submit. Your time
-              continues if you leave this page.
+              {durationMinutes} minutes. One paper. No answer key until you
+              submit. Your time continues if you leave this page.
             </p>
             <p className="mt-5 font-mono text-sm">
               {answered} / {active.questions.length} answered
@@ -317,10 +325,10 @@ export function CornerQuiz({
             </p>
             <div className="mt-9 flex flex-wrap gap-3 text-xs font-bold tracking-[0.12em] uppercase">
               <span className="rounded-full border border-[var(--line)] px-4 py-3">
-                10 minutes
+                {durationMinutes} minutes
               </span>
               <span className="rounded-full border border-[var(--line)] px-4 py-3">
-                Pass {passing}/{quizId === "italian" ? 15 : 10}
+                Pass {passing}/{totalQuestions}
               </span>
               <span className="rounded-full border border-[var(--line)] px-4 py-3">
                 {remaining} attempts left
