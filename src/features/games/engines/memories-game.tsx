@@ -192,10 +192,10 @@ export function MemoriesGame(props: GameEngineProps) {
               card.variant === 1
                 ? (memory.matchingImage ?? memory.image)
                 : memory.image;
-          // Retain already revealed faces behind card backs, so re-flipping
-          // never downloads the same private photograph again.
+          // Keep faces mounted behind the card backs so private photographs
+          // start loading when the board opens, before the first flip.
           const seen = seenCards.has(index);
-          const media = seen && mediaId ? getMediaAsset(mediaId) : null;
+          const media = mediaId ? getMediaAsset(mediaId) : null;
           return (
             <button
               key={card.instanceId}
@@ -215,22 +215,18 @@ export function MemoriesGame(props: GameEngineProps) {
               <span className={styles.cardInner} aria-hidden="true">
                 <span className={styles.cardBack}>V+G</span>
                 <span className={styles.cardFace}>
-                  {seen ? (
-                    <>
-                      {media ? (
-                        <Image
-                          src={media.src}
-                          alt=""
-                          fill
-                          sizes="(max-width: 600px) 64px, 96px"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <Icon />
-                      )}
-                      <span>{memory.title}</span>
-                    </>
-                  ) : null}
+                  {media ? (
+                    <Image
+                      src={media.src}
+                      alt=""
+                      fill
+                      sizes="(max-width: 600px) 64px, 96px"
+                      loading="eager"
+                    />
+                  ) : (
+                    <Icon />
+                  )}
+                  {seen ? <span>{memory.title}</span> : null}
                 </span>
               </span>
             </button>
