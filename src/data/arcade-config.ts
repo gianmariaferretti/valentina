@@ -13,7 +13,7 @@ export const ARCADE = {
     step: 1 / 120,
   },
   mines: { columns: 16, rows: 16, count: 55, generationBudget: 16 },
-  memory: { columns: 6, pairs: 18, limitMs: 75_000, mismatchMs: 650 },
+  memory: { columns: 6, pairs: 18, limitMs: 165_000, mismatchMs: 650 },
   snake: {
     size: 24,
     target: 75,
