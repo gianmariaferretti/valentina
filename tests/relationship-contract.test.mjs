@@ -79,10 +79,7 @@ test("administrator configuration requires a distinct passphrase of at least fou
     adminConfigurationIssue("site-secret", longPassphrase, longPassphrase),
     "reused_site_code",
   );
-  assert.equal(
-    adminConfigurationIssue("site-secret", "abcd", "site"),
-    null,
-  );
+  assert.equal(adminConfigurationIssue("site-secret", "abcd", "site"), null);
 });
 
 test("administrator cookie signature is bound to the site session, passphrase and expiry", () => {
