@@ -140,7 +140,7 @@ export function MemoriesGame(props: GameEngineProps) {
   return (
     <section className={styles.stage}>
       <ArcadeStats
-        urgent={snapshot.elapsedMs > 55_000}
+        urgent={ARCADE.memory.limitMs - snapshot.elapsedMs < 20_000}
         items={[
           {
             label: "Time remaining",
@@ -266,7 +266,7 @@ export function MemoriesGame(props: GameEngineProps) {
                       value: `${snapshot.matched.size / 2} / 18`,
                     },
                     { label: "Attempts", value: snapshot.attempts },
-                    { label: "Elapsed", value: "75s" },
+                    { label: "Elapsed", value: formatGameTime(ARCADE.memory.limitMs) },
                   ]
             }
           />
