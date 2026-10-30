@@ -137,7 +137,7 @@ export const vgGames = [
     title: "365 Memories",
     shortTitle: "365 Memories",
     dossierLabel: "Recall / 03",
-    description: "18 pairs. 75 seconds.",
+    description: "18 pairs. 2 minutes 45 seconds.",
     objective: "Match all 18 pairs before time runs out.",
     engine: "365-memories",
     difficulty: "standard",
@@ -146,7 +146,7 @@ export const vgGames = [
     metric: "time",
     instructions: [
       "Flip two cards. Matching identities stay face up; mismatches close after a brief delay.",
-      "The 75-second clock starts with your first flip. It keeps running in another tab—there is no pause or preview.",
+      "The 2-minute-45-second clock starts with your first flip. It keeps running in another tab—there is no pause or preview.",
       "Match all 18 photographic pairs from our private archive. Photographs never use a public image URL.",
     ],
     controls: ["Click or tap", "Arrow keys to focus; Enter or Space to flip"],
@@ -158,7 +158,7 @@ export const vgGames = [
         "memories-achievement",
         "memory-keeper-365",
         "Keeper of the Archive",
-        "Matched 18 pairs within 75 seconds.",
+        "Matched 18 pairs within 2 minutes 45 seconds.",
       ),
       coupon(
         "memories-classified-coupon",
