@@ -2,6 +2,7 @@ export type IconName =
   | "achievements"
   | "arrow"
   | "awards"
+  | "casino"
   | "challenges"
   | "contract"
   | "coupons"

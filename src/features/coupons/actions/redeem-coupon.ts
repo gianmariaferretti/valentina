@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { getCoupon } from "@/data/coupons";
+import { findCasinoCoupon } from "@/features/casino/repositories/load-casino";
 import {
   canRedeemCoupon,
   resolveCoupon,
@@ -30,7 +31,15 @@ export async function redeemCoupon(
     };
   }
 
-  const coupon = getCoupon(couponId);
+  if (typeof couponId !== "string" || couponId.length > 100) {
+    return {
+      status: "error",
+      message: "This coupon does not exist. Allegedly.",
+    };
+  }
+
+  // Kiss Casino wins are per-win instances stored outside the fixed catalogue.
+  const coupon = getCoupon(couponId) ?? (await findCasinoCoupon(couponId));
   if (!coupon) {
     return {
       status: "error",

@@ -18,6 +18,14 @@ export const navigationItems = [
     group: "primary",
   },
   {
+    title: "Kiss Casino",
+    shortTitle: "Casino",
+    href: "/coupons/casino",
+    description: "Rigged, openly. Win coupons, lose kisses.",
+    icon: "casino",
+    group: "primary",
+  },
+  {
     title: "Our map",
     shortTitle: "Map",
     href: "/map",

@@ -9,6 +9,8 @@ import { redeemCoupon } from "@/features/coupons/actions/redeem-coupon";
 import type { CouponStatus, CouponType } from "@/features/coupons/types";
 import { useModalDialog } from "@/hooks/use-modal-dialog";
 
+import { useTicketTear } from "./ticket-tear";
+
 interface RedemptionControlProps {
   couponId: string;
   title: string;
@@ -39,6 +41,7 @@ export function RedemptionControl({
   redeemedAt,
 }: RedemptionControlProps) {
   const router = useRouter();
+  const tearContext = useTicketTear();
   const [isConfirming, setIsConfirming] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -106,7 +109,10 @@ export function RedemptionControl({
         setFeedback(result.message);
         if (result.status === "success") {
           setIsConfirming(false);
-          router.refresh();
+          // The stub tears off, then the page refreshes with the saved state.
+          if (tearContext && result.redeemedAt)
+            tearContext.tear(result.redeemedAt);
+          else router.refresh();
         }
       });
     });

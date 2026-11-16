@@ -12,6 +12,12 @@ export const couponRarities = [
   "impossible",
 ] as const;
 
+/** Together = in person; Apart = long-distance. */
+export const couponSettings = ["together", "apart"] as const;
+
+/** Where a coupon comes from: the fixed catalogue or a Kiss Casino win. */
+export const couponSources = ["catalogue", "casino"] as const;
+
 export const couponStatuses = [
   "available",
   "redeemed",
@@ -22,7 +28,15 @@ export const couponStatuses = [
 export type CouponCategory = (typeof couponCategories)[number];
 export type CouponRarity = (typeof couponRarities)[number];
 export type CouponStatus = (typeof couponStatuses)[number];
+export type CouponSetting = (typeof couponSettings)[number];
+export type CouponSource = (typeof couponSources)[number];
 export type CouponType = "standard" | "challenge";
+
+/** One ticket in a numbered run of identical coupons ("2 of 3"). */
+export interface CouponSeries {
+  readonly index: number;
+  readonly total: number;
+}
 
 export interface Coupon {
   readonly id: string;
@@ -32,8 +46,17 @@ export interface Coupon {
   readonly description: string;
   readonly category: CouponCategory;
   readonly rarity: CouponRarity;
+  readonly setting: CouponSetting;
   readonly type: CouponType;
   readonly status: CouponStatus;
+  /** Defaults to "catalogue". */
+  readonly source?: CouponSource;
+  readonly series?: CouponSeries;
+  /**
+   * Retired duplicates stay in the data so saved redemptions keep resolving.
+   * They are hidden from the wallet unless already redeemed, and cannot be redeemed.
+   */
+  readonly retired?: boolean;
   readonly redeemable: boolean;
   /** Reward may be discovered before its owner supplies actual prize terms. */
   readonly fulfillmentReady?: boolean;
@@ -72,11 +95,18 @@ export interface CouponWalletItem {
   readonly shortDescription: string;
   readonly category: CouponCategory | null;
   readonly rarity: CouponRarity | null;
+  readonly setting: CouponSetting;
   readonly type: CouponType | null;
   readonly status: CouponStatus;
   readonly href: string | null;
   readonly callToAction: string | null;
   readonly secret: boolean;
+  readonly source: CouponSource;
+  readonly series: CouponSeries | null;
+  readonly unlockCondition: string | null;
+  readonly redeemedAt: string | null;
+  /** A challenge prize that was won and can be scratched open for the first time. */
+  readonly scratchable: boolean;
 }
 
 export interface CouponWalletStats {
@@ -88,8 +118,7 @@ export interface CouponWalletStats {
   readonly total: number;
 }
 
-export type CouponFilter =
-  "all" | CouponCategory | Exclude<CouponRarity, "standard">;
+export type CouponFilter = "all" | "album" | CouponCategory | CouponRarity;
 
 export const EMPTY_COUPON_WALLET_STATE: CouponWalletState = {
   version: 1,

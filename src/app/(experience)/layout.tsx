@@ -1,10 +1,11 @@
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 
 import { redirect } from "next/navigation";
 
 import { ProgressIndicator } from "@/components/layout/progress-indicator";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { CasinoNavBadge } from "@/features/casino/components/casino-nav-badge";
 import { hasValidAccessSession } from "@/lib/auth/session";
 
 export default async function ExperienceLayout({
@@ -16,7 +17,14 @@ export default async function ExperienceLayout({
 
   return (
     <div className="flex min-h-svh flex-col">
-      <SiteHeader progress={<ProgressIndicator />} />
+      <SiteHeader
+        casinoBadge={
+          <Suspense fallback={null}>
+            <CasinoNavBadge />
+          </Suspense>
+        }
+        progress={<ProgressIndicator />}
+      />
       <main className="flex-1">{children}</main>
       <SiteFooter />
     </div>

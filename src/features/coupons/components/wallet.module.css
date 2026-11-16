@@ -1,0 +1,875 @@
+/* Valentina's Wallet — ticket, rarity finishes, tear, stamp, toggle. */
+
+/* ------------------------------------------------------------ Ticket */
+
+.ticket {
+  --ticket-bg: var(--paper-white);
+  --ticket-fg: var(--ink);
+  --ticket-soft: var(--muted);
+  --ticket-line: rgba(36, 30, 28, 0.32);
+  --stub-width: 3.4rem;
+  --px: 50%;
+  --py: 50%;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--stub-width);
+  min-height: 21rem;
+  border-radius: 1.4rem;
+  color: var(--ticket-fg);
+  isolation: isolate;
+  filter: drop-shadow(0 14px 28px rgba(49, 35, 30, 0.1));
+  transition:
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 260ms ease;
+}
+
+a:hover > .ticket,
+a:focus-visible > .ticket {
+  transform: translateY(-4px) rotate(-0.4deg);
+  filter: drop-shadow(0 22px 34px rgba(49, 35, 30, 0.16));
+}
+
+.body,
+.stub {
+  position: relative;
+  background: var(--ticket-bg);
+  overflow: hidden;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  padding: 1.4rem 1.25rem 1.2rem 1.4rem;
+  border-radius: 1.4rem 0 0 1.4rem;
+  /* Notches at the perforation. */
+  mask:
+    radial-gradient(circle at 100% 0, transparent 0.7rem, #000 0.72rem) top
+      right / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 0.7rem, #000 0.72rem)
+      bottom right / 51% 51% no-repeat,
+    linear-gradient(#000 0 0) left / 50% 100% no-repeat;
+}
+
+.stub {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.1rem 0.4rem;
+  border-radius: 0 1.4rem 1.4rem 0;
+  border-left: 2px dashed var(--ticket-line);
+  mask:
+    radial-gradient(circle at 0 0, transparent 0.7rem, #000 0.72rem) top left /
+      100% 51% no-repeat,
+    radial-gradient(circle at 0 100%, transparent 0.7rem, #000 0.72rem) bottom
+      left / 100% 51% no-repeat;
+  transform-origin: 0 20%;
+}
+
+.stubCode {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+}
+
+.stubLabel {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ticket-soft);
+}
+
+.barcode {
+  width: 1.7rem;
+  height: 5.5rem;
+  background: repeating-linear-gradient(
+    0deg,
+    currentColor 0 2px,
+    transparent 2px 4px,
+    currentColor 4px 5px,
+    transparent 5px 8px
+  );
+  opacity: 0.75;
+}
+
+.eyebrow {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ticket-soft);
+}
+
+.code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 8vw, 2.6rem);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.description {
+  margin-top: 0.9rem;
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+  color: var(--ticket-soft);
+}
+
+.seriesBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.6rem;
+  padding: 0 0.6rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  margin-top: auto;
+  padding-top: 0.85rem;
+  border-top: 1px dashed var(--ticket-line);
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------ Rarity */
+
+.ticket[data-rarity="standard"] {
+  /* Matte paper: a faint fibre texture, no shine. */
+  --ticket-bg:
+    radial-gradient(rgba(36, 30, 28, 0.035) 1px, transparent 1px) 0 0 / 5px 5px,
+    var(--paper-white);
+}
+
+.ticket[data-rarity="premium"] {
+  --ticket-bg: linear-gradient(150deg, #6c3434, var(--oxblood) 60%, #4a2323);
+  --ticket-fg: var(--paper-white);
+  --ticket-soft: rgba(251, 248, 243, 0.8);
+  --ticket-line: rgba(251, 248, 243, 0.4);
+}
+
+.ticket[data-rarity="legendary"] {
+  --ticket-bg: linear-gradient(140deg, #f0d77e, #e2bd55 55%, #d3a640);
+  --ticket-fg: var(--ink);
+  --ticket-soft: #4f3d1b;
+  --ticket-line: rgba(36, 30, 28, 0.35);
+}
+
+.ticket[data-rarity="impossible"] {
+  --ticket-bg:
+    radial-gradient(
+      circle at 20% 15%,
+      rgba(180, 98, 88, 0.35),
+      transparent 45%
+    ),
+    var(--ink);
+  --ticket-fg: var(--paper-white);
+  --ticket-soft: rgba(251, 248, 243, 0.78);
+  --ticket-line: rgba(251, 248, 243, 0.35);
+}
+
+/* Gloss for premium: a light band following the pointer. */
+.shine {
+  position: absolute;
+  inset: 0;
+  /* Under the (positioned) text, so the foil never washes out the title. */
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  mix-blend-mode: soft-light;
+}
+
+.ticket[data-rarity="premium"] .shine {
+  background: linear-gradient(
+    115deg,
+    transparent calc(var(--px) - 25%),
+    rgba(255, 255, 255, 0.55) var(--px),
+    transparent calc(var(--px) + 25%)
+  );
+  opacity: 0.8;
+}
+
+/* Holographic foil for legendary. */
+.ticket[data-rarity="legendary"] .shine {
+  mix-blend-mode: color-dodge;
+  background:
+    radial-gradient(
+      circle at var(--px) var(--py),
+      rgba(255, 255, 255, 0.55),
+      transparent 38%
+    ),
+    linear-gradient(
+      125deg,
+      rgba(255, 0, 132, 0.28) 0%,
+      rgba(252, 166, 32, 0.28) 18%,
+      rgba(255, 252, 0, 0.26) 34%,
+      rgba(0, 255, 138, 0.26) 52%,
+      rgba(0, 207, 255, 0.28) 68%,
+      rgba(204, 76, 250, 0.28) 86%
+    );
+  background-size:
+    100% 100%,
+    260% 260%;
+  background-position:
+    0 0,
+    var(--px) var(--py);
+  opacity: 0.75;
+}
+
+.ticket[data-rarity="legendary"][data-live="false"] .shine {
+  animation: holo-drift 9s ease-in-out infinite alternate;
+}
+
+@keyframes holo-drift {
+  from {
+    --px: 15%;
+    --py: 20%;
+  }
+  to {
+    --px: 85%;
+    --py: 80%;
+  }
+}
+
+@property --px {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
+@property --py {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
+/* Impossible: sparkles and an occasional glitch. */
+.ticket[data-rarity="impossible"] .shine {
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(circle, #fff 0 1px, transparent 1.5px) 0 0 / 37px 41px,
+    radial-gradient(circle, #f2c84b 0 1px, transparent 1.5px) 11px 17px / 53px
+      47px;
+  animation: twinkle 3.2s steps(2) infinite;
+  opacity: 0.55;
+}
+
+.ticket[data-rarity="impossible"] .title {
+  animation: glitch 5s infinite;
+}
+
+@keyframes twinkle {
+  50% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes glitch {
+  0%,
+  92%,
+  100% {
+    text-shadow: none;
+    transform: none;
+  }
+  93% {
+    text-shadow:
+      2px 0 #ff2f6d,
+      -2px 0 #2fd5ff;
+    transform: translateX(1px) skewX(-6deg);
+  }
+  95% {
+    text-shadow:
+      -2px 0 #ff2f6d,
+      2px 0 #2fd5ff;
+    transform: translateX(-1px);
+  }
+}
+
+/* ------------------------------------------------------------ States */
+
+.ticket[data-status="redeemed"] .body {
+  /* The stub is gone: a torn edge where the perforation was. */
+  border-radius: 1.4rem;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 6px) 0,
+    100% 4%,
+    calc(100% - 5px) 9%,
+    100% 15%,
+    calc(100% - 7px) 21%,
+    100% 28%,
+    calc(100% - 4px) 34%,
+    100% 41%,
+    calc(100% - 6px) 48%,
+    100% 55%,
+    calc(100% - 5px) 62%,
+    100% 69%,
+    calc(100% - 7px) 76%,
+    100% 83%,
+    calc(100% - 4px) 90%,
+    100% 96%,
+    calc(100% - 6px) 100%,
+    0 100%
+  );
+  mask: none;
+}
+
+.ticket[data-status="redeemed"] {
+  grid-template-columns: minmax(0, 1fr) 0;
+}
+
+.ticket[data-status="redeemed"] .body > :not(.stamp) {
+  opacity: 0.72;
+}
+
+.stamp {
+  position: absolute;
+  right: 1.1rem;
+  bottom: 3.6rem;
+  z-index: 4;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.45rem 0.85rem 0.5rem;
+  border: 3px double #b0302a;
+  border-radius: 0.4rem;
+  color: #b0302a;
+  background: rgba(251, 248, 243, 0.6);
+  transform: rotate(-11deg);
+  text-align: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  mix-blend-mode: multiply;
+  /* Uneven ink like a real rubber stamp. */
+  mask: radial-gradient(rgba(0, 0, 0, 0.92) 60%, rgba(0, 0, 0, 0.55)) 0 0 / 7px
+    7px;
+}
+
+.stamp strong {
+  font-size: 1.05rem;
+  letter-spacing: 0.24em;
+}
+
+.stamp span {
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+}
+
+.ticket[data-rarity="premium"] .stamp,
+.ticket[data-rarity="impossible"] .stamp {
+  color: #ffb1a8;
+  border-color: #ffb1a8;
+  background: rgba(36, 30, 28, 0.35);
+  mix-blend-mode: normal;
+}
+
+/* Sealed: locked coupons under tape with a handwritten condition. */
+.sealed .body > :not(.seal) {
+  filter: saturate(0.35) blur(0.6px);
+  opacity: 0.55;
+}
+
+.seal {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  pointer-events: none;
+}
+
+.sealTape {
+  position: absolute;
+  left: -8%;
+  width: 116%;
+  height: 2.3rem;
+  background: rgba(242, 200, 75, 0.72);
+  box-shadow: 0 2px 6px rgba(36, 30, 28, 0.15);
+  mask: linear-gradient(
+    90deg,
+    transparent 0,
+    #000 4px,
+    #000 calc(100% - 4px),
+    transparent 100%
+  );
+}
+
+.sealTape:nth-child(1) {
+  top: 28%;
+  transform: rotate(-8deg);
+}
+
+.sealTape:nth-child(2) {
+  top: 58%;
+  transform: rotate(6deg);
+}
+
+.sealNote {
+  position: relative;
+  max-width: 15rem;
+  padding: 0.75rem 0.9rem;
+  background: var(--paper-white);
+  color: var(--ink);
+  box-shadow: 0 6px 18px rgba(36, 30, 28, 0.15);
+  transform: rotate(-2.5deg);
+  font-family: "Bradley Hand", "Segoe Print", Noteworthy, cursive;
+  font-size: 1rem;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.undiscovered {
+  --ticket-bg:
+    repeating-linear-gradient(
+      135deg,
+      rgba(36, 30, 28, 0.04) 0 10px,
+      transparent 10px 20px
+    ),
+    rgba(251, 248, 243, 0.5);
+  filter: none;
+}
+
+.undiscovered .body,
+.undiscovered .stub {
+  outline: 2px dashed var(--line-strong);
+  outline-offset: -2px;
+}
+
+.mystery {
+  display: grid;
+  place-items: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  margin: auto;
+  border: 2px dashed var(--line-strong);
+  border-radius: 50%;
+  font-family: var(--font-display);
+  font-size: 2.6rem;
+  color: var(--muted);
+}
+
+.glow {
+  animation: reunion-glow 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes reunion-glow {
+  from {
+    filter: drop-shadow(0 0 0 rgba(242, 200, 75, 0));
+  }
+  to {
+    filter: drop-shadow(0 0 22px rgba(242, 200, 75, 0.85));
+  }
+}
+
+/* ------------------------------------------------------------ Album */
+
+.albumStub {
+  position: relative;
+  display: grid;
+  gap: 0.35rem;
+  min-height: 9.5rem;
+  padding: 0.9rem 0.85rem;
+  border-radius: 0.7rem;
+  background: var(--paper-white);
+  border-left: 2px dashed var(--line-strong);
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 100%,
+    0 100%,
+    4px 93%,
+    0 86%,
+    5px 78%,
+    0 70%,
+    4px 61%,
+    0 52%,
+    5px 43%,
+    0 35%,
+    4px 26%,
+    0 18%,
+    5px 9%
+  );
+  box-shadow: 0 8px 20px rgba(36, 30, 28, 0.08);
+}
+
+.albumStub:nth-child(3n + 1) {
+  transform: rotate(-1.5deg);
+}
+
+.albumStub:nth-child(3n + 2) {
+  transform: rotate(1.2deg);
+}
+
+.albumStamp {
+  justify-self: end;
+  margin-top: auto;
+  padding: 0.2rem 0.45rem;
+  border: 2px solid #b0302a;
+  border-radius: 0.3rem;
+  color: #b0302a;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  transform: rotate(-8deg);
+}
+
+/* ------------------------------------------------------------ Toggle */
+
+.toggle {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0.4rem;
+  border-radius: 1.6rem;
+  background: var(--paper-deep);
+  box-shadow:
+    inset 0 2px 6px rgba(36, 30, 28, 0.14),
+    0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.toggleKnob {
+  position: absolute;
+  top: 0.4rem;
+  bottom: 0.4rem;
+  left: 0.4rem;
+  width: calc(50% - 0.4rem);
+  border-radius: 1.25rem;
+  background: var(--paper-white);
+  border: 1px dashed var(--line-strong);
+  box-shadow: 0 10px 24px rgba(36, 30, 28, 0.14);
+  transition: transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.toggle[data-mode="apart"] .toggleKnob {
+  transform: translateX(100%);
+}
+
+.toggleOption {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  min-height: 7.5rem;
+  padding: 0.75rem 0.5rem;
+  border-radius: 1.25rem;
+  color: var(--muted);
+  transition: color 200ms ease;
+}
+
+.toggleOption[aria-pressed="true"] {
+  color: var(--ink);
+}
+
+.toggleOption:focus-visible {
+  outline: 2px solid var(--rust);
+  outline-offset: 2px;
+}
+
+.toggleLabel {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: -0.03em;
+}
+
+.toggleCount {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.illustration {
+  width: 7rem;
+  height: 3rem;
+  overflow: visible;
+}
+
+.dash {
+  stroke-dasharray: 4 5;
+  animation: dash-flow 1.6s linear infinite;
+}
+
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -18;
+  }
+}
+
+.plane {
+  offset-path: path("M 14 30 Q 56 -6 98 30");
+  offset-rotate: auto;
+  animation: fly 3.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes fly {
+  0% {
+    offset-distance: 0%;
+    opacity: 0;
+  }
+  8%,
+  92% {
+    opacity: 1;
+  }
+  100% {
+    offset-distance: 100%;
+    opacity: 0;
+  }
+}
+
+.figures {
+  transform-origin: 50% 100%;
+}
+
+.toggleOption[aria-pressed="true"] .figures {
+  animation: lean 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes lean {
+  to {
+    transform: rotate(2deg);
+  }
+}
+
+/* ------------------------------------------------------------ Strip & daily */
+
+.strip {
+  display: flex;
+  gap: 2px;
+  height: 1.1rem;
+}
+
+.stripTicket {
+  flex: 1;
+  min-width: 2px;
+  border-radius: 2px;
+  background: rgba(251, 248, 243, 0.16);
+}
+
+.stripTicket[data-filled="true"] {
+  background: var(--sand);
+}
+
+.reelWindow {
+  position: relative;
+  height: 3.2rem;
+  overflow: hidden;
+  border-radius: 0.8rem;
+  background: var(--ink);
+  color: var(--paper-white);
+  box-shadow: inset 0 6px 10px rgba(0, 0, 0, 0.45);
+}
+
+.reelWindow::before,
+.reelWindow::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  height: 0.9rem;
+  pointer-events: none;
+}
+
+.reelWindow::before {
+  top: 0;
+  background: linear-gradient(var(--ink), transparent);
+}
+
+.reelWindow::after {
+  bottom: 0;
+  background: linear-gradient(transparent, var(--ink));
+}
+
+.reelTrack {
+  display: grid;
+  transition: transform 1.6s cubic-bezier(0.15, 0.85, 0.25, 1.05);
+}
+
+.reelItem {
+  display: flex;
+  align-items: center;
+  height: 3.2rem;
+  padding: 0 1rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ------------------------------------------------------------ Neon sign */
+
+.neon {
+  position: relative;
+  display: grid;
+  gap: 0.35rem;
+  justify-items: center;
+  padding: 1.4rem 1rem 1.2rem;
+  border-radius: 1.4rem;
+  background:
+    radial-gradient(circle at 50% 0, rgba(255, 64, 129, 0.24), transparent 60%),
+    #1b1416;
+  color: #ffe9f2;
+  text-align: center;
+  box-shadow:
+    inset 0 0 0 2px #3a2a2e,
+    0 18px 40px rgba(36, 30, 28, 0.2);
+}
+
+.neonTitle {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 9vw, 3.4rem);
+  font-style: italic;
+  letter-spacing: -0.02em;
+  color: #fff3f8;
+  text-shadow:
+    0 0 4px #fff,
+    0 0 12px #ff4fa3,
+    0 0 26px #ff1f8f,
+    0 0 44px #ff1f8f;
+  animation: neon-flicker 4.2s infinite;
+}
+
+.neonSub {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: #ffd166;
+  text-shadow: 0 0 10px rgba(255, 209, 102, 0.8);
+}
+
+.bulbs {
+  position: absolute;
+  inset: 0.45rem;
+  border-radius: 1.1rem;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, #ffd166 0 2px, transparent 3px) 0 0 / 18px 18px
+      repeat-x,
+    radial-gradient(circle, #ffd166 0 2px, transparent 3px) 9px 100% / 18px 18px
+      repeat-x;
+  animation: bulbs 1.2s steps(2) infinite;
+}
+
+@keyframes bulbs {
+  50% {
+    background-position:
+      9px 0,
+      0 100%;
+  }
+}
+
+@keyframes neon-flicker {
+  0%,
+  18%,
+  22%,
+  25%,
+  53%,
+  57%,
+  100% {
+    opacity: 1;
+  }
+  20%,
+  24%,
+  55% {
+    opacity: 0.55;
+  }
+}
+
+/* ------------------------------------------------------------ Toast */
+
+.toast {
+  position: fixed;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 90;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  width: min(25rem, calc(100vw - 2rem));
+  padding: 0.85rem 1rem;
+  border-radius: 1.1rem;
+  background: rgba(36, 30, 28, 0.94);
+  color: var(--paper-white);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.toastIcon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 0.6rem;
+  background: var(--rust);
+  font-size: 1.1rem;
+}
+
+/* ------------------------------------------------------------ Motion */
+
+@media (prefers-reduced-motion: reduce) {
+  .ticket,
+  .toggleKnob,
+  .reelTrack {
+    transition: opacity 200ms ease;
+  }
+
+  a:hover > .ticket,
+  a:focus-visible > .ticket {
+    transform: none;
+  }
+
+  .shine,
+  .ticket[data-rarity="legendary"][data-live="false"] .shine,
+  .ticket[data-rarity="impossible"] .shine {
+    animation: none;
+    background: none;
+  }
+
+  .ticket[data-rarity="impossible"] .title,
+  .glow,
+  .dash,
+  .plane,
+  .toggleOption[aria-pressed="true"] .figures,
+  .neonTitle,
+  .bulbs {
+    animation: none;
+  }
+
+  .plane {
+    offset-distance: 50%;
+  }
+
+  .glow {
+    filter: drop-shadow(0 0 14px rgba(242, 200, 75, 0.8));
+  }
+}

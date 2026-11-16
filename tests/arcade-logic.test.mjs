@@ -319,11 +319,12 @@ test("Memory: mismatches lock third-card input and close after exactly the confi
 });
 test("Memory: hidden-tab elapsed time causes immediate timeout, no late flip or extended clock", () => {
   const state = createMemoryState(1);
+  const limit = ARCADE.memory.limitMs;
   flipMemory(state, 0, 1000);
-  tickMemory(state, 76000);
+  tickMemory(state, limit + 1000);
   assert.equal(state.status, "LOST");
-  assert.equal(state.elapsedMs, 75000);
-  assert.equal(flipMemory(state, 1, 76001), false);
+  assert.equal(state.elapsedMs, limit);
+  assert.equal(flipMemory(state, 1, limit + 1001), false);
 });
 test("Memory: final pair wins before its animation, deadline is strict, result clock remains frozen", () => {
   const state = createMemoryState(2),
@@ -390,8 +391,8 @@ test("Memory: invalid indices, post-deadline and premature mismatch transcript f
   assert.throws(() =>
     verifyArcadeResult(
       "365-memories",
-      { seed: 1, inputs: [0, 1], times: [0, 75000] },
-      75000,
+      { seed: 1, inputs: [0, 1], times: [0, ARCADE.memory.limitMs] },
+      ARCADE.memory.limitMs,
     ),
   );
   assert.throws(() =>
@@ -405,7 +406,7 @@ test("Memory: invalid indices, post-deadline and premature mismatch transcript f
     verifyArcadeResult(
       "365-memories",
       { seed: 1, inputs: [0], times: [0] },
-      75000,
+      ARCADE.memory.limitMs,
     ).ending,
     "archive-timed-out",
   );
