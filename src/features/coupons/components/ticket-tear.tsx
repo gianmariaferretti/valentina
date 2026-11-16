@@ -12,6 +12,8 @@ import {
   type ReactNode,
 } from "react";
 
+import { Portal } from "@/components/ui/portal";
+
 import { formatStampDate } from "./coupon-ticket";
 import styles from "./wallet.module.css";
 
@@ -78,27 +80,29 @@ export function TicketTearProvider({
   return (
     <TearContext.Provider value={value}>
       {children}
-      <AnimatePresence>
-        {toast ? (
-          <motion.div
-            animate={{ opacity: 1, y: 0 }}
-            className={styles.toast}
-            exit={{ opacity: 0, y: 12 }}
-            initial={{ opacity: 0, y: 24 }}
-            role="status"
-          >
-            <span aria-hidden="true" className={styles.toastIcon}>
-              💌
-            </span>
-            <span>
-              <span className="block text-[0.58rem] font-bold tracking-[0.16em] text-white/70 uppercase">
-                V&amp;G System · now
+      <Portal>
+        <AnimatePresence>
+          {toast ? (
+            <motion.div
+              animate={{ opacity: 1, y: 0 }}
+              className={styles.toast}
+              exit={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 24 }}
+              role="status"
+            >
+              <span aria-hidden="true" className={styles.toastIcon}>
+                💌
               </span>
-              <span className="mt-1 block text-sm leading-5">{toast}</span>
-            </span>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+              <span>
+                <span className="block text-[0.58rem] font-bold tracking-[0.16em] text-white/70 uppercase">
+                  V&amp;G System · now
+                </span>
+                <span className="mt-1 block text-sm leading-5">{toast}</span>
+              </span>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+      </Portal>
     </TearContext.Provider>
   );
 }

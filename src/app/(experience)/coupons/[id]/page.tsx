@@ -116,7 +116,7 @@ export default async function CouponPage({ params }: CouponPageProps) {
             className="absolute top-8 -right-4 z-10 size-8 rounded-full bg-[var(--paper)] lg:top-auto lg:right-[20.5rem] lg:bottom-24"
           />
 
-          <section className="relative flex min-h-[39rem] flex-col px-6 py-8 sm:px-10 sm:py-11 lg:px-14 lg:py-14">
+          <section className="relative flex flex-col px-6 py-7 sm:min-h-[39rem] sm:px-10 sm:py-11 lg:px-14 lg:py-14">
             <div
               aria-hidden="true"
               className={cn(
@@ -146,15 +146,15 @@ export default async function CouponPage({ params }: CouponPageProps) {
               />
             </div>
 
-            <div className="relative my-auto py-14">
+            <div className="relative my-auto py-8 sm:py-14">
               <p className="text-[0.6rem] font-bold tracking-[0.19em] uppercase opacity-52">
                 {resolvedCoupon.category} · {resolvedCoupon.setting} ·{" "}
                 {resolvedCoupon.status}
               </p>
-              <h1 className="mt-5 max-w-5xl font-display text-[clamp(4rem,10vw,8.5rem)] leading-[0.79] tracking-[-0.065em]">
+              <h1 className="mt-5 max-w-5xl font-display text-[clamp(2.9rem,10vw,8.5rem)] leading-[0.79] tracking-[-0.065em]">
                 {resolvedCoupon.title}
               </h1>
-              <p className="mt-8 max-w-2xl text-base leading-7 opacity-65 sm:text-lg sm:leading-8">
+              <p className="mt-6 max-w-2xl text-base leading-7 sm:mt-8 opacity-65 sm:text-lg sm:leading-8">
                 {resolvedCoupon.description}
               </p>
             </div>
@@ -205,16 +205,19 @@ export default async function CouponPage({ params }: CouponPageProps) {
               ) : null}
             </div>
 
-            <RedemptionControl
-              challengeId={resolvedCoupon.challengeId}
-              couponId={resolvedCoupon.id}
-              redeemable={resolvedCoupon.redeemable}
-              redeemedAt={resolvedCoupon.redeemedAt}
-              status={resolvedCoupon.status}
-              title={resolvedCoupon.title}
-              type={resolvedCoupon.type}
-              unlockCondition={resolvedCoupon.unlockCondition}
-            />
+            {/* On phones the action comes before the terms, so it is reachable without a long scroll. */}
+            <div className="max-lg:order-first max-lg:mb-6">
+              <RedemptionControl
+                challengeId={resolvedCoupon.challengeId}
+                couponId={resolvedCoupon.id}
+                redeemable={resolvedCoupon.redeemable}
+                redeemedAt={resolvedCoupon.redeemedAt}
+                status={resolvedCoupon.status}
+                title={resolvedCoupon.title}
+                type={resolvedCoupon.type}
+                unlockCondition={resolvedCoupon.unlockCondition}
+              />
+            </div>
 
             <TicketStub>
               <div className="h-14 bg-[repeating-linear-gradient(90deg,var(--ink)_0_2px,transparent_2px_5px,var(--ink)_5px_6px,transparent_6px_10px)] opacity-72" />

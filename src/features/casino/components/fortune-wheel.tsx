@@ -59,7 +59,15 @@ export function FortuneWheel({
     if (spinning || disabled || balance < cost) return;
     setSpinning(true);
     setEvent(null);
-    const result = await onSpin();
+    let result: CasinoActionResult;
+    try {
+      result = await onSpin();
+    } catch {
+      result = {
+        ok: false,
+        message: "The connection dropped. Nothing was charged — try again.",
+      };
+    }
     if (!result.ok || result.event.kind !== "wheel") {
       setSpinning(false);
       onSettled(result);
@@ -76,7 +84,7 @@ export function FortuneWheel({
       setSpinning(false);
       setEvent(wheel);
       onSettled(result);
-      button.current?.focus();
+      button.current?.focus({ preventScroll: true });
     }, duration + 80);
   }
 

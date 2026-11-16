@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState, useTransition } from "react";
 
+import { Portal } from "@/components/ui/portal";
 import { redeemCoupon } from "@/features/coupons/actions/redeem-coupon";
 import type { CouponStatus, CouponType } from "@/features/coupons/types";
 import { useModalDialog } from "@/hooks/use-modal-dialog";
@@ -143,69 +144,71 @@ export function RedemptionControl({
       ) : null}
 
       {isConfirming ? (
-        <div
-          aria-labelledby="redemption-title"
-          aria-modal="true"
-          className="fixed inset-0 z-[80] grid place-items-center bg-[var(--ink)]/65 p-5 backdrop-blur-sm"
-          onKeyDown={onKeyDown}
-          onMouseDown={(event) => {
-            if (event.currentTarget === event.target && !isPending) {
-              closeConfirmation();
-            }
-          }}
-          ref={dialogRef}
-          role="dialog"
-          tabIndex={-1}
-        >
-          <div className="relative w-full max-w-md rounded-[1.75rem] bg-[var(--paper-white)] p-7 shadow-[var(--shadow-lifted)] sm:p-9">
-            <button
-              aria-label="Cancel redemption"
-              className="absolute top-5 right-5 grid size-11 place-items-center rounded-full border border-[var(--line)] transition hover:bg-[var(--paper)]"
-              disabled={isPending}
-              onClick={closeConfirmation}
-              ref={closeButtonRef}
-              type="button"
-            >
-              <X aria-hidden="true" size={18} />
-            </button>
-            <p className="text-[0.6rem] font-bold tracking-[0.18em] text-[var(--rust)] uppercase">
-              Final confirmation
-            </p>
-            <h2
-              className="mt-4 max-w-xs font-display text-4xl leading-[0.95] tracking-[-0.04em]"
-              id="redemption-title"
-            >
-              Redeem {title}?
-            </h2>
-            <p className="mt-5 text-sm leading-6 text-[var(--muted)]">
-              This will permanently mark the coupon as redeemed in
-              Valentina&apos;s wallet. Dramatic consequences may follow.
-            </p>
-            <div className="mt-8 grid gap-2 sm:grid-cols-2">
+        <Portal>
+          <div
+            aria-labelledby="redemption-title"
+            aria-modal="true"
+            className="fixed inset-0 z-[80] grid place-items-center overflow-y-auto overscroll-contain bg-[var(--ink)]/65 p-5 backdrop-blur-sm"
+            onKeyDown={onKeyDown}
+            onMouseDown={(event) => {
+              if (event.currentTarget === event.target && !isPending) {
+                closeConfirmation();
+              }
+            }}
+            ref={dialogRef}
+            role="dialog"
+            tabIndex={-1}
+          >
+            <div className="relative w-full max-w-md rounded-[1.75rem] bg-[var(--paper-white)] p-7 shadow-[var(--shadow-lifted)] sm:p-9">
               <button
-                className="min-h-12 rounded-full border border-[var(--line-strong)] px-5 text-[0.65rem] font-bold tracking-[0.13em] uppercase"
+                aria-label="Cancel redemption"
+                className="absolute top-5 right-5 grid size-11 place-items-center rounded-full border border-[var(--line)] transition hover:bg-[var(--paper)]"
                 disabled={isPending}
                 onClick={closeConfirmation}
+                ref={closeButtonRef}
                 type="button"
               >
-                Not yet
+                <X aria-hidden="true" size={18} />
               </button>
-              <button
-                className="min-h-12 rounded-full bg-[var(--rust)] px-5 text-[0.65rem] font-bold tracking-[0.13em] text-white uppercase disabled:opacity-50"
-                disabled={isPending}
-                onClick={confirmRedemption}
-                type="button"
-              >
-                {isPending ? "Redeeming…" : "Yes, redeem"}
-              </button>
-            </div>
-            {feedback ? (
-              <p className="mt-4 text-sm text-[var(--rust)]" role="alert">
-                {feedback}
+              <p className="text-[0.6rem] font-bold tracking-[0.18em] text-[var(--rust)] uppercase">
+                Final confirmation
               </p>
-            ) : null}
+              <h2
+                className="mt-4 max-w-xs font-display text-4xl leading-[0.95] tracking-[-0.04em]"
+                id="redemption-title"
+              >
+                Redeem {title}?
+              </h2>
+              <p className="mt-5 text-sm leading-6 text-[var(--muted)]">
+                This will permanently mark the coupon as redeemed in
+                Valentina&apos;s wallet. Dramatic consequences may follow.
+              </p>
+              <div className="mt-8 grid gap-2 sm:grid-cols-2">
+                <button
+                  className="min-h-12 rounded-full border border-[var(--line-strong)] px-5 text-[0.65rem] font-bold tracking-[0.13em] uppercase"
+                  disabled={isPending}
+                  onClick={closeConfirmation}
+                  type="button"
+                >
+                  Not yet
+                </button>
+                <button
+                  className="min-h-12 rounded-full bg-[var(--rust)] px-5 text-[0.65rem] font-bold tracking-[0.13em] text-white uppercase disabled:opacity-50"
+                  disabled={isPending}
+                  onClick={confirmRedemption}
+                  type="button"
+                >
+                  {isPending ? "Redeeming…" : "Yes, redeem"}
+                </button>
+              </div>
+              {feedback ? (
+                <p className="mt-4 text-sm text-[var(--rust)]" role="alert">
+                  {feedback}
+                </p>
+              ) : null}
+            </div>
           </div>
-        </div>
+        </Portal>
       ) : null}
     </>
   );

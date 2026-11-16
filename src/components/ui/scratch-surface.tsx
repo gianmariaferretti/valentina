@@ -98,7 +98,7 @@ export function ScratchSurface({
       context.fillText(coverText, rect.width / 2, rect.height / 2 - 8);
       context.font = "600 10px ui-sans-serif, system-ui, sans-serif";
       context.fillText(
-        "✦ with a finger ✦",
+        "✦ swipe sideways to scratch ✦",
         rect.width / 2,
         rect.height / 2 + 10,
       );
@@ -121,7 +121,8 @@ export function ScratchSurface({
     context.globalCompositeOperation = "destination-out";
     context.lineCap = "round";
     context.lineJoin = "round";
-    context.lineWidth = 34;
+    // Wider strokes on wider cards, so a few finger swipes are enough.
+    context.lineWidth = Math.max(34, canvas.clientWidth * 0.14);
     context.beginPath();
     const from = lastPoint.current ?? point;
     context.moveTo(from.x, from.y);
@@ -154,7 +155,9 @@ export function ScratchSurface({
         <>
           <canvas
             aria-hidden="true"
-            className="absolute inset-0 z-10 size-full cursor-grab touch-none rounded-[inherit]"
+            // pan-y: vertical swipes still scroll the page on phones;
+            // sideways strokes scratch.
+            className="absolute inset-0 z-10 size-full cursor-grab touch-pan-y rounded-[inherit]"
             onPointerDown={(event) => {
               drawing.current = true;
               lastPoint.current = null;
