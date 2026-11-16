@@ -2,24 +2,22 @@
 
 import { ArrowUpRight, Dices, Sparkles, TicketCheck } from "lucide-react";
 import Link from "next/link";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 import { ScratchSurface } from "@/components/ui/scratch-surface";
 import type { CouponWalletItem } from "@/features/coupons/types";
 import { useHoloTilt } from "@/hooks/use-holo-tilt";
 import { cn } from "@/lib/cn";
 
+import { RedeemDialog } from "./redeem-dialog";
+import { formatStampDate } from "./stamp-date";
+import {
+  RedeemedStamp,
+  TicketStub,
+  TicketTearProvider,
+  useTicketTear,
+} from "./ticket-tear";
 import styles from "./wallet.module.css";
-
-export function formatStampDate(value: string): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  })
-    .format(new Date(value))
-    .toUpperCase();
-}
 
 const statusLabels = {
   available: "Available",
@@ -36,13 +34,83 @@ interface CouponTicketProps {
   glow?: boolean;
 }
 
-export function CouponTicket({
+/**
+ * A wallet ticket. Available, redeemable coupons can be redeemed right here:
+ * the same confirmation and the same tear as on the coupon page.
+ */
+export function CouponTicket(props: CouponTicketProps) {
+  const { coupon, covered = false } = props;
+  if (coupon.status === "available" && coupon.redeemable && !covered) {
+    return (
+      <TicketTearProvider initialRedeemedAt={null}>
+        <RedeemableTicket {...props} />
+      </TicketTearProvider>
+    );
+  }
+  return <TicketView {...props} />;
+}
+
+function RedeemableTicket(props: CouponTicketProps) {
+  const tear = useTicketTear();
+  const [confirming, setConfirming] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const phase = tear?.phase ?? "idle";
+  const active = phase !== "idle";
+  return (
+    // Lifted above neighbouring cards while the stub falls over them.
+    <div
+      className={cn("relative", active && "z-40")}
+      data-coupon-id={props.coupon.id}
+    >
+      <TicketView {...props} redeemSlot />
+      {phase === "idle" || phase === "tearing" ? (
+        <button
+          aria-label={`Redeem ${props.coupon.title}`}
+          className={styles.redeemButton}
+          disabled={active}
+          onClick={() => {
+            setFeedback(null);
+            setConfirming(true);
+          }}
+          ref={buttonRef}
+          type="button"
+        >
+          {active ? "Redeeming…" : "Redeem"}
+        </button>
+      ) : null}
+      {feedback ? (
+        <p className="mt-2 text-center text-xs text-[var(--rust)]" role="alert">
+          {feedback}
+        </p>
+      ) : null}
+      <RedeemDialog
+        casino={props.coupon.id.startsWith("casino-")}
+        onCancel={() => setConfirming(false)}
+        onConfirm={() => {
+          setConfirming(false);
+          void tear?.redeem(props.coupon.id).then((result) => {
+            if (!result.ok) setFeedback(result.message);
+          });
+        }}
+        open={confirming}
+        returnFocusRef={buttonRef}
+        title={props.coupon.title}
+      />
+    </div>
+  );
+}
+
+function TicketView({
   coupon,
   covered = false,
   onScratched,
   glow = false,
-}: CouponTicketProps) {
+  redeemSlot = false,
+}: CouponTicketProps & { redeemSlot?: boolean }) {
   const ticketRef = useRef<HTMLDivElement>(null);
+  const tear = useTicketTear();
+  const phase = tear?.phase ?? "idle";
   const rarity = coupon.rarity ?? "standard";
   useHoloTilt(
     ticketRef,
@@ -79,7 +147,8 @@ export function CouponTicket({
   }
 
   const sealed = coupon.status === "locked";
-  const redeemed = coupon.status === "redeemed";
+  const redeemed = coupon.status === "redeemed" || phase === "done";
+  const torn = phase === "stamping" || phase === "done";
 
   const ticket = (
     <div
@@ -90,7 +159,8 @@ export function CouponTicket({
       )}
       data-live="false"
       data-rarity={rarity}
-      data-status={coupon.status}
+      data-status={redeemed ? "redeemed" : coupon.status}
+      data-torn={phase === "tearing" ? "tearing" : torn ? "gone" : undefined}
       ref={ticketRef}
     >
       <div className={styles.body}>
@@ -126,18 +196,24 @@ export function CouponTicket({
         </div>
 
         <div className={cn(styles.footer, "relative")}>
-          <span>{statusLabels[coupon.status]}</span>
+          {/* The Redeem button sits over this corner on redeemable tickets. */}
+          <span>
+            {redeemSlot && !redeemed
+              ? ""
+              : statusLabels[redeemed ? "redeemed" : coupon.status]}
+          </span>
           {coupon.callToAction && !redeemed ? (
             <span className="text-right">{coupon.callToAction}</span>
           ) : null}
         </div>
 
-        {redeemed && coupon.redeemedAt ? (
+        {coupon.status === "redeemed" && coupon.redeemedAt && !tear ? (
           <p className={styles.stamp}>
             <strong>REDEEMED</strong>
             <span>{formatStampDate(coupon.redeemedAt)}</span>
           </p>
         ) : null}
+        {tear ? <RedeemedStamp /> : null}
 
         {sealed ? (
           <div className={styles.seal}>
@@ -150,7 +226,21 @@ export function CouponTicket({
         ) : null}
       </div>
 
-      {redeemed ? null : (
+      {coupon.status === "redeemed" ? null : tear ? (
+        <TicketStub
+          className={styles.stub}
+          orientation="vertical"
+          wrapperClassName={styles.stubSlot}
+        >
+          <span aria-hidden="true" className={styles.stubLabel}>
+            Admit one
+          </span>
+          <span aria-hidden="true" className={styles.barcode} />
+          <span aria-hidden="true" className={styles.stubCode}>
+            {coupon.code}
+          </span>
+        </TicketStub>
+      ) : (
         <div aria-hidden="true" className={styles.stub}>
           <span className={styles.stubLabel}>Admit one</span>
           <span className={styles.barcode} />

@@ -75,6 +75,7 @@ export function createWalletItem(coupon: ResolvedCoupon): CouponWalletItem {
       unlockCondition: null,
       redeemedAt: null,
       scratchable: false,
+      redeemable: false,
     };
   }
 
@@ -101,6 +102,7 @@ export function createWalletItem(coupon: ResolvedCoupon): CouponWalletItem {
     unlockCondition: coupon.unlockCondition,
     redeemedAt: coupon.redeemedAt,
     scratchable: coupon.type === "challenge" && coupon.status === "available",
+    redeemable: canRedeemCoupon(coupon),
   };
 }
 

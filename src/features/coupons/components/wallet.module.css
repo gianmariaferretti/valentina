@@ -20,7 +20,8 @@
   filter: drop-shadow(0 14px 28px rgba(49, 35, 30, 0.1));
   transition:
     transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
-    filter 260ms ease;
+    filter 260ms ease,
+    grid-template-columns 320ms ease;
 }
 
 a:hover > .ticket,
@@ -311,6 +312,7 @@ a:focus-visible > .ticket {
 
 /* ------------------------------------------------------------ States */
 
+.ticket[data-torn] .body,
 .ticket[data-status="redeemed"] .body {
   /* The stub is gone: a torn edge where the perforation was. */
   border-radius: 1.4rem;
@@ -338,8 +340,46 @@ a:focus-visible > .ticket {
   mask: none;
 }
 
-.ticket[data-status="redeemed"] {
+.ticket[data-status="redeemed"],
+.ticket[data-torn="gone"] {
   grid-template-columns: minmax(0, 1fr) 0;
+}
+
+/* Grid cell that hosts the detachable stub. */
+.stubSlot {
+  display: grid;
+  min-width: 0;
+}
+
+/* Redeem straight from the wallet: sits over the footer's left corner. */
+.redeemButton {
+  position: absolute;
+  left: 1.1rem;
+  bottom: 0.7rem;
+  z-index: 6;
+  min-height: 2.75rem;
+  padding: 0 1.1rem;
+  border-radius: 999px;
+  background: var(--rust);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  box-shadow: 0 6px 14px rgba(89, 44, 44, 0.25);
+}
+
+.redeemButton:hover:not(:disabled) {
+  background: var(--oxblood);
+}
+
+.redeemButton:focus-visible {
+  outline: 2px solid var(--rust);
+  outline-offset: 3px;
+}
+
+.redeemButton:disabled {
+  opacity: 0.75;
 }
 
 .ticket[data-status="redeemed"] .body > :not(.stamp) {

@@ -46,3 +46,22 @@ The retired novel's `@monogatari/core` dependency, adapter, generated runtime pr
 ## Travel photo preparation
 
 Supplied photographs were converted locally using macOS `sips` and Sharp 0.35.5 (Apache-2.0), already present through Next.js. The installed `@img/sharp-libvips-darwin-arm64` distribution declares LGPL-3.0-or-later; upstream libvips itself is LGPL-2.1-or-later. These installed package licenses were checked locally. No new package, third-party photograph, generated personal image or borrowed asset was introduced. Only optimized WebP copies, not originals or metadata, are committed. Photo filenames and associations are documented in `docs/photo-integration.md`.
+
+## Kiss Casino v2
+
+Runtime libraries added through the npm lockfile (published packages, not copied or modified; each package retains its own license file). All declare React 19 support in their peer dependencies and were checked against React 19 / Next.js 16:
+
+| Package           | Version | License | Use                                                                                                | Source                                      |
+| ----------------- | ------- | ------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `canvas-confetti` | 1.9.4   | ISC     | Confetti and 💋 rain on BIG / MEGA / JACKPOT wins (loaded on demand, disabled with reduced motion) | <https://github.com/catdad/canvas-confetti> |
+| `howler`          | 2.2.4   | MIT     | Casino sound effects (loaded only after sound is switched on)                                      | <https://github.com/goldfire/howler.js>     |
+| `vaul`            | 1.1.2   | MIT     | Bottom drawers for Rewards and the Kiss Shop                                                       | <https://github.com/emilkowalski/vaul>      |
+| `sonner`          | 2.0.8   | MIT     | Toasts ("You won: …", redemption notices)                                                          | <https://github.com/emilkowalski/sonner>    |
+
+The casino sounds in `public/sounds/casino/` are original, synthesised by `scripts/generate-casino-sounds.mjs`; no third-party audio is included. The croupier illustration, slot symbols layout, roulette and wheel artwork are original SVG/CSS.
+
+Reviewed for ideas only, no code copied: `johakr/html5-slot-machine` (reel strip technique), `react-custom-roulette` and its React 19 fork (wheel layout), Magic UI (effect patterns).
+
+### Holographic prize card (GPL-3.0)
+
+`src/features/casino/components/holo-card.tsx` and `src/features/casino/components/holo-card.module.css` are derived from **pokemon-cards-css** by Simon Goellner (@simeydotme), <https://github.com/simeydotme/pokemon-cards-css>, licensed under the GNU General Public License v3.0. Only the CSS gradient/blend layers and the pointer-to-CSS-variable interaction maths were adapted. No images, textures, card artwork, names, logos or other assets from that project are used. Each derived file carries an attribution header. Because of these derived files the site's own code is distributed under GPL-3.0; the `LICENSE` file and full license notes will be completed separately.

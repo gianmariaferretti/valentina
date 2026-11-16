@@ -107,6 +107,8 @@ export interface CouponWalletItem {
   readonly redeemedAt: string | null;
   /** A challenge prize that was won and can be scratched open for the first time. */
   readonly scratchable: boolean;
+  /** Can be redeemed right now (also from the wallet). */
+  readonly redeemable: boolean;
 }
 
 export interface CouponWalletStats {

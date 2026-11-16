@@ -4,203 +4,356 @@ import { useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
 import { casinoConfig } from "@/data/casino-config";
+import { casinoPrizes } from "@/data/casino-prizes";
 import { cn } from "@/lib/cn";
 
-import type { CasinoActionResult } from "../actions";
+import { spinLoveSlots, type CasinoActionResult } from "../actions";
 import type { SlotEvent } from "../lib/engine";
 import styles from "./casino.module.css";
+import { pickQuip } from "./croupier";
+import { connectionLost, type GameProps } from "./game-types";
 
-const symbols = casinoConfig.slots.symbols;
-const initialReels = [
+const cfg = casinoConfig.slots;
+const symbols = cfg.symbols;
+const initialGrid = [
   ["🌹", "💋", "🍝"],
   ["🎬", "💋", "✈️"],
-  ["🍦", "💋", "💆"],
+  ["🍦", "❤️", "💆"],
+  ["✈️", "🍝", "🎬"],
+  ["❤️", "🌹", "🍦"],
 ];
 
-function filler(count: number, seed: number): string[] {
+function filler(count: number, seed: number) {
   return Array.from(
     { length: count },
-    (_, index) => symbols[(index * 5 + seed * 3) % symbols.length],
+    (_, i) => symbols[(i * 7 + seed * 3) % symbols.length],
   );
 }
 
-interface LoveSlotsProps {
-  balance: number;
-  theme: string;
-  turbo: boolean;
-  disabled: boolean;
-  onSpin: (bet: number) => Promise<CasinoActionResult>;
-  onSettled: (result: CasinoActionResult) => void;
-  onTick: () => void;
-  /** Pauses auto-spin while a decision is pending (Double or Nothing). */
-  paused: boolean;
+const examplePrize = (tier: string) =>
+  casinoPrizes.find((prize) => prize.kind === tier)?.title ?? "";
+
+export function SlotPaytable({ bet }: { bet: number }) {
+  return (
+    <section aria-label="Paytable" className={styles.paytable}>
+      <h3>Paytable · any line, from the left · bet {bet} 💋</h3>
+      <ul>
+        {cfg.outcomes.map((outcome) => (
+          <li key={outcome.id}>
+            <span>{outcome.label}</span>
+            <span>{Math.floor(outcome.multiplier * bet)} 💋</span>
+          </li>
+        ))}
+        <li>
+          <span>{cfg.couponSymbols.common.repeat(3)}</span>
+          <span>{examplePrize("common")}</span>
+        </li>
+        <li>
+          <span>{cfg.couponSymbols.rare.repeat(3)}</span>
+          <span>{examplePrize("rare")}</span>
+        </li>
+        <li>
+          <span>{cfg.couponSymbols.epic.repeat(3)}</span>
+          <span>{examplePrize("epic")}</span>
+        </li>
+        <li>
+          <span>{cfg.couponSymbols.jackpot.repeat(3)}</span>
+          <span>JACKPOT</span>
+        </li>
+      </ul>
+      <p className="mt-2 text-[0.7rem] text-[#cfe3d6]">
+        Coupon symbols win a coupon of that rarity (examples shown).
+      </p>
+    </section>
+  );
 }
 
 export function LoveSlots({
-  balance,
-  theme,
+  view,
   turbo,
-  disabled,
-  onSpin,
-  onSettled,
-  onTick,
+  busy,
   paused,
-}: LoveSlotsProps) {
-  const reducedMotion = useReducedMotion() ?? false;
-  const [bet, setBet] = useState<number>(casinoConfig.slots.bets[0]);
-  const [strips, setStrips] = useState<string[][]>(initialReels);
-  const [offsets, setOffsets] = useState([0, 0, 0]);
-  const [durations, setDurations] = useState([0, 0, 0]);
+  sound,
+  spend,
+  onResult,
+  setQuip,
+}: GameProps) {
+  const reduced = useReducedMotion() ?? false;
+  const [bet, setBet] = useState<number>(cfg.bets[0]);
+  const [strips, setStrips] = useState<string[][]>(initialGrid);
   const [spinning, setSpinning] = useState(false);
   const [event, setEvent] = useState<SlotEvent | null>(null);
+  const [suspense, setSuspense] = useState(false);
   const [auto, setAuto] = useState(0);
+  const [leverY, setLeverY] = useState(0);
+  const stripRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const cabinetRef = useRef<HTMLDivElement>(null);
   const spinButton = useRef<HTMLButtonElement>(null);
-  const spinCount = useRef(0);
-  const timers = useRef<number[]>([]);
-
-  useEffect(() => () => timers.current.forEach(window.clearTimeout), []);
+  const counter = useRef(0);
+  const drag = useRef<{ start: number } | null>(null);
 
   async function spin() {
-    if (spinning || disabled || balance < bet) {
+    if (spinning || busy || view.balance < bet) {
       setAuto(0);
       return;
     }
     setSpinning(true);
     setEvent(null);
+    spend(bet);
+    sound.play("spin");
+    const loop = window.setInterval(() => sound.play("spin"), 560);
     let result: CasinoActionResult;
     try {
-      result = await onSpin(bet);
+      result = await spinLoveSlots(bet);
     } catch {
-      result = {
-        ok: false,
-        message: "The connection dropped. Nothing was charged — try again.",
-      };
+      result = connectionLost;
     }
     if (!result.ok || result.event.kind !== "slots") {
+      window.clearInterval(loop);
       setSpinning(false);
       setAuto(0);
-      onSettled(result);
+      await onResult(result, null);
       return;
     }
     const slot = result.event;
-    spinCount.current += 1;
-    const total = reducedMotion
-      ? 0
-      : turbo
-        ? casinoConfig.slots.turboSpinMs
-        : casinoConfig.slots.spinMs;
-    const stopAt = [0.55, 0.75, 1].map((share) => Math.round(total * share));
-    const nextStrips = slot.reels.map((finalCells, reel) => [
-      ...(reducedMotion ? [] : filler(12 + reel * 5, spinCount.current + reel)),
-      ...finalCells,
+    counter.current += 1;
+    const base = reduced ? 0 : turbo ? cfg.turboSpinMs : cfg.spinMs;
+    const next = slot.grid.map((cells, reel) => [
+      ...strips[reel],
+      ...(reduced ? [] : filler(10 + reel * 3, counter.current + reel)),
+      ...cells,
     ]);
-    // Reset to the top without a transition, then roll to the end.
-    setDurations([0, 0, 0]);
-    setOffsets([0, 0, 0]);
-    setStrips(nextStrips);
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => {
-        setDurations(stopAt);
-        setOffsets(nextStrips.map((strip) => strip.length - 3));
+    setStrips(next);
+    await new Promise<void>((r) => requestAnimationFrame(() => r()));
+
+    const durations = next.map((_, reel) => {
+      let duration = base * (0.42 + 0.145 * reel);
+      if (slot.suspense && reel >= 2 && !reduced && !turbo)
+        duration += cfg.suspenseMs * (reel - 1) * 0.55;
+      return Math.round(duration);
+    });
+    let suspenseTimer = 0;
+    if (slot.suspense && !reduced) {
+      suspenseTimer = window.setTimeout(() => {
+        setSuspense(true);
+        sound.play("heartbeat");
+      }, durations[1]);
+    }
+    await Promise.all(
+      next.map(async (strip, reel) => {
+        const element = stripRefs.current[reel];
+        if (!element || reduced || durations[reel] === 0) return;
+        const cell =
+          element.firstElementChild?.getBoundingClientRect().height ?? 60;
+        const distance = (strip.length - 3) * cell;
+        const animation = element.animate(
+          [
+            { transform: "translateY(0)" },
+            {
+              transform: `translateY(${-distance - cell * 0.22}px)`,
+              offset: 0.9,
+            },
+            { transform: `translateY(${-distance}px)` },
+          ],
+          {
+            duration: durations[reel],
+            easing: "cubic-bezier(0.22, 0.62, 0.28, 1)",
+            fill: "forwards",
+          },
+        );
+        await animation.finished.catch(() => undefined);
+        sound.play("stop");
       }),
     );
-    stopAt.forEach((ms) => timers.current.push(window.setTimeout(onTick, ms)));
-    timers.current.push(
-      window.setTimeout(() => {
-        // Keep only the visible cells so the next spin starts from here.
-        setDurations([0, 0, 0]);
-        setStrips(slot.reels);
-        setOffsets([0, 0, 0]);
-        setSpinning(false);
-        setEvent(slot);
-        onSettled(result);
-        spinButton.current?.focus({ preventScroll: true });
-        setAuto((current) => Math.max(0, current - 1));
-      }, total + 60),
+    window.clearInterval(loop);
+    window.clearTimeout(suspenseTimer);
+    sound.stop("heartbeat");
+    setSuspense(false);
+    // Keep only the visible cells so the next spin starts from here.
+    stripRefs.current.forEach((element) =>
+      element?.getAnimations().forEach((a) => a.cancel()),
     );
+    setStrips(slot.grid);
+    setEvent(slot);
+    setSpinning(false);
+    setQuip(
+      pickQuip(
+        slot.coupons.length ? "coupon" : slot.celebrated ? "win" : "lose",
+        counter.current,
+      ),
+    );
+    if (slot.nearMiss2) sound.play("lose");
+    await onResult(result, cabinetRef.current);
+    spinButton.current?.focus({ preventScroll: true });
+    setAuto((value) => Math.max(0, value - 1));
   }
 
-  // Auto-spin: one spin after another until the count, the balance or a
-  // pending decision stops it.
   useEffect(() => {
-    if (auto <= 0 || spinning || paused || disabled) return;
-    const timer = window.setTimeout(() => void spin(), turbo ? 200 : 450);
+    if (auto <= 0 || spinning || paused || busy) return;
+    const timer = window.setTimeout(() => void spin(), turbo ? 200 : 500);
     return () => window.clearTimeout(timer);
+    // spin() reads the latest state when it fires.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auto, spinning, paused, disabled]);
+  }, [auto, spinning, paused, busy]);
 
-  const resultText = event
-    ? event.celebrated
-      ? `WIN! +${event.payout} 💋${event.hotMultiplied ? " (×2 hot)" : ""}`
-      : event.nearMiss
-        ? "So close…"
-        : ""
-    : "";
+  const winningCells = new Set<string>();
+  for (const line of event?.lines ?? [])
+    for (let reel = 0; reel < line.length; reel++)
+      winningCells.add(`${reel}-${line.row}`);
+  const missCell = event?.nearMiss2
+    ? `${event.nearMiss2.reel}-${event.nearMiss2.missRow}`
+    : null;
+  const theme = view.vip.id === "bronze" ? "classic" : view.vip.id;
+  const canSpin = !spinning && !busy && view.balance >= bet;
 
   return (
     <div>
-      <div
-        className={cn(
-          styles.machine,
-          event?.celebrated && !reducedMotion && styles.winLights,
-        )}
-        data-theme={theme}
-      >
-        <p className="mb-2 text-center font-display text-2xl italic text-white drop-shadow">
-          Love Slots
-        </p>
-        <div aria-hidden="true" className={styles.reels}>
-          {strips.map((strip, reel) => (
-            <div
-              className={cn(
-                styles.reel,
-                event?.nearMissReel?.reel === reel &&
-                  !reducedMotion &&
-                  styles.nearMiss,
-              )}
-              key={reel}
-            >
-              <div
-                className={styles.reelStrip}
-                style={{
-                  transform: `translateY(calc(var(--cell) * -${offsets[reel]}))`,
-                  transition: durations[reel]
-                    ? `transform ${durations[reel]}ms cubic-bezier(0.2, 0.75, 0.25, 1.04)`
-                    : "none",
-                }}
-              >
-                {strip.map((symbol, index) => (
-                  <span className={styles.symbol} key={`${index}-${symbol}`}>
-                    {symbol}
-                  </span>
-                ))}
-              </div>
-              <span className={styles.payline} />
-            </div>
-          ))}
-        </div>
-        <p
-          aria-live="polite"
-          className={styles.result}
-          data-win={event?.celebrated ?? false}
+      <div className={styles.machine}>
+        <div
+          className={styles.cabinet}
+          data-suspense={suspense}
+          data-theme={theme}
+          ref={cabinetRef}
         >
-          {resultText}
-          <span className="sr-only">
-            {event
-              ? `Reels: ${event.reels.map((cells) => cells[1]).join(" ")}. ${
-                  event.celebrated
-                    ? `You won ${event.payout} kisses.`
-                    : "No win."
-                }`
-              : ""}
-          </span>
-        </p>
+          <div aria-hidden="true" className={styles.reels}>
+            {strips.map((strip, reel) => (
+              <div className={styles.reel} key={reel}>
+                <div
+                  className={styles.strip}
+                  ref={(element) => {
+                    stripRefs.current[reel] = element;
+                  }}
+                >
+                  {strip.map((symbol, row) => (
+                    <span
+                      className={cn(
+                        styles.cell,
+                        !spinning &&
+                          winningCells.has(`${reel}-${row}`) &&
+                          styles.cellWin,
+                        !spinning &&
+                          missCell === `${reel}-${row}` &&
+                          styles.cellBump,
+                      )}
+                      key={`${row}-${symbol}`}
+                    >
+                      {symbol}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <svg
+              className={styles.paylines}
+              preserveAspectRatio="none"
+              viewBox="0 0 100 3"
+            >
+              {[0, 1, 2].map((row) => (
+                <line
+                  data-win={
+                    !spinning &&
+                    (event?.lines.some((line) => line.row === row) ?? false)
+                  }
+                  key={row}
+                  vectorEffect="non-scaling-stroke"
+                  x1="0"
+                  x2="100"
+                  y1={row + 0.5}
+                  y2={row + 0.5}
+                />
+              ))}
+            </svg>
+          </div>
+          {event?.nearMiss2 && !spinning ? (
+            <p aria-hidden="true" className={styles.soClose}>
+              SO CLOSE!
+            </p>
+          ) : null}
+        </div>
+
+        <button
+          aria-label={`Pull the lever: spin for ${bet} kisses`}
+          className={styles.lever}
+          disabled={!canSpin}
+          onClick={(e) => {
+            // Keyboard activation; a drag already spun on pointer up.
+            if (e.detail === 0) void spin();
+          }}
+          onPointerCancel={() => {
+            drag.current = null;
+            setLeverY(0);
+          }}
+          onPointerDown={(e) => {
+            if (!canSpin) return;
+            drag.current = { start: e.clientY };
+            e.currentTarget.setPointerCapture(e.pointerId);
+          }}
+          onPointerMove={(e) => {
+            if (!drag.current) return;
+            setLeverY(
+              Math.max(0, Math.min(96, e.clientY - drag.current.start)),
+            );
+          }}
+          onPointerUp={(e) => {
+            const moved = drag.current ? e.clientY - drag.current.start : 0;
+            const wasDragging = drag.current !== null;
+            drag.current = null;
+            setLeverY(0);
+            // A pull past halfway, or a simple tap, spins.
+            if (wasDragging && (moved > 45 || moved < 6)) void spin();
+          }}
+          type="button"
+        >
+          <span className={styles.leverTrack} />
+          <span
+            className={styles.leverKnob}
+            style={{
+              transform: `translateY(${leverY}px)`,
+              transition:
+                leverY === 0
+                  ? "transform 260ms cubic-bezier(.3,1.6,.5,1)"
+                  : "none",
+            }}
+          />
+        </button>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+      <p
+        aria-live="polite"
+        className={styles.result}
+        data-win={Boolean(event?.celebrated || event?.coupons.length)}
+      >
+        {event
+          ? event.coupons.length > 0
+            ? `You won: ${event.coupons[0].title}`
+            : event.celebrated
+              ? `WIN! +${event.payout} 💋${event.hotMultiplied ? " (×2 hot)" : ""}`
+              : event.nearMiss2
+                ? "So close…"
+                : "No win"
+          : ""}
+      </p>
+
+      <button
+        className={styles.bigButton}
+        disabled={!canSpin}
+        onClick={() => void spin()}
+        ref={spinButton}
+        type="button"
+      >
+        {spinning ? "Spinning…" : `Spin · ${bet} 💋`}
+      </button>
+      {view.balance < bet && !spinning ? (
+        <p className="mt-2 text-center text-sm text-[#d6e9dc]">
+          Not enough 💋. Tap “Buy 💋” at the top.
+        </p>
+      ) : null}
+
+      <div className={styles.controls}>
         <div aria-label="Bet" className="flex gap-2" role="group">
-          {casinoConfig.slots.bets.map((value) => (
+          {cfg.bets.map((value) => (
             <button
+              aria-label={`Bet ${value} kisses`}
               aria-pressed={bet === value}
               className={styles.chip}
               disabled={spinning}
@@ -208,7 +361,7 @@ export function LoveSlots({
               onClick={() => setBet(value)}
               type="button"
             >
-              {value} 💋
+              {value}
             </button>
           ))}
         </div>
@@ -222,36 +375,22 @@ export function LoveSlots({
               Stop auto ({auto})
             </button>
           ) : (
-            casinoConfig.slots.autoSpinCounts.map((count) => (
+            cfg.autoSpinCounts.map((count) => (
               <button
                 className={styles.smallButton}
-                disabled={spinning || disabled || balance < bet}
+                disabled={!canSpin}
                 key={count}
                 onClick={() => setAuto(count)}
                 type="button"
               >
-                Auto ×{count}
+                Auto {count}
               </button>
             ))
           )}
         </div>
       </div>
 
-      <button
-        className={cn(styles.bigButton, "mt-4")}
-        disabled={spinning || disabled || balance < bet}
-        onClick={() => void spin()}
-        ref={spinButton}
-        type="button"
-      >
-        {spinning ? "Spinning…" : event ? "Spin again" : "Pull the lever"} ·{" "}
-        {bet} 💋
-      </button>
-      {balance < bet && !spinning ? (
-        <p className={cn(styles.muted, "mt-2 text-center text-sm")}>
-          Out of 💋. The Kiss Shop is below, conveniently.
-        </p>
-      ) : null}
+      <SlotPaytable bet={bet} />
     </div>
   );
 }

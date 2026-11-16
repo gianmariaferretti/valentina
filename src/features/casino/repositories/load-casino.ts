@@ -10,12 +10,19 @@ import {
   casinoWinToCoupon,
   CASINO_COUPON_PATTERN,
 } from "../lib/casino-coupons";
+import { casinoConfig } from "@/data/casino-config";
+
 import {
   createInitialState,
   hasPendingRewards,
+  resetCasino,
   type CasinoState,
 } from "../lib/engine";
-import { getCasinoRepository, type LedgerRow } from "./casino-repository";
+import {
+  CasinoConflictError,
+  getCasinoRepository,
+  type LedgerRow,
+} from "./casino-repository";
 
 export interface CasinoSnapshot {
   readonly state: CasinoState;
@@ -77,4 +84,32 @@ export async function loadCasinoBadge(): Promise<boolean> {
   const snapshot = await loadCasinoSnapshot();
   if (snapshot.failed) return false;
   return hasPendingRewards(snapshot.state, new Date());
+}
+
+/**
+ * Redeems a coupon won at the casino and resets the casino for a new season,
+ * atomically in the database. Retries if another tab saved the casino first.
+ */
+export async function redeemCasinoCouponWithReset(
+  couponId: string,
+  redeemedAt: string,
+): Promise<string> {
+  const repository = getCasinoRepository();
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const stored = await repository.load();
+    if (!stored) throw new Error("The casino has no saved state.");
+    try {
+      return await repository.redeemWithReset(
+        couponId,
+        redeemedAt,
+        stored.version,
+        resetCasino(stored.state),
+        casinoConfig.reset.resetDebtOnReset,
+      );
+    } catch (error) {
+      if (error instanceof CasinoConflictError) continue;
+      throw error;
+    }
+  }
+  throw new Error("The casino was busy. Try again.");
 }

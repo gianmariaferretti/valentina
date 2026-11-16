@@ -10,9 +10,13 @@ import { hasValidAccessSession } from "@/lib/auth/session";
 import { reportPersistenceFailure } from "@/lib/persistence/persistence-error";
 
 import {
+  blackjackDeal,
+  blackjackHit,
+  blackjackStand,
   breakPiggy,
   buyPack,
   CasinoRuleError,
+  claimPassTier,
   claimFinale,
   claimMission,
   claimWelcome,
@@ -20,8 +24,10 @@ import {
   declineDouble,
   doubleOrNothing,
   enterCasino,
+  finishWelcome,
   payDebt,
   scratchCard,
+  spinRoulette,
   spinSlots,
   spinWheel,
   toView,
@@ -188,4 +194,49 @@ export async function claimHouseAlwaysLoses() {
     (state, _rng, now) => claimFinale(state, now),
     ["/coupons/casino/debt", "/coupons/casino/behind-the-curtain"],
   );
+}
+
+const rouletteSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("color"), value: z.enum(["red", "black"]) }),
+  z.object({ kind: z.literal("parity"), value: z.enum(["even", "odd"]) }),
+  z.object({
+    kind: z.literal("number"),
+    value: z.number().int().min(0).max(36),
+  }),
+]);
+const tableBets: readonly number[] = casinoConfig.roulette.bets;
+const tableBetSchema = z
+  .number()
+  .int()
+  .refine((bet) => tableBets.includes(bet));
+
+export async function spinKissRoulette(bet: unknown, placed: unknown) {
+  const parsedBet = tableBetSchema.safeParse(bet);
+  const parsedPlaced = rouletteSchema.safeParse(placed);
+  if (!parsedBet.success || !parsedPlaced.success) return invalid;
+  return run((state, rng, now) =>
+    spinRoulette(state, parsedBet.data, parsedPlaced.data, rng, now),
+  );
+}
+
+export async function dealBlackjack(bet: unknown) {
+  const parsed = tableBetSchema.safeParse(bet);
+  if (!parsed.success) return invalid;
+  return run((state, rng, now) => blackjackDeal(state, parsed.data, rng, now));
+}
+
+export async function hitBlackjack() {
+  return run(blackjackHit);
+}
+
+export async function standBlackjack() {
+  return run(blackjackStand);
+}
+
+export async function collectKissPass() {
+  return run(claimPassTier);
+}
+
+export async function completeWelcome() {
+  return run((state) => finishWelcome(state));
 }

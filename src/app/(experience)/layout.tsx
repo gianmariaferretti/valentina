@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { ProgressIndicator } from "@/components/layout/progress-indicator";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { Toaster } from "@/components/ui/toaster";
 import { CasinoNavBadge } from "@/features/casino/components/casino-nav-badge";
 import { hasValidAccessSession } from "@/lib/auth/session";
 
@@ -27,6 +28,7 @@ export default async function ExperienceLayout({
       />
       <main className="flex-1">{children}</main>
       <SiteFooter />
+      <Toaster />
     </div>
   );
 }

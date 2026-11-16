@@ -52,7 +52,7 @@ export default async function BehindTheCurtainPage() {
     },
     {
       title: "Losses disguised as wins",
-      text: "A single 💋 pays half your bet — with lights, sound and “WIN!”. You lost kisses each time.",
+      text: "Two 💋 on a line pay half your bet — with lights, sound and “WIN!”. You lost kisses each time.",
     },
     {
       title: "Near misses",
@@ -68,7 +68,23 @@ export default async function BehindTheCurtainPage() {
     },
     {
       title: "Hot streaks, missions and gifted progress",
-      text: `Three wins in a row doubled payouts for ${config.hotStreak.plays} plays. Every progress bar started ${percent(config.missions.giftedProgress)} full so everything looked nearly done.`,
+      text: `Three wins in a row doubled payouts for ${config.hotStreak.plays} plays — on the slots, scratch cards and wheel only, never at the tables. Every progress bar (missions, VIP, sets, the Kiss Pass) started ${percent(config.missions.giftedProgress)} full so everything looked nearly done.`,
+    },
+    {
+      title: "Roulette dei Baci",
+      text: `A fair wheel with unfair payouts: red, black, even and odd pay ${config.roulette.payouts.color}× instead of 2×, a single number ${config.roulette.payouts.number}× instead of 36×. The house keeps about ${percent(1 - (18 / 37) * config.roulette.payouts.color)} of every bet. ${config.roulette.jackpotNumber} pays an epic coupon — 1 chance in 37. You spun it ${stats.rouletteSpins} times.`,
+    },
+    {
+      title: "Blackjack dei Baci",
+      text: `A real deck, a real dealer standing on ${config.blackjack.dealerStandsOn} — but a blackjack pays ${config.blackjack.naturalPays}×, not 2.5×, and when you both bust you have already lost. ${stats.naturals} of your ${stats.blackjackHands} hands were blackjacks.`,
+    },
+    {
+      title: "The jackpot ticker",
+      text: "The number at the top rose with every bet. It was never a pot: it was decoration, and it reset whenever a jackpot coupon dropped.",
+    },
+    {
+      title: "Kiss Pass",
+      text: `A free track that paid a few 💋 every ${config.kissPass.playsPerTier} plays. Its real job was to make stopping feel like leaving rewards on the table.`,
     },
     {
       title: "Decoy pricing",

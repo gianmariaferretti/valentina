@@ -23,6 +23,7 @@ export interface StoredCasino {
 
 export interface LedgerRow {
   readonly id: string;
+  readonly season: number;
   readonly kind: LedgerKind;
   readonly realKisses: number;
   readonly chips: number;
@@ -42,6 +43,17 @@ export interface CasinoRepository {
   ): Promise<number>;
   listWins(): Promise<CasinoWinRecord[]>;
   listLedger(): Promise<LedgerRow[]>;
+  /**
+   * Redeems a casino coupon and starts a fresh season in one transaction.
+   * Returns the saved redemption time.
+   */
+  redeemWithReset(
+    couponId: string,
+    redeemedAt: string,
+    expectedVersion: number,
+    freshState: CasinoState,
+    resetDebt: boolean,
+  ): Promise<string>;
 }
 
 class SupabaseCasinoRepository implements CasinoRepository {
@@ -102,19 +114,49 @@ class SupabaseCasinoRepository implements CasinoRepository {
     const { client, userId } = getSupabaseServerContext();
     const { data, error } = await client
       .from("casino_ledger")
-      .select("id, kind, real_kisses, chips, label, created_at")
+      .select("id, kind, real_kisses, chips, label, created_at, season")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(200);
     assertSupabaseResult("Unable to load the kiss ledger.", error);
     return (data ?? []).map((row) => ({
       id: String(row.id),
+      season: row.season,
       kind: row.kind as LedgerKind,
       realKisses: row.real_kisses,
       chips: row.chips,
       label: row.label,
       at: row.created_at,
     }));
+  }
+
+  async redeemWithReset(
+    couponId: string,
+    redeemedAt: string,
+    expectedVersion: number,
+    freshState: CasinoState,
+    resetDebt: boolean,
+  ): Promise<string> {
+    const { client, userId } = getSupabaseServerContext();
+    const { data, error } = await client.rpc(
+      "redeem_casino_coupon_with_reset",
+      {
+        p_user_id: userId,
+        p_coupon_id: couponId,
+        p_redeemed_at: redeemedAt,
+        p_expected_version: expectedVersion,
+        p_balance: freshState.balance,
+        p_state: freshState as unknown as Json,
+        p_reset_debt: resetDebt,
+      },
+    );
+    if (error?.message.includes("casino_version_conflict"))
+      throw new CasinoConflictError(error.message);
+    assertSupabaseResult("Unable to redeem the casino coupon.", error);
+    const saved = data?.[0]?.redeemed_at;
+    if (!saved)
+      throw new PersistenceError("Casino coupon redemption was not saved.");
+    return saved;
   }
 }
 
@@ -159,6 +201,7 @@ class MemoryCasinoRepository implements CasinoRepository {
     for (const entry of ledger)
       store.ledger.unshift({
         id: `${Date.now()}-${store.ledger.length}`,
+        season: state.season,
         kind: entry.kind,
         realKisses: entry.realKisses,
         chips: entry.chips,
@@ -185,6 +228,13 @@ class MemoryCasinoRepository implements CasinoRepository {
 
   async listLedger() {
     return [...memory().ledger];
+  }
+
+  async redeemWithReset(): Promise<string> {
+    // Coupon redemptions always live in Supabase.
+    throw new PersistenceError(
+      "Redeeming needs Supabase; the in-memory casino cannot redeem coupons.",
+    );
   }
 }
 
