@@ -29,7 +29,24 @@ export default async function KissDebtPage() {
     loadCasinoLedger(),
   ]);
   const debt = snapshot.state.debt;
-  const hasHistory = ledger.rows.length > 0;
+  const season = snapshot.state.season;
+  const currentRows = ledger.rows.filter((row) => row.season === season);
+  const hasHistory = currentRows.length > 0;
+  // Finished seasons are archived, never deleted.
+  const archived = [...new Set(ledger.rows.map((row) => row.season))]
+    .filter((value) => value !== season)
+    .sort((a, b) => b - a)
+    .map((value) => {
+      const rows = ledger.rows.filter((row) => row.season === value);
+      return {
+        season: value,
+        rows,
+        owedAtClose: Math.max(
+          0,
+          rows.reduce((sum, row) => sum + row.realKisses, 0),
+        ),
+      };
+    });
   const interest = casinoConfig.debtInterest;
 
   return (
@@ -59,7 +76,7 @@ export default async function KissDebtPage() {
           {debt === 0 && hasHistory ? (
             <p className={styles.paidStamp}>PAID IN FULL</p>
           ) : null}
-          <p className="text-sm">Total owed to Gianmaria</p>
+          <p className="text-sm">Season {season} · total owed to Gianmaria</p>
           <p className="font-display text-6xl leading-none">
             {debt} <span aria-hidden="true">💋</span>
             <span className="sr-only">real kisses</span>
@@ -77,7 +94,7 @@ export default async function KissDebtPage() {
           <h2 className="mt-10 text-lg font-bold">History</h2>
           {hasHistory ? (
             <ul className="mt-2">
-              {ledger.rows.map((row) => (
+              {currentRows.map((row) => (
                 <li className={styles.ledgerRow} key={row.id}>
                   <span>
                     {formatDate(row.at)} · {row.label}
@@ -100,6 +117,46 @@ export default async function KissDebtPage() {
           )}
         </div>
       )}
+
+      {archived.length > 0 ? (
+        <section aria-labelledby="archived-seasons" className="mt-10">
+          <h2 className="font-display text-3xl" id="archived-seasons">
+            Archived seasons
+          </h2>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            Redeeming a casino coupon closes the season. Its ledger stays here.
+          </p>
+          <div className="mt-4 grid gap-3">
+            {archived.map((entry) => (
+              <details
+                className="rounded-2xl border border-[var(--line-strong)] bg-[var(--paper-white)] p-4"
+                key={entry.season}
+              >
+                <summary className="cursor-pointer font-semibold">
+                  Season {entry.season} · closed ·{" "}
+                  {entry.owedAtClose > 0
+                    ? `${entry.owedAtClose} kisses still owed at close`
+                    : "paid in full"}
+                </summary>
+                <ul className="mt-3 grid gap-1 text-sm">
+                  {entry.rows.map((row) => (
+                    <li className="flex justify-between gap-3" key={row.id}>
+                      <span>
+                        {formatDate(row.at)} · {row.label}
+                      </span>
+                      <span>
+                        {row.realKisses > 0
+                          ? `+${row.realKisses}`
+                          : row.realKisses}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

@@ -78,6 +78,9 @@ export interface CasinoStats {
   beginnerCoupons: number;
   pityCoupons: number;
   visits: number;
+  rouletteSpins: number;
+  blackjackHands: number;
+  naturals: number;
 }
 
 export interface CasinoVisit {
@@ -98,8 +101,34 @@ export interface CasinoVisit {
   };
 }
 
+export interface Card {
+  /** 1 = ace … 13 = king. */
+  rank: number;
+  /** 0–3: ♥ ♦ ♣ ♠ */
+  suit: number;
+}
+
+export interface BlackjackHand {
+  bet: number;
+  player: Card[];
+  dealer: Card[];
+}
+
+export type RouletteBet =
+  | { kind: "color"; value: "red" | "black" }
+  | { kind: "parity"; value: "even" | "odd" }
+  | { kind: "number"; value: number };
+
 export interface CasinoState {
   v: 1;
+  /** Starts at 1; each reset after a casino coupon redemption opens the next. */
+  season: number;
+  /** The welcome tour has been seen this season. */
+  onboarded: boolean;
+  /** Display-only progressive jackpot. */
+  jackpotPool: number;
+  pass: { claimed: number };
+  blackjack: BlackjackHand | null;
   balance: number;
   /** Real kisses owed to Gianmaria. Never shown inside the casino. */
   debt: number;
@@ -152,8 +181,12 @@ export interface CouponWin {
 }
 
 /** Everything the interface needs to celebrate (or quietly skip) a result. */
+export type WinLevel = "none" | "small" | "big" | "mega" | "jackpot";
+
 export interface PlayEvent {
   bet: number;
+  /** How loudly to celebrate: drives BIG / MEGA / JACKPOT screens. */
+  winLevel: WinLevel;
   payout: number;
   /** Payout greater than zero: lights, sound and "WIN!". */
   celebrated: boolean;
@@ -169,12 +202,40 @@ export interface PlayEvent {
   beat: CasinoVisit["beat"] | null;
 }
 
+export interface SlotLine {
+  row: number;
+  length: number;
+  symbol: string;
+  payout: number;
+  couponTier: PrizeTier | null;
+}
+
 export interface SlotEvent extends PlayEvent {
   kind: "slots";
-  /** Three reels, each [above, centre, below]. */
-  reels: string[][];
+  /** Five reels, each [top, middle, bottom]. */
+  grid: string[][];
   outcome: string;
-  nearMissReel: { reel: number; position: "above" | "below" } | null;
+  lines: SlotLine[];
+  /** Two jackpot symbols on a line: slow the remaining reels down. */
+  suspense: boolean;
+  /** The third 7️⃣ stopped one row away from `row`. */
+  nearMiss2: { reel: number; row: number; missRow: number } | null;
+}
+
+export interface RouletteEvent extends PlayEvent {
+  kind: "roulette";
+  pocket: number;
+  color: "red" | "black" | "green";
+  placed: RouletteBet;
+  won: boolean;
+}
+
+export interface BlackjackEvent {
+  kind: "blackjack";
+  phase: "playing" | "settled";
+  hand: BlackjackView;
+  outcome: "natural" | "win" | "push" | "lose" | "bust" | null;
+  play: PlayEvent | null;
 }
 
 export interface ScratchEvent extends PlayEvent {
@@ -197,10 +258,15 @@ export interface DoubleEvent {
   kind: "double";
   won: boolean;
   amount: number;
+  /** Heads doubles, tails loses. */
+  face: "heads" | "tails";
 }
 
 export type CasinoEvent =
   | SlotEvent
+  | RouletteEvent
+  | BlackjackEvent
+  | { kind: "reset"; season: number }
   | ScratchEvent
   | WheelEvent
   | DoubleEvent
@@ -227,11 +293,17 @@ const emptyMetrics = (): Record<MissionMetric, number> => ({
   wheelSpins: 0,
   doubles: 0,
   wagered: 0,
+  tables: 0,
 });
 
 export function createInitialState(): CasinoState {
   return {
     v: 1,
+    season: 1,
+    onboarded: false,
+    jackpotPool: config.jackpotTicker.base,
+    pass: { claimed: 0 },
+    blackjack: null,
     balance: config.startingBalance,
     debt: 0,
     piggy: 0,
@@ -268,6 +340,9 @@ export function createInitialState(): CasinoState {
       beginnerCoupons: 0,
       pityCoupons: 0,
       visits: 0,
+      rouletteSpins: 0,
+      blackjackHands: 0,
+      naturals: 0,
     },
     recentWins: [],
     visit: null,
@@ -290,6 +365,13 @@ export function normalizeState(value: unknown): CasinoState {
       ? stored.completedSets
       : [],
     recentWins: Array.isArray(stored.recentWins) ? stored.recentWins : [],
+    pass: { ...initial.pass, ...(stored.pass ?? {}) },
+    visit: stored.visit
+      ? {
+          ...stored.visit,
+          metrics: { ...emptyMetrics(), ...(stored.visit.metrics ?? {}) },
+        }
+      : null,
     v: 1,
   };
 }
@@ -547,6 +629,10 @@ interface PlayInput {
   /** A coupon of one of these tiers is guaranteed (wheel ticket). */
   forcedTiers?: Record<PrizeTier, number>;
   metric: MissionMetric;
+  /** The bet was already taken (blackjack deal). */
+  prepaid?: boolean;
+  /** A payout that only returns the stake (blackjack push): no fanfare. */
+  neutral?: boolean;
 }
 
 function vipLevelFor(wagered: number): number {
@@ -565,8 +651,9 @@ function settlePlay(
   grants: CouponGrant[],
 ): PlayEvent {
   const visit = state.visit;
-  state.balance -= input.bet;
+  if (!input.prepaid) state.balance -= input.bet;
   state.stats.wagered += input.bet;
+  state.jackpotPool += Math.ceil(input.bet * config.jackpotTicker.perBet);
   if (visit) {
     visit.metrics.wagered += input.bet;
     visit.metrics[input.metric] += 1;
@@ -575,8 +662,10 @@ function settlePlay(
     state.piggy += Math.max(1, Math.ceil(input.bet * config.piggy.share));
 
   let payout = input.basePayout;
-  const hotMultiplied = state.hot.boosted > 0 && payout > 0;
-  if (state.hot.boosted > 0) {
+  // Hot streaks belong to the machines; at the tables wins come too often.
+  const streaky = input.metric !== "tables";
+  const hotMultiplied = streaky && state.hot.boosted > 0 && payout > 0;
+  if (streaky && state.hot.boosted > 0) {
     if (payout > 0) payout *= config.hotStreak.multiplier;
     state.hot.boosted -= 1;
   }
@@ -584,8 +673,11 @@ function settlePlay(
   state.stats.kissesWon += payout;
   state.stats.biggestWin = Math.max(state.stats.biggestWin, payout);
 
+  const counts = payout > 0 && !input.neutral;
   let hotStreakStarted = false;
-  if (payout > 0) {
+  if (!streaky) {
+    // Table games neither build nor break a streak.
+  } else if (counts) {
     state.hot.streak += 1;
     if (
       state.hot.streak >= config.hotStreak.winsNeeded &&
@@ -596,8 +688,8 @@ function settlePlay(
     }
   } else state.hot.streak = 0;
 
-  state.pendingDouble = payout > 0 ? { amount: payout } : null;
-  const disguisedLoss = payout > 0 && payout < input.bet;
+  state.pendingDouble = counts ? { amount: payout } : null;
+  const disguisedLoss = counts && payout < input.bet;
   if (disguisedLoss) state.stats.disguisedLosses += 1;
   if (input.nearMiss) state.stats.nearMisses += 1;
 
@@ -642,10 +734,24 @@ function settlePlay(
       ...state.recentWins,
     ].slice(0, 8);
 
+  const jackpotWon = coupons.some((coupon) => coupon.tier === "jackpot");
+  if (jackpotWon) state.jackpotPool = config.jackpotTicker.base;
+  const ratio = input.bet > 0 ? payout / input.bet : payout > 0 ? 1 : 0;
+  const winLevel: WinLevel = jackpotWon
+    ? "jackpot"
+    : ratio >= config.celebrations.megaWin
+      ? "mega"
+      : ratio >= config.celebrations.bigWin || (input.bigWin && payout > 0)
+        ? "big"
+        : counts || coupons.length > 0
+          ? "small"
+          : "none";
+
   return {
     bet: input.bet,
+    winLevel,
     payout,
-    celebrated: payout > 0,
+    celebrated: counts,
     disguisedLoss,
     bigWin: input.bigWin,
     nearMiss: input.nearMiss,
@@ -677,41 +783,46 @@ function requireBalance(state: CasinoState, amount: number) {
 
 // ---------------------------------------------------------------- Slots
 
-const otherSymbols: readonly string[] = config.slots.symbols.filter(
+const REELS = config.slots.reels;
+const ROWS = config.slots.rows;
+const couponSymbolList: readonly string[] = Object.values(
+  config.slots.couponSymbols,
+);
+/** Symbols that never form a paying line by accident. */
+const fillerSymbols: readonly string[] = config.slots.symbols.filter(
   (symbol) => symbol !== KISS && symbol !== SEVEN,
 );
 
-function randomSymbol(rng: Rng): string {
-  return config.slots.symbols[pickIndex(rng, config.slots.symbols.length)];
+function fillerGrid(rng: Rng): string[][] {
+  const grid = Array.from({ length: REELS }, () =>
+    Array.from({ length: ROWS }, () => ""),
+  );
+  for (let row = 0; row < ROWS; row++) {
+    for (let reel = 0; reel < REELS; reel++) {
+      let symbol = fillerSymbols[pickIndex(rng, fillerSymbols.length)];
+      // The first two reels never match, so no line pays by accident.
+      while (reel === 1 && symbol === grid[0][row])
+        symbol = fillerSymbols[pickIndex(rng, fillerSymbols.length)];
+      grid[reel][row] = symbol;
+    }
+  }
+  return grid;
 }
 
-function slotLine(rng: Rng, outcome: string): string[] {
-  const other = () => otherSymbols[pickIndex(rng, otherSymbols.length)];
-  switch (outcome) {
-    case "seven-triple":
-      return [SEVEN, SEVEN, SEVEN];
-    case "kiss-triple":
-      return [KISS, KISS, KISS];
-    case "triple": {
-      const symbol = other();
-      return [symbol, symbol, symbol];
-    }
-    case "kiss-double": {
-      const line = [KISS, KISS, KISS];
-      line[pickIndex(rng, 3)] = other();
-      return line;
-    }
-    case "kiss-single": {
-      const line = [other(), other(), other()];
-      line[pickIndex(rng, 3)] = KISS;
-      return line;
-    }
-    default: {
-      let line = [other(), other(), other()];
-      while (line[0] === line[1] && line[1] === line[2])
-        line = [other(), other(), other()];
-      return line;
-    }
+/** Writes `length` copies of `symbol` from the left on `row`, then breaks the run. */
+function paintLine(
+  grid: string[][],
+  row: number,
+  symbol: string,
+  length: number,
+  rng: Rng,
+) {
+  for (let reel = 0; reel < length; reel++) grid[reel][row] = symbol;
+  if (length < REELS) {
+    let breaker = fillerSymbols[pickIndex(rng, fillerSymbols.length)];
+    while (breaker === symbol)
+      breaker = fillerSymbols[pickIndex(rng, fillerSymbols.length)];
+    grid[length][row] = breaker;
   }
 }
 
@@ -736,28 +847,18 @@ export function spinSlots(
     }
   }
   const outcomeId = outcome?.id ?? "lose";
-  const line = slotLine(rng, outcomeId);
-  const reels = line.map((centre) => [
-    randomSymbol(rng),
-    centre,
-    randomSymbol(rng),
-  ]);
-  let nearMissReel: SlotEvent["nearMissReel"] = null;
-  if (!outcome && chance(rng, config.slots.nearMissRate)) {
-    reels[0][1] = SEVEN;
-    reels[1][1] = SEVEN;
-    const position = chance(rng, 0.5) ? "above" : "below";
-    reels[2][position === "above" ? 0 : 2] = SEVEN;
-    nearMissReel = { reel: 2, position };
-  }
+  const basePayout = outcome ? Math.floor(bet * outcome.multiplier) : 0;
+  const wantsNearMiss = !outcome && chance(rng, config.slots.nearMissRate);
 
   const play = settlePlay(
     state,
     {
       bet,
-      basePayout: outcome ? Math.floor(bet * outcome.multiplier) : 0,
-      bigWin: outcome?.bigWin ?? false,
-      nearMiss: nearMissReel !== null,
+      basePayout,
+      bigWin: outcome
+        ? outcome.multiplier >= config.celebrations.bigWin
+        : false,
+      nearMiss: false,
       couponMultiplier: 1,
       metric: "slotSpins",
     },
@@ -766,7 +867,82 @@ export function spinSlots(
     grants,
   );
   state.stats.slotSpins += 1;
-  play.beat = advanceBeat(state, play.payout > 0, rng, now, grants, play);
+
+  // Draw the reels to match what was decided.
+  const grid = fillerGrid(rng);
+  const lines: SlotLine[] = [];
+  const freeRows = [0, 1, 2];
+  const takeRow = () => freeRows.splice(pickIndex(rng, freeRows.length), 1)[0];
+  if (outcome) {
+    const row = takeRow();
+    const length =
+      outcomeId === "kiss-5"
+        ? 5
+        : outcomeId === "kiss-4"
+          ? 4
+          : outcomeId === "kiss-pair"
+            ? 2
+            : 3;
+    const symbol =
+      outcomeId === "triple"
+        ? config.slots.tripleSymbols[
+            pickIndex(rng, config.slots.tripleSymbols.length)
+          ]
+        : KISS;
+    paintLine(grid, row, symbol, length, rng);
+    lines.push({ row, length, symbol, payout: play.payout, couponTier: null });
+  }
+  const reelCoupon = play.coupons.find(
+    (coupon) => coupon.reason !== "set" && coupon.reason !== "beat",
+  );
+  if (reelCoupon && reelCoupon.tier in config.slots.couponSymbols) {
+    const tier = reelCoupon.tier as PrizeTier;
+    const row = takeRow();
+    paintLine(grid, row, config.slots.couponSymbols[tier], 3, rng);
+    lines.push({
+      row,
+      length: 3,
+      symbol: config.slots.couponSymbols[tier],
+      payout: 0,
+      couponTier: tier,
+    });
+  }
+  let nearMiss2: SlotEvent["nearMiss2"] = null;
+  if (wantsNearMiss && lines.length === 0) {
+    const row = takeRow();
+    const missRow = row === 0 ? 1 : row === 2 ? 1 : chance(rng, 0.5) ? 0 : 2;
+    grid[0][row] = SEVEN;
+    grid[1][row] = SEVEN;
+    grid[2][missRow] = SEVEN;
+    if (grid[2][row] === SEVEN) grid[2][row] = fillerSymbols[0];
+    nearMiss2 = { reel: 2, row, missRow };
+    state.stats.nearMisses += 1;
+    play.nearMiss = true;
+  }
+  const suspense = [0, 1, 2].some(
+    (row) => grid[0][row] === SEVEN && grid[1][row] === SEVEN,
+  );
+  // Coupon symbols only appear on their own winning lines.
+  for (let reel = 0; reel < REELS; reel++)
+    for (let row = 0; row < ROWS; row++)
+      if (
+        couponSymbolList.includes(grid[reel][row]) &&
+        !lines.some((line) => line.row === row && reel < line.length)
+      )
+        grid[reel][row] =
+          config.slots.tripleSymbols[
+            (reel + row) % config.slots.tripleSymbols.length
+          ];
+  // Re-check the first two reels after that swap.
+  for (let row = 0; row < ROWS; row++)
+    if (
+      !lines.some((line) => line.row === row) &&
+      !(nearMiss2 && nearMiss2.row === row) &&
+      grid[0][row] === grid[1][row]
+    )
+      grid[1][row] = grid[0][row] === "🎬" ? "🍝" : "🎬";
+
+  play.beat = advanceBeat(state, play.celebrated, rng, now, grants, play);
 
   return {
     state,
@@ -775,10 +951,289 @@ export function spinSlots(
     event: {
       kind: "slots",
       ...play,
-      reels,
+      grid,
       outcome: outcomeId,
-      nearMissReel,
+      lines,
+      suspense,
+      nearMiss2,
     },
+  };
+}
+
+// ---------------------------------------------------------------- Roulette
+
+export function pocketColor(pocket: number): "red" | "black" | "green" {
+  if (pocket === 0) return "green";
+  return (config.roulette.red as readonly number[]).includes(pocket)
+    ? "red"
+    : "black";
+}
+
+function isRouletteBet(value: RouletteBet): boolean {
+  if (value.kind === "color")
+    return value.value === "red" || value.value === "black";
+  if (value.kind === "parity")
+    return value.value === "even" || value.value === "odd";
+  return Number.isInteger(value.value) && value.value >= 0 && value.value <= 36;
+}
+
+export function spinRoulette(
+  previous: CasinoState,
+  bet: number,
+  placed: RouletteBet,
+  rng: Rng,
+  now: Date,
+): StepResult {
+  if (!(config.roulette.bets as readonly number[]).includes(bet))
+    throw new CasinoRuleError("That bet is not on the menu.");
+  if (!isRouletteBet(placed)) throw new CasinoRuleError("Place a bet first.");
+  const { state, ledger, grants } = begin(previous, rng, now);
+  requireBalance(state, bet);
+  const pocket = rng(37);
+  const color = pocketColor(pocket);
+  const won =
+    placed.kind === "color"
+      ? color === placed.value
+      : placed.kind === "parity"
+        ? pocket !== 0 && (pocket % 2 === 0 ? "even" : "odd") === placed.value
+        : pocket === placed.value;
+  const multiplier =
+    placed.kind === "number"
+      ? config.roulette.payouts.number
+      : config.roulette.payouts[placed.kind];
+  const jackpotHit =
+    won && placed.kind === "number" && pocket === config.roulette.jackpotNumber;
+  const play = settlePlay(
+    state,
+    {
+      bet,
+      basePayout: won ? Math.floor(bet * multiplier) : 0,
+      bigWin: won && placed.kind === "number",
+      nearMiss: false,
+      couponMultiplier: 1,
+      forcedTiers: jackpotHit ? config.roulette.jackpotTiers : undefined,
+      metric: "tables",
+    },
+    rng,
+    now,
+    grants,
+  );
+  state.stats.rouletteSpins += 1;
+  return {
+    state,
+    ledger,
+    grants,
+    event: { kind: "roulette", ...play, pocket, color, placed, won },
+  };
+}
+
+// ---------------------------------------------------------------- Blackjack
+
+function drawCard(rng: Rng): Card {
+  return { rank: rng(13) + 1, suit: rng(4) };
+}
+
+export function handTotal(cards: readonly Card[]): number {
+  let total = 0;
+  let aces = 0;
+  for (const card of cards) {
+    if (card.rank === 1) {
+      aces += 1;
+      total += 11;
+    } else total += Math.min(10, card.rank);
+  }
+  while (total > 21 && aces > 0) {
+    total -= 10;
+    aces -= 1;
+  }
+  return total;
+}
+
+function isNatural(cards: readonly Card[]) {
+  return cards.length === 2 && handTotal(cards) === 21;
+}
+
+export interface BlackjackView {
+  bet: number;
+  player: Card[];
+  /** The hole card is hidden (null) while the hand is being played. */
+  dealer: (Card | null)[];
+  playerTotal: number;
+  dealerTotal: number | null;
+}
+
+function viewHand(hand: BlackjackHand, reveal: boolean): BlackjackView {
+  return {
+    bet: hand.bet,
+    player: hand.player,
+    dealer: reveal ? hand.dealer : [hand.dealer[0], null],
+    playerTotal: handTotal(hand.player),
+    dealerTotal: reveal ? handTotal(hand.dealer) : null,
+  };
+}
+
+function settleHand(
+  state: CasinoState,
+  hand: BlackjackHand,
+  outcome: NonNullable<BlackjackEvent["outcome"]>,
+  rng: Rng,
+  now: Date,
+  grants: CouponGrant[],
+): BlackjackEvent {
+  const rules = config.blackjack;
+  const payout =
+    outcome === "natural"
+      ? Math.floor(hand.bet * rules.naturalPays)
+      : outcome === "win"
+        ? Math.floor(hand.bet * rules.winPays)
+        : outcome === "push"
+          ? Math.floor(hand.bet * rules.pushPays)
+          : 0;
+  const play = settlePlay(
+    state,
+    {
+      bet: hand.bet,
+      basePayout: payout,
+      bigWin: false,
+      nearMiss: false,
+      couponMultiplier: 1,
+      forcedTiers: outcome === "natural" ? rules.naturalTiers : undefined,
+      metric: "tables",
+      prepaid: true,
+      neutral: outcome === "push",
+    },
+    rng,
+    now,
+    grants,
+  );
+  state.blackjack = null;
+  state.stats.blackjackHands += 1;
+  if (outcome === "natural") state.stats.naturals += 1;
+  return {
+    kind: "blackjack",
+    phase: "settled",
+    hand: viewHand(hand, true),
+    outcome,
+    play,
+  };
+}
+
+function dealerPlays(hand: BlackjackHand, rng: Rng) {
+  while (handTotal(hand.dealer) < config.blackjack.dealerStandsOn)
+    hand.dealer.push(drawCard(rng));
+}
+
+function compareHands(hand: BlackjackHand): "win" | "push" | "lose" {
+  const player = handTotal(hand.player);
+  const dealer = handTotal(hand.dealer);
+  if (dealer > 21 || player > dealer) return "win";
+  if (player === dealer) return "push";
+  return "lose";
+}
+
+export function blackjackDeal(
+  previous: CasinoState,
+  bet: number,
+  rng: Rng,
+  now: Date,
+): StepResult {
+  if (!(config.blackjack.bets as readonly number[]).includes(bet))
+    throw new CasinoRuleError("That bet is not on the menu.");
+  const { state, ledger, grants } = begin(previous, rng, now);
+  if (state.blackjack)
+    throw new CasinoRuleError("Finish the current hand first.");
+  requireBalance(state, bet);
+  state.balance -= bet;
+  const hand: BlackjackHand = {
+    bet,
+    player: [drawCard(rng), drawCard(rng)],
+    dealer: [drawCard(rng), drawCard(rng)],
+  };
+  const playerNatural = isNatural(hand.player);
+  const dealerNatural = isNatural(hand.dealer);
+  if (playerNatural || dealerNatural) {
+    const outcome =
+      playerNatural && dealerNatural
+        ? "push"
+        : playerNatural
+          ? "natural"
+          : "lose";
+    return {
+      state,
+      ledger,
+      grants,
+      event: settleHand(state, hand, outcome, rng, now, grants),
+    };
+  }
+  state.blackjack = hand;
+  return {
+    state,
+    ledger,
+    grants,
+    event: {
+      kind: "blackjack",
+      phase: "playing",
+      hand: viewHand(hand, false),
+      outcome: null,
+      play: null,
+    },
+  };
+}
+
+export function blackjackHit(
+  previous: CasinoState,
+  rng: Rng,
+  now: Date,
+): StepResult {
+  const { state, ledger, grants } = begin(previous, rng, now);
+  const hand = state.blackjack;
+  if (!hand) throw new CasinoRuleError("Deal a hand first.");
+  hand.player.push(drawCard(rng));
+  const total = handTotal(hand.player);
+  if (total > 21)
+    return {
+      state,
+      ledger,
+      grants,
+      event: settleHand(state, hand, "bust", rng, now, grants),
+    };
+  if (total === 21) {
+    dealerPlays(hand, rng);
+    return {
+      state,
+      ledger,
+      grants,
+      event: settleHand(state, hand, compareHands(hand), rng, now, grants),
+    };
+  }
+  return {
+    state,
+    ledger,
+    grants,
+    event: {
+      kind: "blackjack",
+      phase: "playing",
+      hand: viewHand(hand, false),
+      outcome: null,
+      play: null,
+    },
+  };
+}
+
+export function blackjackStand(
+  previous: CasinoState,
+  rng: Rng,
+  now: Date,
+): StepResult {
+  const { state, ledger, grants } = begin(previous, rng, now);
+  const hand = state.blackjack;
+  if (!hand) throw new CasinoRuleError("Deal a hand first.");
+  dealerPlays(hand, rng);
+  return {
+    state,
+    ledger,
+    grants,
+    event: settleHand(state, hand, compareHands(hand), rng, now, grants),
   };
 }
 
@@ -990,7 +1445,12 @@ export function doubleOrNothing(
     state,
     ledger,
     grants,
-    event: { kind: "double", won, amount: pending.amount },
+    event: {
+      kind: "double",
+      won,
+      amount: pending.amount,
+      face: won ? "heads" : "tails",
+    },
   };
 }
 
@@ -1192,9 +1652,85 @@ export function claimFinale(previous: CasinoState, now: Date): StepResult {
   };
 }
 
+// ---------------------------------------------------------------- Season
+
+/** The welcome tour was seen (or skipped) this season. */
+export function finishWelcome(previous: CasinoState): StepResult {
+  const state = clone(previous);
+  state.onboarded = true;
+  return { state, ledger: [], grants: [], event: { kind: "enter" } };
+}
+
+export function passProgress(state: CasinoState) {
+  const rules = config.kissPass;
+  const reached = Math.min(
+    rules.rewards.length,
+    Math.floor(state.stats.plays / rules.playsPerTier),
+  );
+  return {
+    reached,
+    claimable: Math.max(0, reached - state.pass.claimed),
+    nextReward: rules.rewards[state.pass.claimed] ?? null,
+    intoTier: state.stats.plays % rules.playsPerTier,
+  };
+}
+
+export function claimPassTier(
+  previous: CasinoState,
+  rng: Rng,
+  now: Date,
+): StepResult {
+  const { state, ledger, grants } = begin(previous, rng, now);
+  const progress = passProgress(state);
+  if (progress.claimable <= 0 || progress.nextReward === null)
+    throw new CasinoRuleError("The next Kiss Pass tier is not unlocked yet.");
+  state.pass.claimed += 1;
+  state.balance += progress.nextReward;
+  return {
+    state,
+    ledger,
+    grants,
+    event: {
+      kind: "claim",
+      chips: progress.nextReward,
+      label: `Kiss Pass tier ${state.pass.claimed}`,
+    },
+  };
+}
+
+/**
+ * A fresh season, as if the casino had never been used. Only the coupon
+ * counter survives (so new wins never reuse a code) and, if configured, the
+ * kiss debt. Coupons themselves live outside the casino state.
+ */
+export function resetCasino(previous: CasinoState): CasinoState {
+  const fresh = createInitialState();
+  fresh.nextCode = previous.nextCode;
+  fresh.season = previous.season + 1;
+  if (!config.reset.resetDebtOnReset) {
+    fresh.debt = previous.debt;
+    fresh.lastInterestAt = previous.lastInterestAt;
+  }
+  return fresh;
+}
+
 // ---------------------------------------------------------------- View
 
 export interface CasinoView {
+  season: number;
+  onboarded: boolean;
+  jackpotPool: number;
+  pass: {
+    tier: number;
+    tiers: number;
+    claimable: number;
+    nextReward: number | null;
+    progress: number;
+    rewards: readonly number[];
+  };
+  blackjack: BlackjackView | null;
+  /** Things waiting in the Rewards drawer. */
+  rewardsBadge: number;
   balance: number;
   piggy: number;
   vip: {
@@ -1269,7 +1805,32 @@ export function toView(state: CasinoState, now: Date): CasinoView {
   const dealDefinition = deal
     ? config.shop.flashDeals.find((item) => item.id === deal.id)
     : undefined;
+  const pass = passProgress(state);
+  const claimableMissions =
+    visit?.missions.filter((mission) => {
+      const progress = missionProgress(visit, mission.id);
+      return progress?.complete && !mission.claimed;
+    }).length ?? 0;
   return {
+    season: state.season,
+    onboarded: state.onboarded,
+    jackpotPool: state.jackpotPool,
+    pass: {
+      tier: state.pass.claimed,
+      tiers: config.kissPass.rewards.length,
+      claimable: pass.claimable,
+      nextReward: pass.nextReward,
+      progress:
+        pass.claimable > 0
+          ? 1
+          : giftedProgress(pass.intoTier, config.kissPass.playsPerTier),
+      rewards: config.kissPass.rewards,
+    },
+    blackjack: state.blackjack ? viewHand(state.blackjack, false) : null,
+    rewardsBadge:
+      claimableMissions +
+      pass.claimable +
+      (visit && !visit.welcomeClaimed && visit.welcomeBonus > 0 ? 1 : 0),
     balance: state.balance,
     piggy: state.piggy,
     vip: {

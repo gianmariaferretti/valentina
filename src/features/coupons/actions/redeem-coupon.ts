@@ -1,9 +1,11 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
+import { casinoConfig } from "@/data/casino-config";
 import { getCoupon } from "@/data/coupons";
-import { findCasinoCoupon } from "@/features/casino/repositories/load-casino";
+import {
+  findCasinoCoupon,
+  redeemCasinoCouponWithReset,
+} from "@/features/casino/repositories/load-casino";
 import {
   canRedeemCoupon,
   resolveCoupon,
@@ -19,6 +21,8 @@ export interface RedeemCouponResult {
   status: "success" | "error";
   message: string;
   redeemedAt?: string;
+  /** Redeeming a casino coupon started a fresh casino season. */
+  casinoReset?: boolean;
 }
 
 export async function redeemCoupon(
@@ -64,18 +68,26 @@ export async function redeemCoupon(
       };
     }
 
-    const redeemedAt = await repository.redeem(
-      resolvedCoupon.id,
-      new Date().toISOString(),
-    );
+    // A coupon won at the Kiss Casino also wipes the casino clean, in the
+    // same database transaction as the redemption (see casino-config.ts).
+    const casinoReset =
+      resolvedCoupon.source === "casino" &&
+      casinoConfig.reset.resetOnCasinoCouponRedeem;
+    const now = new Date().toISOString();
+    const redeemedAt = casinoReset
+      ? await redeemCasinoCouponWithReset(resolvedCoupon.id, now)
+      : await repository.redeem(resolvedCoupon.id, now);
 
-    revalidatePath("/coupons");
-    revalidatePath(`/coupons/${resolvedCoupon.id}`);
+    // No revalidatePath here: inside a Server Action it re-renders the page
+    // being viewed immediately, which used to cut the tear animation short.
+    // Every coupon page is dynamic; the client refreshes once the stub has
+    // fallen and the stamp has landed (see ticket-tear.tsx).
 
     return {
       status: "success",
       message: "Coupon redeemed. Gianmaria has been formally notified.",
       redeemedAt,
+      casinoReset,
     };
   } catch (error) {
     reportPersistenceFailure("redeem coupon", error);

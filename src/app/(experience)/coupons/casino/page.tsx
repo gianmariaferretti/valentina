@@ -13,17 +13,11 @@ export default async function KissCasinoPage() {
   const snapshot = await loadCasinoSnapshot();
 
   return (
-    <div className="page-container py-6 sm:py-10">
-      <header className="mb-5 text-center">
+    <div className="page-container py-4 sm:py-8">
+      <header className="mb-3 text-center">
+        <h1 className="sr-only">Kiss Casino</h1>
         <p className="text-[0.6rem] font-bold tracking-[0.2em] text-[var(--rust)] uppercase">
-          V + G · Open late · No real money
-        </p>
-        <h1 className="mt-2 font-display text-[clamp(2.6rem,10vw,5.5rem)] leading-[0.9] tracking-[-0.05em] italic">
-          Kiss Casino
-        </h1>
-        <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">
-          Every chip is a kiss. Every kiss is real. The house is Gianmaria, and
-          the house is openly, shamelessly rigged.
+          V + G · Open late · Every chip is a real kiss
         </p>
       </header>
 

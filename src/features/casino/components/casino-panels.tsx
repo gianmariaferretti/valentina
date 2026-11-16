@@ -47,7 +47,7 @@ export function AnimatedNumber({ value }: { value: number }) {
   return <>{shown}</>;
 }
 
-function Meter({ value, label }: { value: number; label: string }) {
+export function Meter({ value, label }: { value: number; label: string }) {
   return (
     <div
       aria-label={label}
@@ -104,10 +104,11 @@ export function BeatPanel({ view }: { view: CasinoView }) {
               {wins}/{beat.target}
             </span>
           </div>
-          <div aria-hidden="true" className={cn(styles.ticketMeter, "mt-1")}>
-            {Array.from({ length: beat.target }, (_, index) => (
-              <span data-on={index < wins} key={index} />
-            ))}
+          <div className="mt-1">
+            <Meter
+              label={`${who}: ${wins} of ${beat.target}`}
+              value={wins / beat.target}
+            />
           </div>
         </div>
       ))}
@@ -374,9 +375,9 @@ export function FeedPanel({ view }: { view: CasinoView }) {
   return (
     <section className={styles.panel}>
       <h3 className={styles.panelTitle}>Live wins</h3>
-      <ul className={cn(styles.feed, "mt-3")}>
+      <ul className="mt-3 grid gap-2 text-sm">
         {shown.map((line, index) => (
-          <li key={`${start}-${index}`}>
+          <li className="flex gap-2" key={`${start}-${index}`}>
             <span aria-hidden="true">
               {line.startsWith("Valentina") ? "💋" : "🎰"}
             </span>
@@ -385,5 +386,97 @@ export function FeedPanel({ view }: { view: CasinoView }) {
         ))}
       </ul>
     </section>
+  );
+}
+
+export function PassPanel({
+  view,
+  onCollect,
+  disabled,
+}: {
+  view: CasinoView;
+  onCollect: () => void;
+  disabled: boolean;
+}) {
+  const pass = view.pass;
+  return (
+    <section className={styles.panel}>
+      <div className="flex items-center justify-between gap-2">
+        <h3 className={styles.panelTitle}>Kiss Pass · season {view.season}</h3>
+        <span className="text-xs font-bold">
+          {pass.tier}/{pass.tiers}
+        </span>
+      </div>
+      <div aria-hidden="true" className={styles.passTrack}>
+        {pass.rewards.map((reward, index) => (
+          <span
+            data-state={
+              index < pass.tier
+                ? "claimed"
+                : index < pass.tier + pass.claimable
+                  ? "ready"
+                  : "locked"
+            }
+            key={index}
+          >
+            {reward}
+          </span>
+        ))}
+      </div>
+      {pass.claimable > 0 ? (
+        <button
+          className={cn(styles.smallButton, "mt-3 w-full")}
+          disabled={disabled}
+          onClick={onCollect}
+          type="button"
+        >
+          Collect +{pass.nextReward} 💋
+        </button>
+      ) : pass.nextReward !== null ? (
+        <div className="mt-3">
+          <Meter label="Progress to the next tier" value={pass.progress} />
+          <p className={cn(styles.muted, "mt-2 text-xs")}>
+            Every {casinoConfig.kissPass.playsPerTier} plays unlock the next
+            tier: +{pass.nextReward} 💋.
+          </p>
+        </div>
+      ) : (
+        <p className={cn(styles.muted, "mt-2 text-xs")}>Pass complete.</p>
+      )}
+    </section>
+  );
+}
+
+export function WelcomePanel({
+  view,
+  onCollect,
+  disabled,
+}: {
+  view: CasinoView;
+  onCollect: () => void;
+  disabled: boolean;
+}) {
+  const welcome = view.visit?.welcomeBonus ?? 0;
+  if (welcome <= 0 && !view.visit?.luckBoost) return null;
+  return (
+    <div className={styles.banner} data-tone={welcome > 0 ? undefined : "hot"}>
+      <span>
+        {welcome > 0
+          ? view.visit?.daysAway
+            ? `Welcome back! +${welcome} 💋`
+            : `Welcome bonus: +${welcome} 💋`
+          : "Your luck is hot 🔥 for the next few plays."}
+      </span>
+      {welcome > 0 ? (
+        <button
+          className={cn(styles.smallButton, "bg-black/80")}
+          disabled={disabled}
+          onClick={onCollect}
+          type="button"
+        >
+          Collect
+        </button>
+      ) : null}
+    </div>
   );
 }

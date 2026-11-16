@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       casino_state: {
         Row: {
+          season: number;
           user_id: string;
           version: number;
           balance: number;
@@ -25,6 +26,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          season?: number;
           user_id: string;
           version?: number;
           balance: number;
@@ -73,6 +75,7 @@ export type Database = {
       };
       casino_ledger: {
         Row: {
+          season: number;
           id: number;
           user_id: string;
           kind: string;
@@ -607,6 +610,18 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      redeem_casino_coupon_with_reset: {
+        Args: {
+          p_user_id: string;
+          p_coupon_id: string;
+          p_redeemed_at: string;
+          p_expected_version: number;
+          p_balance: number;
+          p_state: Json;
+          p_reset_debt: boolean;
+        };
+        Returns: { redeemed_at: string; version: number; season: number }[];
+      };
       commit_casino_state: {
         Args: {
           p_user_id: string;

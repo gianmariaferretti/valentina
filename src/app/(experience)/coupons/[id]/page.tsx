@@ -16,6 +16,7 @@ import { findCasinoCoupon } from "@/features/casino/repositories/load-casino";
 import { RedemptionControl } from "@/features/coupons/components/redemption-control";
 import {
   RedeemedStamp,
+  TearAwareStatus,
   TicketStub,
   TicketTearProvider,
 } from "@/features/coupons/components/ticket-tear";
@@ -149,7 +150,7 @@ export default async function CouponPage({ params }: CouponPageProps) {
             <div className="relative my-auto py-8 sm:py-14">
               <p className="text-[0.6rem] font-bold tracking-[0.19em] uppercase opacity-52">
                 {resolvedCoupon.category} · {resolvedCoupon.setting} ·{" "}
-                {resolvedCoupon.status}
+                <TearAwareStatus status={resolvedCoupon.status} />
               </p>
               <h1 className="mt-5 max-w-5xl font-display text-[clamp(2.9rem,10vw,8.5rem)] leading-[0.79] tracking-[-0.065em]">
                 {resolvedCoupon.title}
@@ -159,7 +160,7 @@ export default async function CouponPage({ params }: CouponPageProps) {
               </p>
             </div>
 
-            <RedeemedStamp />
+            <RedeemedStamp style={{ bottom: "5.5rem", right: "1.75rem" }} />
 
             <div className="relative grid gap-4 border-t border-dashed border-current pt-5 text-[0.56rem] font-bold tracking-[0.14em] uppercase opacity-80 sm:grid-cols-3">
               <span>Issued {formatDate(resolvedCoupon.createdAt)}</span>
@@ -172,7 +173,7 @@ export default async function CouponPage({ params }: CouponPageProps) {
             <div className="flex items-center justify-between gap-4">
               <ScanLine aria-hidden="true" size={25} strokeWidth={1.5} />
               <span className="rounded-full border border-[var(--line-strong)] px-3 py-1.5 text-[0.56rem] font-bold tracking-[0.14em] uppercase">
-                {resolvedCoupon.status}
+                <TearAwareStatus status={resolvedCoupon.status} />
               </span>
             </div>
 
@@ -206,7 +207,7 @@ export default async function CouponPage({ params }: CouponPageProps) {
             </div>
 
             {/* On phones the action comes before the terms, so it is reachable without a long scroll. */}
-            <div className="max-lg:order-first max-lg:mb-6">
+            <div className="max-lg:mb-6 max-lg:[order:-1]">
               <RedemptionControl
                 challengeId={resolvedCoupon.challengeId}
                 couponId={resolvedCoupon.id}
@@ -219,7 +220,12 @@ export default async function CouponPage({ params }: CouponPageProps) {
               />
             </div>
 
-            <TicketStub>
+            {/* The stub sits on the perforation, next to the Redeem button: first on
+                phones, at the foot of the column on larger screens. */}
+            <TicketStub
+              className="pb-6 lg:pb-0"
+              wrapperClassName="max-lg:order-first lg:mt-8 lg:border-t-2 lg:border-dashed lg:border-[var(--line-strong)] lg:pt-6"
+            >
               <div className="h-14 bg-[repeating-linear-gradient(90deg,var(--ink)_0_2px,transparent_2px_5px,var(--ink)_5px_6px,transparent_6px_10px)] opacity-72" />
               <div className="mt-3 flex items-center justify-between text-[0.5rem] font-bold tracking-[0.14em] text-[var(--muted)] uppercase">
                 <span>{resolvedCoupon.code}</span>

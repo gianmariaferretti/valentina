@@ -81,27 +81,105 @@ export const casinoConfig = {
   luckMeter: { floor: 0.55, ceiling: 0.97 },
 
   /**
-   * Love Slots. Outcomes are drawn first, then reels are drawn to match.
-   * `multiplier` × bet is paid; anything under 1 is a loss disguised as a win
-   * (lights, sound and "WIN!" anyway). `bigWin` triggers the full-screen show.
+   * Love Slots — five reels, three rows, three paylines (top, middle,
+   * bottom). Outcomes are drawn first, then reels are drawn to match.
+   * `multiplier` × bet is paid on one line; anything under 1 is a loss
+   * disguised as a win (lights, sound and "WIN!" anyway).
+   * Coupons won on a spin appear as three of their tier's symbol on a line
+   * (`couponSymbols`), so the paytable can show what each symbol is worth.
    */
   slots: {
     bets: [5, 10, 25],
+    reels: 5,
+    rows: 3,
     symbols: ["💋", "❤️", "🍝", "🍦", "✈️", "🎬", "💆", "🌹", "7️⃣"],
     outcomes: [
-      { id: "seven-triple", probability: 0.004, multiplier: 50, bigWin: true },
-      { id: "kiss-triple", probability: 0.01, multiplier: 20, bigWin: true },
-      { id: "triple", probability: 0.03, multiplier: 5, bigWin: false },
-      { id: "kiss-double", probability: 0.07, multiplier: 2, bigWin: false },
-      // Loss disguised as a win: pays half the bet with full celebration.
-      { id: "kiss-single", probability: 0.16, multiplier: 0.5, bigWin: false },
+      { id: "kiss-5", label: "💋💋💋💋💋", probability: 0.002, multiplier: 40 },
+      { id: "kiss-4", label: "💋💋💋💋", probability: 0.01, multiplier: 12 },
+      { id: "kiss-3", label: "💋💋💋", probability: 0.03, multiplier: 5 },
+      {
+        id: "triple",
+        label: "❤️❤️❤️ · 🍝🍝🍝 · 🎬🎬🎬 · ✈️✈️✈️",
+        probability: 0.08,
+        multiplier: 3,
+      },
+      // Loss disguised as a win: two kisses pay half the bet, with fanfare.
+      { id: "kiss-pair", label: "💋💋", probability: 0.18, multiplier: 0.5 },
     ],
-    /** Near misses — share of losing spins that show two 7️⃣/💋 and a third just off the line. */
+    /** Symbols shown for coupon wins, by tier. */
+    couponSymbols: { common: "🍦", rare: "💆", epic: "🌹", jackpot: "7️⃣" },
+    tripleSymbols: ["❤️", "🍝", "🎬", "✈️"],
+    /** Near misses — share of losing spins that show 7️⃣7️⃣ and a third 7️⃣ just off the line. */
     nearMissRate: 0.38,
-    /** Animation lengths (ms). A normal spin never exceeds 2 seconds. */
-    spinMs: 1800,
-    turboSpinMs: 650,
+    /** Animation lengths (ms). Suspense is added to the last reels after two jackpot symbols. */
+    spinMs: 1900,
+    turboSpinMs: 750,
+    suspenseMs: 900,
     autoSpinCounts: [10, 25],
+  },
+
+  /**
+   * Roulette dei Baci — a single-zero wheel (0–36). Payouts are total
+   * returns, stake included, set a little under fair odds. A straight bet
+   * on 31 (the day it all began) that lands also wins an epic coupon.
+   */
+  roulette: {
+    bets: [5, 10, 25],
+    order: [
+      0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5,
+      24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26,
+    ],
+    red: [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36],
+    payouts: { color: 1.8, parity: 1.8, number: 32 },
+    jackpotNumber: 31,
+    jackpotTiers: { common: 0, rare: 0, epic: 1, jackpot: 0 },
+    spinMs: 2600,
+  },
+
+  /**
+   * Blackjack dei Baci — one quick hand against the croupier: Hit or Stand,
+   * dealer stands on 17. Payouts are total returns, stake included.
+   * A natural blackjack also wins a rare coupon.
+   */
+  blackjack: {
+    bets: [5, 10, 25],
+    winPays: 2,
+    pushPays: 1,
+    naturalPays: 2,
+    dealerStandsOn: 17,
+    naturalTiers: { common: 0, rare: 1, epic: 0, jackpot: 0 },
+  },
+
+  /** Celebration levels by payout ÷ bet. A jackpot coupon is always JACKPOT. */
+  celebrations: { bigWin: 10, megaWin: 25 },
+
+  /**
+   * Jackpot ticker — a display-only progressive number that creeps up with
+   * every bet and resets when a jackpot coupon is won.
+   */
+  jackpotTicker: { base: 777, perBet: 0.15 },
+
+  /**
+   * Kiss Pass — a short season track: every `playsPerTier` plays unlocks the
+   * next tier's kisses, to collect from the Rewards drawer.
+   */
+  kissPass: {
+    playsPerTier: 6,
+    rewards: [10, 10, 15, 15, 20, 20, 25, 30, 40, 60],
+  },
+
+  /**
+   * Reset — redeeming a coupon won at the casino wipes the casino clean, as
+   * if it had never been used: balance back to `startingBalance`; luck,
+   * beginner's luck, missions, piggy bank, hot streak, VIP, sets, Kiss Pass,
+   * offers (first purchase ×2 included) and Behind the Curtain reset; the
+   * welcome tour returns. Coupons and redeemed stubs are never touched.
+   * `resetDebtOnReset` archives the kiss debt as a closed season and starts
+   * the next one at zero.
+   */
+  reset: {
+    resetOnCasinoCouponRedeem: true,
+    resetDebtOnReset: true,
   },
 
   /**
@@ -181,8 +259,9 @@ export const casinoConfig = {
    * of course it is.
    */
   doubleOrNothing: { winChance: 0.45 },
+  // Played as a coin toss: heads doubles the win, tails loses it.
 
-  /** Hot Streak — `winsNeeded` winning plays in a row double payouts for the next `plays` plays. */
+  /** Hot Streak — `winsNeeded` winning plays in a row double payouts for the next `plays` plays. Slots, scratch cards and the wheel only. */
   hotStreak: { winsNeeded: 3, multiplier: 2, plays: 5 },
 
   /**
@@ -235,6 +314,13 @@ export const casinoConfig = {
         metric: "wagered",
         target: 100,
         reward: 20,
+      },
+      {
+        id: "tables-3",
+        label: "Play 3 table games",
+        metric: "tables",
+        target: 3,
+        reward: 15,
       },
     ],
   },

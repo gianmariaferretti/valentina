@@ -1,15 +1,12 @@
 "use client";
 
-import { ArrowRight, Check, LockKeyhole, Trophy, X } from "lucide-react";
+import { ArrowRight, Check, LockKeyhole, Trophy } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useRef, useState, useTransition } from "react";
+import { useRef, useState } from "react";
 
-import { Portal } from "@/components/ui/portal";
-import { redeemCoupon } from "@/features/coupons/actions/redeem-coupon";
 import type { CouponStatus, CouponType } from "@/features/coupons/types";
-import { useModalDialog } from "@/hooks/use-modal-dialog";
 
+import { RedeemDialog } from "./redeem-dialog";
 import { useTicketTear } from "./ticket-tear";
 
 interface RedemptionControlProps {
@@ -31,6 +28,25 @@ function formatRedeemedAt(value: string): string {
   }).format(new Date(value));
 }
 
+function RedeemedPanel({ redeemedAt }: { redeemedAt: string | null }) {
+  return (
+    <div className="rounded-[1.25rem] border border-[var(--red-muted)]/45 bg-[var(--red-muted)]/8 p-5">
+      <div className="flex items-center gap-3 text-[var(--rust)]">
+        <Check aria-hidden="true" size={19} strokeWidth={1.8} />
+        <p className="text-[0.62rem] font-bold tracking-[0.16em] uppercase">
+          Redeemed
+        </p>
+      </div>
+      <p className="mt-3 font-display text-2xl">
+        {redeemedAt ? formatRedeemedAt(redeemedAt) : "Date unavailable"}
+      </p>
+      <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+        Officially used. The archive remembers everything.
+      </p>
+    </div>
+  );
+}
+
 export function RedemptionControl({
   couponId,
   title,
@@ -41,38 +57,14 @@ export function RedemptionControl({
   unlockCondition,
   redeemedAt,
 }: RedemptionControlProps) {
-  const router = useRouter();
-  const tearContext = useTicketTear();
+  const tear = useTicketTear();
+  const phase = tear?.phase ?? "idle";
   const [isConfirming, setIsConfirming] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
   const redeemButtonRef = useRef<HTMLButtonElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const closeConfirmation = useCallback(() => setIsConfirming(false), []);
-  const { dialogRef, onKeyDown } = useModalDialog({
-    initialFocusRef: closeButtonRef,
-    isOpen: isConfirming,
-    onClose: closeConfirmation,
-    returnFocusRef: redeemButtonRef,
-  });
 
-  if (status === "redeemed") {
-    return (
-      <div className="rounded-[1.25rem] border border-[var(--red-muted)]/45 bg-[var(--red-muted)]/8 p-5">
-        <div className="flex items-center gap-3 text-[var(--rust)]">
-          <Check aria-hidden="true" size={19} strokeWidth={1.8} />
-          <p className="text-[0.62rem] font-bold tracking-[0.16em] uppercase">
-            Redeemed
-          </p>
-        </div>
-        <p className="mt-3 font-display text-2xl">
-          {redeemedAt ? formatRedeemedAt(redeemedAt) : "Date unavailable"}
-        </p>
-        <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-          Officially used. The archive remembers everything.
-        </p>
-      </div>
-    );
+  if (status === "redeemed" || phase === "done") {
+    return <RedeemedPanel redeemedAt={tear?.redeemedAt ?? redeemedAt} />;
   }
 
   if (type === "challenge" && challengeId && !redeemable) {
@@ -104,25 +96,23 @@ export function RedemptionControl({
     );
   }
 
+  const inProgress = phase === "tearing" || phase === "stamping";
+
   function confirmRedemption() {
-    startTransition(() => {
-      void redeemCoupon(couponId).then((result) => {
-        setFeedback(result.message);
-        if (result.status === "success") {
-          setIsConfirming(false);
-          // The stub tears off, then the page refreshes with the saved state.
-          if (tearContext && result.redeemedAt)
-            tearContext.tear(result.redeemedAt);
-          else router.refresh();
-        }
-      });
+    setIsConfirming(false);
+    setFeedback(null);
+    if (!tear) return;
+    // The tear starts right now; the save happens in parallel.
+    void tear.redeem(couponId).then((result) => {
+      if (!result.ok) setFeedback(result.message);
     });
   }
 
   return (
     <>
       <button
-        className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[var(--rust)] px-5 text-[0.68rem] font-bold tracking-[0.15em] text-white uppercase transition hover:bg-[var(--oxblood)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--rust)]"
+        className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[var(--rust)] px-5 text-[0.68rem] font-bold tracking-[0.15em] text-white uppercase transition hover:bg-[var(--oxblood)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--rust)] disabled:opacity-70"
+        disabled={inProgress}
         onClick={() => {
           setFeedback(null);
           setIsConfirming(true);
@@ -130,86 +120,27 @@ export function RedemptionControl({
         ref={redeemButtonRef}
         type="button"
       >
-        Redeem coupon
-        <ArrowRight aria-hidden="true" size={15} />
+        {inProgress ? "Redeeming…" : "Redeem coupon"}
+        {inProgress ? null : <ArrowRight aria-hidden="true" size={15} />}
       </button>
 
       {feedback ? (
         <p
           className="mt-3 text-center text-xs leading-5 text-[var(--rust)]"
-          role="status"
+          role="alert"
         >
           {feedback}
         </p>
       ) : null}
 
-      {isConfirming ? (
-        <Portal>
-          <div
-            aria-labelledby="redemption-title"
-            aria-modal="true"
-            className="fixed inset-0 z-[80] grid place-items-center overflow-y-auto overscroll-contain bg-[var(--ink)]/65 p-5 backdrop-blur-sm"
-            onKeyDown={onKeyDown}
-            onMouseDown={(event) => {
-              if (event.currentTarget === event.target && !isPending) {
-                closeConfirmation();
-              }
-            }}
-            ref={dialogRef}
-            role="dialog"
-            tabIndex={-1}
-          >
-            <div className="relative w-full max-w-md rounded-[1.75rem] bg-[var(--paper-white)] p-7 shadow-[var(--shadow-lifted)] sm:p-9">
-              <button
-                aria-label="Cancel redemption"
-                className="absolute top-5 right-5 grid size-11 place-items-center rounded-full border border-[var(--line)] transition hover:bg-[var(--paper)]"
-                disabled={isPending}
-                onClick={closeConfirmation}
-                ref={closeButtonRef}
-                type="button"
-              >
-                <X aria-hidden="true" size={18} />
-              </button>
-              <p className="text-[0.6rem] font-bold tracking-[0.18em] text-[var(--rust)] uppercase">
-                Final confirmation
-              </p>
-              <h2
-                className="mt-4 max-w-xs font-display text-4xl leading-[0.95] tracking-[-0.04em]"
-                id="redemption-title"
-              >
-                Redeem {title}?
-              </h2>
-              <p className="mt-5 text-sm leading-6 text-[var(--muted)]">
-                This will permanently mark the coupon as redeemed in
-                Valentina&apos;s wallet. Dramatic consequences may follow.
-              </p>
-              <div className="mt-8 grid gap-2 sm:grid-cols-2">
-                <button
-                  className="min-h-12 rounded-full border border-[var(--line-strong)] px-5 text-[0.65rem] font-bold tracking-[0.13em] uppercase"
-                  disabled={isPending}
-                  onClick={closeConfirmation}
-                  type="button"
-                >
-                  Not yet
-                </button>
-                <button
-                  className="min-h-12 rounded-full bg-[var(--rust)] px-5 text-[0.65rem] font-bold tracking-[0.13em] text-white uppercase disabled:opacity-50"
-                  disabled={isPending}
-                  onClick={confirmRedemption}
-                  type="button"
-                >
-                  {isPending ? "Redeeming…" : "Yes, redeem"}
-                </button>
-              </div>
-              {feedback ? (
-                <p className="mt-4 text-sm text-[var(--rust)]" role="alert">
-                  {feedback}
-                </p>
-              ) : null}
-            </div>
-          </div>
-        </Portal>
-      ) : null}
+      <RedeemDialog
+        casino={couponId.startsWith("casino-")}
+        onCancel={() => setIsConfirming(false)}
+        onConfirm={confirmRedemption}
+        open={isConfirming}
+        returnFocusRef={redeemButtonRef}
+        title={title}
+      />
     </>
   );
 }

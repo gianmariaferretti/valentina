@@ -24,6 +24,12 @@ interface ScratchSurfaceProps {
   className?: string;
   /** Hide the visible Reveal button (callers then provide their own). */
   hideButton?: boolean;
+  /** Foil dust falls from the finger while scratching (skipped with reduced motion). */
+  dust?: boolean;
+  /** Called (throttled) while scratching, e.g. to play a rustle. */
+  onScratch?: () => void;
+  /** Reveals the foil from outside (a "Reveal all" button). */
+  forceReveal?: boolean;
 }
 
 const tones = {
@@ -46,6 +52,9 @@ export function ScratchSurface({
   tone = "silver",
   className,
   hideButton = false,
+  dust = false,
+  onScratch,
+  forceReveal = false,
 }: ScratchSurfaceProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -61,6 +70,55 @@ export function ScratchSurface({
     setRevealed(true);
     onReveal();
   }, [onReveal]);
+
+  useEffect(() => {
+    if (!forceReveal) return;
+    const timer = window.setTimeout(reveal, 0);
+    return () => window.clearTimeout(timer);
+  }, [forceReveal, reveal]);
+
+  const lastDust = useRef(0);
+  function sprinkle(point: { x: number; y: number }) {
+    const now = performance.now();
+    if (now - lastDust.current < 70) return;
+    lastDust.current = now;
+    onScratch?.();
+    const wrapper = wrapperRef.current;
+    if (
+      !dust ||
+      !wrapper ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
+      return;
+    const [base, dark] = tones[tone];
+    for (let i = 0; i < 4; i++) {
+      const fleck = document.createElement("span");
+      const size = 2 + Math.random() * 4;
+      fleck.setAttribute("aria-hidden", "true");
+      fleck.style.cssText = `position:absolute;left:${point.x}px;top:${point.y}px;width:${size}px;height:${size}px;border-radius:1px;background:${i % 2 ? base : dark};pointer-events:none;z-index:30`;
+      wrapper.appendChild(fleck);
+      const dx = (Math.random() - 0.5) * 50;
+      const dy = 30 + Math.random() * 60;
+      fleck
+        .animate(
+          [
+            { transform: "translate(0,0) rotate(0)", opacity: 1 },
+            {
+              transform: `translate(${dx}px, ${dy}px) rotate(${Math.random() * 360}deg)`,
+              opacity: 0,
+            },
+          ],
+          {
+            duration: 550 + Math.random() * 300,
+            easing: "cubic-bezier(.3,0,.8,1)",
+          },
+        )
+        .finished.then(
+          () => fleck.remove(),
+          () => fleck.remove(),
+        );
+    }
+  }
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -129,6 +187,7 @@ export function ScratchSurface({
     context.lineTo(point.x, point.y);
     context.stroke();
     lastPoint.current = point;
+    sprinkle(point);
     strokes.current += 1;
     if (strokes.current % 8 === 0) checkCleared(canvas, context);
   }

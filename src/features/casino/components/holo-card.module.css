@@ -1,0 +1,252 @@
+/*
+ * Holographic card effect.
+ *
+ * Derived from "pokemon-cards-css" by Simon Goellner (@simeydotme),
+ * https://github.com/simeydotme/pokemon-cards-css — licensed GPL-3.0.
+ * Adapted from public/css/cards/base.css and regular-holo.css: only the
+ * gradient/blend layers are used. No images, textures, names, logos or other
+ * assets from that project are included.
+ */
+
+.card {
+  --sunpillar-1: hsl(2, 100%, 73%);
+  --sunpillar-2: hsl(53, 100%, 69%);
+  --sunpillar-3: hsl(93, 100%, 69%);
+  --sunpillar-4: hsl(176, 100%, 76%);
+  --sunpillar-5: hsl(228, 100%, 74%);
+  --sunpillar-6: hsl(283, 100%, 73%);
+  --red: #f80e35;
+  --yellow: #eedf10;
+  --green: #21e985;
+  --blue: #0dbde9;
+  --violet: #c929f1;
+  --pointer-x: 50%;
+  --pointer-y: 50%;
+  --background-x: 50%;
+  --background-y: 50%;
+  --rotate-x: 0deg;
+  --rotate-y: 0deg;
+  --card-opacity: 0.85;
+  --card-glow: #ffd166;
+  --card-radius: 1.1rem;
+  perspective: 700px;
+  transform: translate3d(0, 0, 0.01px);
+}
+
+.rotator {
+  position: relative;
+  display: grid;
+  border-radius: var(--card-radius);
+  transform: rotateY(var(--rotate-x)) rotateX(var(--rotate-y));
+  transform-style: preserve-3d;
+  transition: transform 120ms ease-out;
+  box-shadow:
+    0 0 3px -1px white,
+    0 0 3px 1px #fff3b0,
+    0 0 14px 2px var(--card-glow),
+    0 12px 24px -6px rgba(0, 0, 0, 0.6),
+    0 0 50px -20px var(--card-glow);
+}
+
+.rotator > * {
+  grid-area: 1 / 1;
+  border-radius: var(--card-radius);
+}
+
+.shine,
+.glare {
+  position: relative;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* SHINE LAYERS (regular holo) */
+.shine {
+  --scanlines-space: 1px;
+  --scanlines-light: #666;
+  --scanlines-dark: black;
+  --bars: 3%;
+  --bar-color: hsla(0, 0%, 70%, 1);
+  --bar-bg: hsla(0, 0%, 0%, 1);
+  background-image:
+    repeating-linear-gradient(
+      110deg,
+      var(--violet),
+      var(--blue),
+      var(--green),
+      var(--yellow),
+      var(--red),
+      var(--violet),
+      var(--blue),
+      var(--green),
+      var(--yellow),
+      var(--red),
+      var(--violet),
+      var(--blue),
+      var(--green),
+      var(--yellow),
+      var(--red)
+    ),
+    repeating-linear-gradient(
+      90deg,
+      var(--scanlines-dark) calc(var(--scanlines-space) * 0),
+      var(--scanlines-dark) calc(var(--scanlines-space) * 2),
+      var(--scanlines-light) calc(var(--scanlines-space) * 2),
+      var(--scanlines-light) calc(var(--scanlines-space) * 4)
+    );
+  background-position:
+    calc(((50% - var(--background-x)) * 2.6) + 50%)
+      calc(((50% - var(--background-y)) * 3.5) + 50%),
+    center center;
+  background-size:
+    400% 400%,
+    cover;
+  background-blend-mode: overlay;
+  filter: brightness(1.1) contrast(1.1) saturate(1.2);
+  mix-blend-mode: color-dodge;
+  opacity: var(--card-opacity);
+}
+
+.shine::before,
+.shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.shine::before {
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      var(--bar-bg) calc(var(--bars) * 2),
+      var(--bar-color) calc(var(--bars) * 3),
+      var(--bar-bg) calc(var(--bars) * 3.5),
+      var(--bar-color) calc(var(--bars) * 4),
+      var(--bar-bg) calc(var(--bars) * 5),
+      var(--bar-bg) calc(var(--bars) * 14)
+    ),
+    repeating-linear-gradient(
+      90deg,
+      var(--bar-bg) calc(var(--bars) * 2),
+      var(--bar-color) calc(var(--bars) * 3),
+      var(--bar-bg) calc(var(--bars) * 3.5),
+      var(--bar-color) calc(var(--bars) * 4),
+      var(--bar-bg) calc(var(--bars) * 5),
+      var(--bar-bg) calc(var(--bars) * 10)
+    );
+  background-position:
+    calc(
+        (((50% - var(--background-x)) * 1.65) + 50%) +
+          (var(--background-y) * 0.5)
+      )
+      var(--background-x),
+    calc(
+        (((50% - var(--background-x)) * -0.9) + 50%) -
+          (var(--background-y) * 0.75)
+      )
+      var(--background-y);
+  background-size:
+    200% 200%,
+    200% 200%;
+  background-blend-mode: screen;
+  filter: brightness(1.15) contrast(1.1);
+  mix-blend-mode: hard-light;
+}
+
+.shine::after {
+  background-image: radial-gradient(
+    farthest-corner circle at var(--pointer-x) var(--pointer-y),
+    hsla(0, 0%, 90%, 0.8) 0%,
+    hsla(0, 0%, 78%, 0.1) 25%,
+    hsl(0, 0%, 0%) 90%
+  );
+  mix-blend-mode: luminosity;
+  filter: brightness(0.6) contrast(4);
+}
+
+/* GLARE LAYERS */
+.glare {
+  opacity: calc(var(--card-opacity) * 0.8);
+  filter: brightness(0.8) contrast(1.5);
+  mix-blend-mode: overlay;
+}
+
+.glare::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    farthest-corner circle at var(--pointer-x) var(--pointer-y),
+    hsl(180, 100%, 95%) 5%,
+    hsla(0, 0%, 39%, 0.25) 55%,
+    hsla(0, 0%, 0%, 0.36) 110%
+  );
+  mix-blend-mode: overlay;
+  filter: brightness(0.6) contrast(3);
+}
+
+/* Slow automatic sweep until the pointer or tilt takes over. */
+.card[data-live="false"] {
+  animation: holo-sweep 6s ease-in-out infinite alternate;
+}
+
+@keyframes holo-sweep {
+  from {
+    --pointer-x: 20%;
+    --pointer-y: 15%;
+    --background-x: 40%;
+    --background-y: 37%;
+  }
+  to {
+    --pointer-x: 80%;
+    --pointer-y: 85%;
+    --background-x: 60%;
+    --background-y: 63%;
+  }
+}
+
+@property --pointer-x {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
+@property --pointer-y {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
+@property --background-x {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
+@property --background-y {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
+@media screen and (max-width: 900px) {
+  .shine {
+    --scanlines-space: 0.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card[data-live="false"] {
+    animation: none;
+  }
+
+  .rotator {
+    transform: none;
+    transition: none;
+  }
+
+  .shine,
+  .glare {
+    display: none;
+  }
+}
