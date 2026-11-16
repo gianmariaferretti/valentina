@@ -67,7 +67,15 @@ export function LoveSlots({
     }
     setSpinning(true);
     setEvent(null);
-    const result = await onSpin(bet);
+    let result: CasinoActionResult;
+    try {
+      result = await onSpin(bet);
+    } catch {
+      result = {
+        ok: false,
+        message: "The connection dropped. Nothing was charged — try again.",
+      };
+    }
     if (!result.ok || result.event.kind !== "slots") {
       setSpinning(false);
       setAuto(0);
@@ -106,7 +114,7 @@ export function LoveSlots({
         setSpinning(false);
         setEvent(slot);
         onSettled(result);
-        spinButton.current?.focus();
+        spinButton.current?.focus({ preventScroll: true });
         setAuto((current) => Math.max(0, current - 1));
       }, total + 60),
     );
@@ -230,7 +238,6 @@ export function LoveSlots({
       </div>
 
       <button
-        autoFocus
         className={cn(styles.bigButton, "mt-4")}
         disabled={spinning || disabled || balance < bet}
         onClick={() => void spin()}

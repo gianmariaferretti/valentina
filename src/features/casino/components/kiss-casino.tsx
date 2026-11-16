@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 
 import type { ScratchTier } from "@/data/casino-config";
 import { useGameSound } from "@/features/games/hooks/use-game-sound";
+import { Portal } from "@/components/ui/portal";
 import { useModalDialog } from "@/hooks/use-modal-dialog";
 import { cn } from "@/lib/cn";
 
@@ -79,10 +80,12 @@ export function KissCasino({ initialView }: { initialView: CasinoView }) {
   });
 
   useEffect(() => {
-    void enterKissCasino().then((result) => {
-      if (result.ok) setView(result.view);
-      else setNotice(result.message);
-    });
+    enterKissCasino()
+      .then((result) => {
+        if (result.ok) setView(result.view);
+        else setNotice(result.message);
+      })
+      .catch(() => setNotice("The casino could not be reached. Try again."));
   }, []);
 
   /** Applies a settled result: balance, celebrations, sounds. */
@@ -91,6 +94,11 @@ export function KissCasino({ initialView }: { initialView: CasinoView }) {
       if (!result.ok) {
         setNotice(result.message);
         if (result.view) setView(result.view);
+        else
+          // Undo the optimistic bet with the real, saved balance.
+          enterKissCasino()
+            .then((fresh) => fresh.ok && setView(fresh.view))
+            .catch(() => undefined);
         return;
       }
       setNotice(null);
@@ -155,9 +163,13 @@ export function KissCasino({ initialView }: { initialView: CasinoView }) {
     (action: () => Promise<CasinoActionResult>) => {
       setBusy(true);
       startTransition(async () => {
-        const result = await action();
-        settle(result);
-        setBusy(false);
+        try {
+          settle(await action());
+        } catch {
+          setNotice("The connection dropped. Nothing was charged — try again.");
+        } finally {
+          setBusy(false);
+        }
       });
     },
     [settle],
@@ -328,10 +340,10 @@ export function KissCasino({ initialView }: { initialView: CasinoView }) {
                 You won {pendingDouble} 💋. Feeling brave?
               </p>
               <button
-                autoFocus
                 className={cn(styles.bigButton, "mt-3")}
                 disabled={busy}
                 onClick={() => act(doubleIt)}
+                ref={(element) => element?.focus({ preventScroll: true })}
                 type="button"
               >
                 Double it? → {pendingDouble * 2} 💋
@@ -399,50 +411,54 @@ export function KissCasino({ initialView }: { initialView: CasinoView }) {
       </nav>
 
       {celebration ? (
-        <CelebrationOverlay
-          celebration={celebration}
-          onClose={() => setCelebration(null)}
-          onWallet={() => router.push("/coupons")}
-        />
+        <Portal>
+          <CelebrationOverlay
+            celebration={celebration}
+            onClose={() => setCelebration(null)}
+            onWallet={() => router.push("/coupons")}
+          />
+        </Portal>
       ) : null}
 
       {leaving ? (
-        <div
-          aria-labelledby="leave-title"
-          aria-modal="true"
-          className={styles.overlay}
-          onKeyDown={onKeyDown}
-          ref={dialogRef}
-          role="dialog"
-          tabIndex={-1}
-        >
-          <div className={styles.dialog}>
-            <h2
-              className="font-display text-3xl leading-tight"
-              id="leave-title"
-            >
-              Are you sure?
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-              Your luck meter is {luckPercent}% full and you still have{" "}
-              {view.balance} 💋.
-            </p>
-            <button
-              className={cn(styles.bigButton, "mt-5")}
-              onClick={closeLeave}
-              ref={stayRef}
-              type="button"
-            >
-              One more spin
-            </button>
-            <Link
-              className={cn(styles.declineLink, "text-[var(--muted)]")}
-              href="/coupons"
-            >
-              Leave anyway
-            </Link>
+        <Portal>
+          <div
+            aria-labelledby="leave-title"
+            aria-modal="true"
+            className={styles.overlay}
+            onKeyDown={onKeyDown}
+            ref={dialogRef}
+            role="dialog"
+            tabIndex={-1}
+          >
+            <div className={styles.dialog}>
+              <h2
+                className="font-display text-3xl leading-tight"
+                id="leave-title"
+              >
+                Are you sure?
+              </h2>
+              <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
+                Your luck meter is {luckPercent}% full and you still have{" "}
+                {view.balance} 💋.
+              </p>
+              <button
+                className={cn(styles.bigButton, "mt-5")}
+                onClick={closeLeave}
+                ref={stayRef}
+                type="button"
+              >
+                One more spin
+              </button>
+              <Link
+                className={cn(styles.declineLink, "text-[var(--muted)]")}
+                href="/coupons"
+              >
+                Leave anyway
+              </Link>
+            </div>
           </div>
-        </div>
+        </Portal>
       ) : null}
     </div>
   );
@@ -461,7 +477,9 @@ function CelebrationOverlay({
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    closeRef.current?.focus();
+    closeRef.current?.focus({ preventScroll: true });
+  }, []);
+  useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };

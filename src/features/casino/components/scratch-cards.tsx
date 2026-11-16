@@ -42,8 +42,17 @@ export function ScratchCards({
   async function buy() {
     if (pending || disabled || balance < cost) return;
     setPending(true);
-    const result = await onBuy(tier);
-    setPending(false);
+    let result: CasinoActionResult;
+    try {
+      result = await onBuy(tier);
+    } catch {
+      result = {
+        ok: false,
+        message: "The connection dropped. Nothing was charged — try again.",
+      };
+    } finally {
+      setPending(false);
+    }
     if (!result.ok || result.event.kind !== "scratch") {
       onSettled(result);
       return;
@@ -56,7 +65,10 @@ export function ScratchCards({
     if (!card || revealed) return;
     setRevealed(true);
     onSettled(card.result);
-    window.setTimeout(() => buyButton.current?.focus(), 50);
+    window.setTimeout(
+      () => buyButton.current?.focus({ preventScroll: true }),
+      50,
+    );
   }
 
   return (
@@ -92,7 +104,7 @@ export function ScratchCards({
             }
             onReveal={reveal}
             revealLabel="Reveal all"
-            threshold={0.6}
+            threshold={0.45}
             tone={tones[card.event.tier]}
           >
             <div className={styles.scratchGrid}>
