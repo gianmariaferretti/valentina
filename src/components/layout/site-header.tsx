@@ -10,13 +10,39 @@ import { primaryNavigation, secondaryNavigation } from "@/data/navigation";
 import { endAccessSession } from "@/features/access/actions/end-session";
 import { cn } from "@/lib/cn";
 
-function isCurrentPath(pathname: string, href: string) {
+const allHrefs = [...primaryNavigation, ...secondaryNavigation].map(
+  (item) => item.href,
+);
+
+function matchesPath(pathname: string, href: string) {
   return (
     pathname === href || (href !== "/home" && pathname.startsWith(`${href}/`))
   );
 }
 
-export function SiteHeader({ progress }: { progress: ReactNode }) {
+/** The most specific matching item wins (Casino inside Coupons). */
+function isCurrentPath(pathname: string, href: string) {
+  return (
+    matchesPath(pathname, href) &&
+    !allHrefs.some(
+      (other) =>
+        other.length > href.length &&
+        other.startsWith(href) &&
+        matchesPath(pathname, other),
+    )
+  );
+}
+
+const CASINO_HREF = "/coupons/casino";
+
+export function SiteHeader({
+  progress,
+  casinoBadge,
+}: {
+  progress: ReactNode;
+  /** Streams in: a red dot when something is waiting in the Kiss Casino. */
+  casinoBadge?: ReactNode;
+}) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -74,6 +100,7 @@ export function SiteHeader({ progress }: { progress: ReactNode }) {
               key={item.href}
             >
               {item.shortTitle}
+              {item.href === CASINO_HREF ? casinoBadge : null}
             </Link>
           ))}
         </nav>
@@ -104,12 +131,15 @@ export function SiteHeader({ progress }: { progress: ReactNode }) {
           aria-controls="mobile-navigation"
           aria-expanded={isOpen}
           aria-label={isOpen ? "Close navigation" : "Open navigation"}
-          className="ml-auto grid size-11 place-items-center rounded-full border border-[var(--line-strong)] lg:hidden"
+          className="relative ml-auto grid size-11 place-items-center rounded-full border border-[var(--line-strong)] lg:hidden"
           onClick={() => setIsOpen((current) => !current)}
           ref={menuButtonRef}
           type="button"
         >
           {isOpen ? <X size={19} /> : <Menu size={19} />}
+          {isOpen ? null : (
+            <span className="absolute -top-0.5 -right-0.5">{casinoBadge}</span>
+          )}
         </button>
       </div>
 
@@ -127,6 +157,7 @@ export function SiteHeader({ progress }: { progress: ReactNode }) {
           <div className="grid gap-1">
             {primaryNavigation.map((item) => (
               <MobileLink
+                badge={item.href === CASINO_HREF ? casinoBadge : null}
                 current={isCurrentPath(pathname, item.href)}
                 href={item.href}
                 item={item}
@@ -170,11 +201,13 @@ export function SiteHeader({ progress }: { progress: ReactNode }) {
 }
 
 function MobileLink({
+  badge = null,
   current,
   href,
   item,
   onNavigate,
 }: {
+  badge?: ReactNode;
   current: boolean;
   href: string;
   item:
@@ -192,7 +225,10 @@ function MobileLink({
         <Icon name={item.icon} size={16} />
       </span>
       <span>
-        <span className="block text-sm font-semibold">{item.shortTitle}</span>
+        <span className="block text-sm font-semibold">
+          {item.shortTitle}
+          {badge}
+        </span>
         <span className="block text-xs text-[var(--muted)]">
           {item.description}
         </span>

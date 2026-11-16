@@ -14,6 +14,93 @@ export type Database = {
   };
   public: {
     Tables: {
+      casino_state: {
+        Row: {
+          user_id: string;
+          version: number;
+          balance: number;
+          debt: number;
+          state: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          version?: number;
+          balance: number;
+          debt: number;
+          state: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          version?: number;
+          balance?: number;
+          debt?: number;
+          state?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      casino_wins: {
+        Row: {
+          user_id: string;
+          coupon_id: string;
+          code: string;
+          prize_id: string;
+          setting: string;
+          won_at: string;
+        };
+        Insert: {
+          user_id: string;
+          coupon_id: string;
+          code: string;
+          prize_id: string;
+          setting: string;
+          won_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          coupon_id?: string;
+          code?: string;
+          prize_id?: string;
+          setting?: string;
+          won_at?: string;
+        };
+        Relationships: [];
+      };
+      casino_ledger: {
+        Row: {
+          id: number;
+          user_id: string;
+          kind: string;
+          real_kisses: number;
+          chips: number;
+          label: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: never;
+          user_id: string;
+          kind: string;
+          real_kisses: number;
+          chips?: number;
+          label: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: never;
+          user_id?: string;
+          kind?: string;
+          real_kisses?: number;
+          chips?: number;
+          label?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       italian_corner_attempts: {
         Row: {
           id: string;
@@ -520,6 +607,18 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      commit_casino_state: {
+        Args: {
+          p_user_id: string;
+          p_expected_version: number;
+          p_balance: number;
+          p_debt: number;
+          p_state: Json;
+          p_wins: Json;
+          p_ledger: Json;
+        };
+        Returns: number;
+      };
       sign_relationship_contract: {
         Args: {
           p_user_id: string;

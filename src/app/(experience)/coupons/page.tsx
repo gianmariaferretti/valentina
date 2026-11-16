@@ -1,16 +1,23 @@
 import { CreditCard, LockKeyhole, Search, TicketCheck } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { Sticker } from "@/components/design-system";
 import { FadeIn } from "@/components/motion/fade-in";
 import { coupons } from "@/data/coupons";
+import { REUNION_COUPON_ID } from "@/data/coupons-apart";
+import { nextReunionDate } from "@/data/reunion";
+import { loadCasinoCoupons } from "@/features/casino/repositories/load-casino";
 import { CouponWallet } from "@/features/coupons/components/coupon-wallet";
+import styles from "@/features/coupons/components/wallet.module.css";
 import {
   createWalletItem,
   getCouponWalletStats,
+  isVisibleInWallet,
   resolveCoupons,
 } from "@/features/coupons/lib/coupon-domain";
 import { loadCouponState } from "@/features/coupons/repositories/get-coupon-state-repository";
+import { cn } from "@/lib/cn";
 
 export const metadata: Metadata = {
   title: "Valentina’s Wallet",
@@ -23,11 +30,31 @@ const statIcons = {
   undiscovered: Search,
 } as const;
 
-export default async function CouponsPage() {
-  const walletState = await loadCouponState();
-  const resolvedCoupons = resolveCoupons(coupons, walletState);
+/** The strip never draws more than this many tickets; larger totals scale. */
+const STRIP_TICKETS = 60;
+
+export default async function CouponsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const [walletState, casinoCoupons, params] = await Promise.all([
+    loadCouponState(),
+    loadCasinoCoupons(),
+    searchParams,
+  ]);
+  const resolvedCoupons = resolveCoupons(
+    [...coupons, ...casinoCoupons],
+    walletState,
+  ).filter(isVisibleInWallet);
   const stats = getCouponWalletStats(resolvedCoupons);
   const walletItems = resolvedCoupons.map(createWalletItem);
+  const modeParam = params.mode;
+  const modeFromUrl = modeParam === "apart" || modeParam === "together";
+  const stripCount = Math.min(STRIP_TICKETS, stats.total);
+  const stripFilled = Math.round(
+    (stats.redeemed / Math.max(1, stats.total)) * stripCount,
+  );
 
   return (
     <div className="page-container py-6 sm:py-10 lg:py-14">
@@ -39,7 +66,7 @@ export default async function CouponsPage() {
           />
           <div className="relative">
             <div className="flex items-start justify-between gap-5">
-              <p className="text-[0.6rem] font-bold tracking-[0.2em] text-white/48 uppercase">
+              <p className="text-[0.6rem] font-bold tracking-[0.2em] text-white/70 uppercase">
                 V + G · Private wallet
               </p>
               <Sticker
@@ -50,30 +77,44 @@ export default async function CouponsPage() {
               />
             </div>
 
-            <div className="mt-12 grid gap-9 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
+            <div className="mt-12 grid gap-9 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end">
               <div>
                 <h1 className="max-w-5xl font-display text-[clamp(2.7rem,11vw,8.5rem)] leading-[0.78] tracking-[-0.065em] uppercase">
                   Valentina&apos;s
                   <br />
                   <span className="italic text-[var(--sand)]">Wallet</span>
                 </h1>
-                <p className="mt-7 max-w-xl text-sm leading-6 text-white/58 sm:text-base sm:leading-7">
+                <p className="mt-7 max-w-xl text-sm leading-6 text-white/75 sm:text-base sm:leading-7">
                   Collectible promises with varying levels of practicality,
-                  legal ambiguity and Gianmaria exposure.
+                  legal ambiguity and Gianmaria exposure. Now available in
+                  person and over Wi-Fi.
                 </p>
               </div>
 
               <div className="lg:text-right">
                 <p className="font-display text-6xl tracking-[-0.06em] sm:text-7xl">
-                  {stats.discovered}
-                  <span className="text-2xl text-white/35">
+                  {stats.redeemed}
+                  <span className="text-2xl text-white/60">
                     {" "}
                     / {stats.total}
                   </span>
                 </p>
-                <p className="mt-2 text-[0.6rem] font-bold tracking-[0.17em] text-white/45 uppercase">
-                  Discovered
+                <p className="mt-2 text-[0.6rem] font-bold tracking-[0.17em] text-white/70 uppercase">
+                  Collected
                 </p>
+                <div
+                  aria-label={`${stats.redeemed} of ${stats.total} coupons collected`}
+                  className={cn(styles.strip, "mt-4")}
+                  role="img"
+                >
+                  {Array.from({ length: stripCount }, (_, index) => (
+                    <span
+                      className={styles.stripTicket}
+                      data-filled={index < stripFilled}
+                      key={index}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -95,8 +136,8 @@ export default async function CouponsPage() {
                     />
                     <div>
                       <dd className="font-display text-2xl">{stats[status]}</dd>
-                      <dt className="text-[0.54rem] font-bold tracking-[0.13em] text-white/45 uppercase">
-                        {status}
+                      <dt className="text-[0.54rem] font-bold tracking-[0.13em] text-white/70 uppercase">
+                        {status === "locked" ? "sealed" : status}
                       </dt>
                     </div>
                   </div>
@@ -107,8 +148,32 @@ export default async function CouponsPage() {
         </header>
       </FadeIn>
 
+      <FadeIn delay={0.05}>
+        <Link
+          aria-label="Enter the Kiss Casino"
+          className={cn(
+            styles.neon,
+            "mt-6 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--rust)]",
+          )}
+          href="/coupons/casino"
+        >
+          <span aria-hidden="true" className={styles.bulbs} />
+          <span className={styles.neonSub}>Open late · No real money</span>
+          <span className={styles.neonTitle}>Kiss Casino</span>
+          <span className="text-xs text-[#ffd9e8]">
+            Win coupons. Lose kisses. The house is Gianmaria.
+          </span>
+        </Link>
+      </FadeIn>
+
       <FadeIn delay={0.08}>
-        <CouponWallet coupons={walletItems} />
+        <CouponWallet
+          coupons={walletItems}
+          initialMode={modeParam === "apart" ? "apart" : "together"}
+          modeFromUrl={modeFromUrl}
+          reunionCouponId={REUNION_COUPON_ID}
+          reunionDate={nextReunionDate}
+        />
       </FadeIn>
     </div>
   );

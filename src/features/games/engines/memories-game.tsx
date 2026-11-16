@@ -266,7 +266,10 @@ export function MemoriesGame(props: GameEngineProps) {
                       value: `${snapshot.matched.size / 2} / 18`,
                     },
                     { label: "Attempts", value: snapshot.attempts },
-                    { label: "Elapsed", value: formatGameTime(ARCADE.memory.limitMs) },
+                    {
+                      label: "Elapsed",
+                      value: formatGameTime(ARCADE.memory.limitMs),
+                    },
                   ]
             }
           />
