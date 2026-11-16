@@ -299,7 +299,7 @@ test("Reset: a fresh season as if the casino had never been used", () => {
 
 test("The season migration archives the ledger and never deletes it", () => {
   const sql = readFileSync(
-    "supabase/migrations/20261116200000_kiss_casino_seasons.sql",
+    "supabase/migrations/20261116212951_kiss_casino_seasons.sql",
     "utf8",
   );
   assert.ok(!/\bdelete\s+from\b/i.test(sql), "no DELETE in the migration");
