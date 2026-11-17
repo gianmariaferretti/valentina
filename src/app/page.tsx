@@ -5,11 +5,13 @@ import { LinkButton } from "@/components/ui/button";
 import { BoardingPass } from "@/features/cover/components/boarding-pass";
 import { TogetherCounter } from "@/features/cover/components/together-counter";
 import { TravelLines } from "@/features/cover/components/travel-lines";
+import { CoverFluid } from "@/features/landing/fluid/cover-fluid";
 
 /** Public cover. Nothing private here: city names and a day counter only. */
 export default function EntryPage() {
   return (
     <main className="relative isolate min-h-svh overflow-hidden bg-[var(--ink)] text-[var(--paper-white)]">
+      <CoverFluid />
       <TravelLines />
       <div
         aria-hidden="true"
