@@ -9,6 +9,7 @@ import { Letter } from "@/features/open-when/components/letter";
 import type { OpenWhenLetter } from "@/features/open-when/types";
 import { RewardReveal } from "@/features/rewards/components/reward-reveal";
 import type { GrantedExperienceReward } from "@/features/rewards/types";
+import { requestKissCheck } from "@/features/kisses/components/kiss-listener";
 
 interface LetterExperienceProps {
   readonly letter: OpenWhenLetter;
@@ -36,6 +37,7 @@ export function LetterExperience({
     setError(null);
     startTransition(async () => {
       const result = await openLetter(letter.slug);
+      requestKissCheck();
       if (result.status === "error") {
         setError(result.message);
         return;

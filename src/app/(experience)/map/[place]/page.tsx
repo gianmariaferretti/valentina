@@ -9,6 +9,7 @@ import type { Metadata } from "next";
 import Image from "@/features/media/components/media-image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { after } from "next/server";
 
 import {
   BoardingPass,
@@ -21,9 +22,11 @@ import {
   Tape,
 } from "@/components/design-system";
 import { getAdjacentPlaces, getPlace, places } from "@/data/places";
+import { creditPlaceVisit } from "@/features/kisses/repositories/kisses";
 import { PlaceMiniMap } from "@/features/map/components/place-mini-map";
 import type { Destination, DestinationSticker } from "@/features/map/types";
 import { requireAccessSession } from "@/lib/auth/session";
+import { reportPersistenceFailure } from "@/lib/persistence/persistence-error";
 
 interface PlacePageProps {
   params: Promise<{ place: string }>;
@@ -82,6 +85,12 @@ export default async function PlacePage({ params }: PlacePageProps) {
   await requireAccessSession();
   const place = getPlace((await params).place);
   if (!place) notFound();
+  // First visit pays 💋 (once, server-side), after the page is sent.
+  after(() =>
+    creditPlaceVisit(place.slug, place.city).catch((error) =>
+      reportPersistenceFailure("credit place kisses", error),
+    ),
+  );
 
   const { previous, next } = getAdjacentPlaces(place);
   const [longitude, latitude] = place.coordinates;

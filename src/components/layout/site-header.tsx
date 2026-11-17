@@ -59,6 +59,7 @@ export function SiteHeader({
                   ? "bg-[var(--ink)] text-[var(--paper)]"
                   : "text-[var(--muted)] hover:bg-white/45 hover:text-[var(--ink)]",
               )}
+              data-kiss-target={item.href === CASINO_HREF ? "" : undefined}
               href={item.href}
               key={item.href}
             >
@@ -230,6 +231,7 @@ export function TabBar(badges: Badges) {
                     "relative grid h-7 w-12 place-items-center rounded-full transition",
                     on && "bg-[var(--ink)] text-[var(--paper)]",
                   )}
+                  data-kiss-target={item.href === CASINO_HREF ? "" : undefined}
                 >
                   <Icon name={item.icon} size={18} />
                   <span className="absolute -top-1.5 -right-1">

@@ -109,3 +109,61 @@ export function CurtainMessageForm({
     </form>
   );
 }
+
+/** One number per event type: how many 💋 the rest of the site pays. */
+export function KissAmountsForm({
+  amounts,
+  labels,
+  save,
+}: {
+  amounts: Record<string, number>;
+  labels: Record<string, string>;
+  save: (form: FormData) => Promise<ActionResult>;
+}) {
+  const { pending, run } = useAdminAction();
+  return (
+    <form
+      className="grid gap-3"
+      onSubmit={(event) => {
+        event.preventDefault();
+        const form = new FormData(event.currentTarget);
+        run(() => save(form));
+      }}
+    >
+      <div className="grid gap-2 sm:grid-cols-2">
+        {Object.entries(labels).map(([key, label]) => (
+          <label
+            className="flex items-center justify-between gap-3 rounded-2xl bg-[var(--paper)] px-3 py-2 text-sm"
+            key={key}
+          >
+            <span>{label}</span>
+            <span className="flex items-center gap-1">
+              <input
+                aria-label={`${label}: 💋`}
+                className={`${inputClass} w-24 text-right`}
+                defaultValue={amounts[key]}
+                inputMode="numeric"
+                max={1000}
+                min={0}
+                name={key}
+                required
+                type="number"
+              />
+              💋
+            </span>
+          </label>
+        ))}
+      </div>
+      <button
+        className={buttonClass(
+          "primary",
+          "w-full sm:w-auto sm:justify-self-start",
+        )}
+        disabled={pending}
+        type="submit"
+      >
+        {pending ? "Salvo…" : "Salva importi"}
+      </button>
+    </form>
+  );
+}

@@ -180,6 +180,33 @@ export type Database = {
         };
         Relationships: [];
       };
+      kiss_credits: {
+        Row: {
+          user_id: string;
+          event_key: string;
+          amount: number;
+          label: string;
+          created_at: string;
+          announced_at: string | null;
+        };
+        Insert: {
+          user_id: string;
+          event_key: string;
+          amount: number;
+          label: string;
+          created_at?: string;
+          announced_at?: string | null;
+        };
+        Update: {
+          user_id?: string;
+          event_key?: string;
+          amount?: number;
+          label?: string;
+          created_at?: string;
+          announced_at?: string | null;
+        };
+        Relationships: [];
+      };
       hearts: {
         Row: {
           id: string;
@@ -877,6 +904,25 @@ export type Database = {
           done_at: string | null;
           reward: Json | null;
           newly_rewarded: boolean;
+        }[];
+      };
+      credit_site_kisses: {
+        Args: {
+          p_user_id: string;
+          p_key: string;
+          p_amount: number;
+          p_label: string;
+          p_initial_state: Json;
+        };
+        Returns: number | null;
+      };
+      take_kiss_announcements: {
+        Args: { p_user_id: string };
+        Returns: {
+          event_key: string;
+          amount: number;
+          label: string;
+          created_at: string;
         }[];
       };
       use_email_action_token: {

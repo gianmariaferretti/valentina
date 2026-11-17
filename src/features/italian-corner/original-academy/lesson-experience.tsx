@@ -14,6 +14,7 @@ import {
 import { SupplementalLab } from "./supplemental-lab";
 import type { publicSupplementalActivities } from "./supplemental-model";
 import { WorldScene } from "../world/world-scene";
+import { requestKissCheck } from "@/features/kisses/components/kiss-listener";
 
 type Section = ReturnType<typeof publicSections>[number];
 type Exercise = Section["exercises"][number];
@@ -494,6 +495,7 @@ export function LessonExperience({
                   onClick={() =>
                     startTransition(() => {
                       void completeOriginalLesson(lessonId).then((result) => {
+                        requestKissCheck();
                         setMessage(result.message);
                         if (result.ok) {
                           setCompleted(true);

@@ -27,6 +27,7 @@ import type {
 import { RewardReveal } from "@/features/rewards/components/reward-reveal";
 
 import styles from "./quiz.module.css";
+import { requestKissCheck } from "@/features/kisses/components/kiss-listener";
 
 type QuizPhase = "intro" | "question" | "result";
 
@@ -97,6 +98,7 @@ export function RelationshipQuiz({
         questionId: question.id,
         answerId,
       });
+      requestKissCheck();
 
       if (
         result.status === "error" ||

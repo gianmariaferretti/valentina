@@ -11,6 +11,7 @@ import {
 } from "../actions/lists";
 import { bucketCategories } from "../lib/schemas";
 import type { ListItem } from "../repositories/life";
+import { requestKissCheck } from "@/features/kisses/components/kiss-listener";
 
 const stampDate = new Intl.DateTimeFormat("en-GB", {
   day: "2-digit",
@@ -100,6 +101,7 @@ function BucketCard({ item, index }: { item: ListItem; index: number }) {
           onClick={() =>
             startTransition(async () => {
               const result = await toggleListItem(item.id, !item.doneAt);
+              requestKissCheck();
               toast(result.message, {
                 icon: result.ok && !item.doneAt ? "✅" : undefined,
               });

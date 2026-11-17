@@ -9,6 +9,7 @@ export function Toaster() {
       closeButton={false}
       gap={10}
       offset={{ bottom: "calc(var(--tabbar, 0px) + 16px)" }}
+      mobileOffset={{ bottom: "calc(var(--tabbar, 0px) + 12px)" }}
       position="bottom-center"
       toastOptions={{
         unstyled: true,
