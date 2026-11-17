@@ -81,3 +81,14 @@ Reviewed for ideas only, no code copied: `johakr/html5-slot-machine` (reel strip
 | `esbuild`            | 0.28.x  | MIT     | Bundles the service worker at build time (not shipped to the pages) | <https://github.com/evanw/esbuild>   |
 
 The V+G monogram icons are original, drawn from plain shapes in `scripts/generate-icons.mjs`; no third-party artwork or fonts are used.
+
+## Site v4 — cover fluid
+
+| Code                                                                                    | License | Use                                                                                     |
+| --------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------- |
+| [WebGL Fluid Simulation](https://github.com/PavelDoGreat/WebGL-Fluid-Simulation) (port) | MIT     | The fluid behind "YEAR TWO" on the cover (`src/features/landing/fluid/fluid-engine.ts`) |
+
+Copyright (c) 2017 Pavel Dobryakov. The full MIT notice is kept at the top of
+`fluid-engine.ts`. The port removes the debug panel, analytics, promo popup and
+screenshot capture, generates the dithering texture in code and uses the site
+palette; no asset from the original repository is shipped.
