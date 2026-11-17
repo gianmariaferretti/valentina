@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { creditKisses } from "@/features/casino/repositories/credit-kisses";
+import { creditSiteKisses } from "@/features/kisses/repositories/kisses";
 import { romeLocalToIso } from "@/features/life/lib/rome-time";
 import {
   citiesSchema,
@@ -169,7 +169,11 @@ export async function tickListItem(
     if (row?.newly_rewarded) {
       const reward = rewardSchema.safeParse(row.reward);
       if (reward.success && "kisses" in reward.data)
-        await creditKisses(reward.data.kisses);
+        await creditSiteKisses({
+          key: `bucket:${idSchema.parse(id)}`,
+          amount: reward.data.kisses,
+          label: "Bucket list: ticked by Gianmaria",
+        });
     }
     refresh();
     return done(doneFlag ? "Spuntato ✓" : "Spunta tolta");

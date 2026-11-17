@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 
 import { submitB1Pilot } from "./b1-exam-actions";
 import type { publicB1Exam } from "./b1-exam-store";
+import { requestKissCheck } from "@/features/kisses/components/kiss-listener";
 
 type Exam = ReturnType<typeof publicB1Exam>;
 type Result = Extract<Awaited<ReturnType<typeof submitB1Pilot>>, { ok: true }>;
@@ -204,6 +205,7 @@ export function B1Exam({
               setError("");
               startTransition(() => {
                 void submitB1Pilot({ answers, writing }).then((response) => {
+                  requestKissCheck();
                   if (response.ok) setResult(response);
                   else setError(response.message);
                 });

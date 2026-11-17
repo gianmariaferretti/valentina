@@ -35,6 +35,7 @@ import type {
   VgGameDefinition,
 } from "@/features/games/types";
 import styles from "./games.module.css";
+import { requestKissCheck } from "@/features/kisses/components/kiss-listener";
 const engines: Record<
   VgGameDefinition["engine"],
   ComponentType<GameEngineProps>
@@ -166,6 +167,7 @@ export function GameExperience({
         pendingRef.current = retry;
         setPending(retry);
         const response = await finishVgGameRun(retry);
+        requestKissCheck();
         if (response.progress) setProgress(response.progress);
         setRewards(response.rewards);
         setFeedback(response.message);

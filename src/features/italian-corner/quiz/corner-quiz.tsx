@@ -18,6 +18,7 @@ import {
   type CornerQuizSnapshot,
 } from "./quiz-domain";
 import type { QuizId } from "./question-bank";
+import { requestKissCheck } from "@/features/kisses/components/kiss-listener";
 
 interface Props {
   quizId: QuizId;
@@ -62,6 +63,7 @@ export function CornerQuiz({
     startTransition(() => {
       void submitCornerQuiz({ quizId, attemptId: active.id, answers }).then(
         (result) => {
+          requestKissCheck();
           if (!result.ok) {
             setMessage(result.message);
             autoSubmitted.current = false;

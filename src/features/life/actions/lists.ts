@@ -5,7 +5,7 @@ import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { creditKisses } from "@/features/casino/repositories/credit-kisses";
+import { creditSiteKisses } from "@/features/kisses/repositories/kisses";
 import { PRIVATE_PHOTO_BUCKET } from "@/features/media/lib/private-media";
 import { hasValidAccessSession } from "@/lib/auth/session";
 import { reportPersistenceFailure } from "@/lib/persistence/persistence-error";
@@ -54,8 +54,13 @@ export async function toggleListItem(
     if (row?.newly_rewarded) {
       const reward = rewardSchema.safeParse(row.reward);
       if (reward.success && "kisses" in reward.data) {
-        await creditKisses(reward.data.kisses);
-        message = `Done! +${reward.data.kisses} 💋 for the Kiss Casino.`;
+        // Keyed: paid once ever. The 💋 toast comes from the kiss listener.
+        await creditSiteKisses({
+          key: `bucket:${parsedId.data}`,
+          amount: reward.data.kisses,
+          label: "Bucket list: one more thing done together",
+        });
+        message = "Done! ✓";
       } else if (reward.success)
         message = "Done! A coupon just unlocked in your wallet 🎟️";
       revalidatePath("/coupons");

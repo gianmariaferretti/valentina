@@ -9,6 +9,10 @@ import {
   setCurtainUnlocked,
   undoAdjustKisses,
 } from "@/features/admin/actions/casino";
+import {
+  restoreKissAmounts,
+  saveKissAmounts,
+} from "@/features/admin/actions/kisses";
 import { ActionButton } from "@/features/admin/components/admin-ui";
 import {
   Card,
@@ -18,10 +22,16 @@ import {
 } from "@/features/admin/components/admin-shell";
 import {
   CurtainMessageForm,
+  KissAmountsForm,
   NumberAction,
 } from "@/features/admin/components/casino-forms";
 import { loadCasinoAdmin } from "@/features/admin/repositories/admin-data";
 import { loadCurtainMessage } from "@/features/admin/repositories/content";
+import { kissRewardLabels } from "@/data/kiss-rewards";
+import {
+  loadKissAmounts,
+  loadRecentKissCredits,
+} from "@/features/kisses/repositories/kisses";
 import { requireAdminSession } from "@/lib/auth/admin-session";
 
 export const metadata: Metadata = { title: "Kiss Casino" };
@@ -42,7 +52,12 @@ export default async function AdminCasinoPage() {
   await requireAdminSession();
   let data;
   try {
-    data = await Promise.all([loadCasinoAdmin(), loadCurtainMessage()]);
+    data = await Promise.all([
+      loadCasinoAdmin(),
+      loadCurtainMessage(),
+      loadKissAmounts(),
+      loadRecentKissCredits(),
+    ]);
   } catch {
     return (
       <>
@@ -51,7 +66,7 @@ export default async function AdminCasinoPage() {
       </>
     );
   }
-  const [casino, message] = data;
+  const [casino, message, amounts, credits] = data;
   const view = casino.view;
 
   return (
@@ -145,6 +160,47 @@ export default async function AdminCasinoPage() {
             save={saveCurtainMessage}
             signoff={message.signoff}
           />
+        </Card>
+
+        <Card className="grid gap-3 lg:col-span-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-lg font-semibold">💋 dal resto del sito</h2>
+              <p className="text-xs text-[var(--muted)]">
+                Ogni evento paga una volta sola. 0 lo spegne. Le spunte della
+                bucket list usano il premio scelto su ogni voce.
+              </p>
+            </div>
+            <ActionButton action={restoreKissAmounts}>
+              Ripristina originali
+            </ActionButton>
+          </div>
+          <KissAmountsForm
+            amounts={amounts}
+            labels={kissRewardLabels}
+            save={saveKissAmounts}
+          />
+          <h3 className="mt-2 text-sm font-semibold">Ultimi accrediti</h3>
+          {credits.length === 0 ? (
+            <p className="text-sm">
+              Ancora nessun bacio guadagnato fuori dal casinò.
+            </p>
+          ) : (
+            <ul className="divide-y divide-[var(--line)] text-sm">
+              {credits.map((row) => (
+                <li className="flex justify-between gap-3 py-2" key={row.key}>
+                  <span>
+                    {row.label}
+                    <span className="text-xs text-[var(--muted)]">
+                      {" "}
+                      · {formatWhen(row.at)}
+                    </span>
+                  </span>
+                  <strong className="shrink-0">+{row.amount} 💋</strong>
+                </li>
+              ))}
+            </ul>
+          )}
         </Card>
 
         <Card className="lg:col-span-2">
