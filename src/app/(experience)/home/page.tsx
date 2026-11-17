@@ -239,8 +239,8 @@ export default async function HomePage() {
       </div>
 
       <div className="mt-6">
-        <Suspense fallback={<CityStripFallback />}>
-          <CityStrip />
+        <Suspense fallback={<CityStripFallback globe />}>
+          <CityStrip globe />
         </Suspense>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-[var(--muted)]">
