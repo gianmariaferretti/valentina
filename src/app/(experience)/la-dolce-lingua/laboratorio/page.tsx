@@ -7,6 +7,7 @@ import {
   laboratoryIndex,
 } from "@/features/italian-corner/laboratory/laboratory-store";
 import { loadOriginalProgress } from "@/features/italian-corner/original-academy/progress-actions";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Laboratorio B1/B2 · La Dolce Lingua",
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
 };
 
 export default async function LaboratoryIndexPage() {
+  await requireAccessSession();
   const progress = await loadOriginalProgress();
   const started = new Set(progress.lessons.map((item) => item.lessonId));
   return (

@@ -14,6 +14,73 @@ export type Database = {
   };
   public: {
     Tables: {
+      content_overrides: {
+        Row: {
+          kind: string;
+          key: string;
+          data: Json;
+          hidden: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          kind: string;
+          key: string;
+          data?: Json;
+          hidden?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          kind?: string;
+          key?: string;
+          data?: Json;
+          hidden?: boolean;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      coupon_deliveries: {
+        Row: { user_id: string; coupon_id: string; delivered_at: string };
+        Insert: { user_id: string; coupon_id: string; delivered_at?: string };
+        Update: { user_id?: string; coupon_id?: string; delivered_at?: string };
+        Relationships: [];
+      };
+      auth_revocations: {
+        Row: { scope: string; revoked_before: string; updated_at: string };
+        Insert: { scope: string; revoked_before: string; updated_at?: string };
+        Update: {
+          scope?: string;
+          revoked_before?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      auth_events: {
+        Row: {
+          id: number;
+          scope: string;
+          kind: string;
+          fingerprint: string | null;
+          detail: string | null;
+          created_at: string;
+        };
+        Insert: {
+          scope: string;
+          kind: string;
+          fingerprint?: string | null;
+          detail?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          scope?: string;
+          kind?: string;
+          fingerprint?: string | null;
+          detail?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       casino_state: {
         Row: {
           season: number;
@@ -610,6 +677,42 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      admin_reset_casino: {
+        Args: {
+          p_user_id: string;
+          p_expected_version: number;
+          p_balance: number;
+          p_state: Json;
+          p_reset_debt: boolean;
+        };
+        Returns: { version: number; season: number }[];
+      };
+      register_auth_attempt: {
+        Args: {
+          p_scope: string;
+          p_fingerprint: string;
+          p_limit: number;
+          p_window_seconds: number;
+        };
+        Returns: boolean;
+      };
+      clear_auth_attempts: {
+        Args: { p_scope: string; p_fingerprint: string };
+        Returns: undefined;
+      };
+      record_auth_event: {
+        Args: {
+          p_scope: string;
+          p_kind: string;
+          p_fingerprint: string;
+          p_detail: string;
+        };
+        Returns: undefined;
+      };
+      revoke_all_sessions: {
+        Args: { p_scope: string; p_revoked_before: string };
+        Returns: undefined;
+      };
       redeem_casino_coupon_with_reset: {
         Args: {
           p_user_id: string;

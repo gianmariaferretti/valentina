@@ -2,6 +2,7 @@
   "name": "vg-year-one",
   "version": "0.1.0",
   "private": true,
+  "license": "GPL-3.0-or-later",
   "engines": {
     "node": ">=22.18.0"
   },
@@ -27,10 +28,10 @@
     "lucide-react": "^1.52.0",
     "maplibre-gl": "^6.13.0",
     "motion": "^14.0.0",
-    "next": "^16.4.3",
+    "next": "^16.4.6",
     "pdf-lib": "1.17.1",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "server-only": "^0.0.1",
     "sonner": "^2.0.8",
     "vaul": "^1.1.2",
@@ -44,7 +45,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "eslint": "^9.39.5",
-    "eslint-config-next": "^16.4.3",
+    "eslint-config-next": "^16.4.6",
     "prettier": "^3.9.9",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3"

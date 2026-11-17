@@ -1,13 +1,26 @@
 import type { NextConfig } from "next";
 
 const isDevelopment = process.env.NODE_ENV === "development";
+
+// Audit A7: only the hosts the site really talks to. The map style host
+// (OpenFreeMap by default) serves tiles, glyphs and sprites.
+function mapHosts(): string {
+  const hosts = new Set(["https://tiles.openfreemap.org"]);
+  try {
+    if (process.env.NEXT_PUBLIC_MAP_STYLE_URL)
+      hosts.add(new URL(process.env.NEXT_PUBLIC_MAP_STYLE_URL).origin);
+  } catch {
+    // Invalid URL: the map falls back to OpenFreeMap.
+  }
+  return [...hosts].join(" ");
+}
 const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https:",
+  `img-src 'self' data: blob: ${mapHosts()}`,
   "font-src 'self' data:",
-  "connect-src 'self' https: wss:" + (isDevelopment ? " http: ws:" : ""),
+  `connect-src 'self' ${mapHosts()}` + (isDevelopment ? " http: ws:" : ""),
   "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",
@@ -46,6 +59,11 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "no-referrer" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
+          // Audit A13: HTTPS only, also without relying on the platform.
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains",
+          },
           {
             key: "X-Robots-Tag",
             value: "noindex, nofollow, noarchive, nosnippet, noimageindex",

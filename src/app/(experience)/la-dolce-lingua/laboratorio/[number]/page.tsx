@@ -7,6 +7,7 @@ import {
   getLaboratoryLesson,
   publicLaboratoryLesson,
 } from "@/features/italian-corner/laboratory/laboratory-store";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Laboratorio · La Dolce Lingua",
@@ -18,6 +19,7 @@ export default async function LaboratoryLessonPage({
 }: {
   params: Promise<{ number: string }>;
 }) {
+  await requireAccessSession();
   const { number: raw } = await params;
   if (!/^\d{3}$/.test(raw)) notFound();
   const lesson = getLaboratoryLesson(Number(raw));

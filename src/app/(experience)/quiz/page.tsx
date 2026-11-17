@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { CornerQuiz } from "@/features/italian-corner/quiz/corner-quiz";
 import { loadCornerQuiz } from "@/features/italian-corner/quiz/quiz-actions";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Do You Actually Know Your Boyfriend?",
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function QuizPage() {
+  await requireAccessSession();
   return (
     <CornerQuiz
       quizId="boyfriend-v2"

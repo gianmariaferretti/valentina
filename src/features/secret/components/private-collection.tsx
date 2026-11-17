@@ -16,7 +16,7 @@ import {
   useTransition,
   type RefObject,
 } from "react";
-import { privateCollection as offer } from "@/data/private-collection";
+import type { PrivateCollectionOffer } from "@/data/private-collection";
 import { accessPrivateCollection } from "../actions/private-collection-actions";
 import type {
   CollectionIntent,
@@ -24,7 +24,7 @@ import type {
 } from "../lib/private-collection-domain";
 import styles from "./private-collection.module.css";
 
-function ProductCard() {
+function ProductCard({ offer }: { readonly offer: PrivateCollectionOffer }) {
   return (
     <article className={styles.product}>
       <div className={styles.sealedPhotograph} aria-hidden="true">
@@ -70,7 +70,7 @@ function DisplayField({
   );
 }
 
-function OrderSummary() {
+function OrderSummary({ offer }: { readonly offer: PrivateCollectionOffer }) {
   return (
     <aside className={styles.summary} aria-label="Order summary">
       <h2>ORDER SUMMARY</h2>
@@ -93,9 +93,12 @@ function OrderSummary() {
 }
 
 export function PrivateCollection({
+  offer,
   onBack,
   titleRef,
 }: {
+  /** Passed from the server page: the text never ships in a JS bundle. */
+  readonly offer: PrivateCollectionOffer;
   readonly onBack: () => void;
   readonly titleRef: RefObject<HTMLHeadingElement | null>;
 }) {
@@ -198,7 +201,7 @@ export function PrivateCollection({
 
           {view === "collection" ? (
             <>
-              <ProductCard />
+              <ProductCard offer={offer} />
               <div
                 className={styles.options}
                 aria-label="Choose your access option"
@@ -290,7 +293,7 @@ export function PrivateCollection({
                   <ArrowRight size={16} aria-hidden="true" />
                 </button>
               </div>
-              <OrderSummary />
+              <OrderSummary offer={offer} />
             </div>
           ) : null}
 

@@ -9,6 +9,7 @@ import { getChallengeProgress } from "@/features/challenges/lib/challenge-domain
 import { loadChallengeState } from "@/features/challenges/repositories/get-challenge-state-repository";
 import { loadQuizState } from "@/features/quiz/repositories/get-quiz-state-repository";
 import { loadAcademyProgress } from "@/features/italian-corner/academy/academy-actions";
+import { requireAccessSession } from "@/lib/auth/session";
 
 const academyBadges = [
   {
@@ -36,6 +37,7 @@ const academyBadges = [
 export const metadata: Metadata = { title: "Achievements" };
 
 export default async function AchievementsPage() {
+  await requireAccessSession();
   const [quizState, gameState, academy] = await Promise.all([
     loadQuizState(),
     loadChallengeState(),

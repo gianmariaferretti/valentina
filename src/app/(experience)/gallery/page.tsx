@@ -6,6 +6,7 @@ import { getGalleryMedia } from "@/data/media";
 import { GalleryScrapbook } from "@/features/gallery/components/gallery-scrapbook";
 
 import styles from "@/features/gallery/components/gallery.module.css";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "365 Days in Photos",
@@ -13,7 +14,8 @@ export const metadata: Metadata = {
     "A private editorial scrapbook of photographs from V&G Year One.",
 };
 
-export default function GalleryPage() {
+export default async function GalleryPage() {
+  await requireAccessSession();
   const galleryMedia = getGalleryMedia();
 
   return (

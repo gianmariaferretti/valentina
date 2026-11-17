@@ -13,6 +13,7 @@ import {
   lessonHref,
 } from "@/features/italian-corner/original-academy/lesson-store";
 import { loadOriginalProgress } from "@/features/italian-corner/original-academy/progress-actions";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "La Dolce Lingua World · Stop",
@@ -24,6 +25,7 @@ export default async function WorldStopPage({
 }: {
   params: Promise<{ stop: string }>;
 }) {
+  await requireAccessSession();
   const { stop: raw } = await params;
   const stop = worldStops.find(
     (item) => String(item.id) === raw && item.published,

@@ -14,6 +14,7 @@ import { getChallengeProgress } from "@/features/challenges/lib/challenge-domain
 import { loadChallengeState } from "@/features/challenges/repositories/get-challenge-state-repository";
 import { formatGameTime } from "@/features/games/lib/arcade-random";
 import styles from "@/features/games/components/games.module.css";
+import { requireAccessSession } from "@/lib/auth/session";
 export const metadata: Metadata = {
   title: "V&G Arcade",
   description:
@@ -21,6 +22,7 @@ export const metadata: Metadata = {
 };
 const icons = [Shield, Grid2X2, Layers, Square, KeyRound];
 export default async function ChallengesPage() {
+  await requireAccessSession();
   const state = await loadChallengeState(),
     records = vgGames.map((game) =>
       getChallengeProgress(game.gameId, state, game.difficulty),

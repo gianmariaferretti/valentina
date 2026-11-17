@@ -3,6 +3,14 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 
+import { z } from "zod";
+
+import {
+  clearAttempts,
+  clientFingerprint,
+  recordAuthEvent,
+  registerAttempt,
+} from "@/lib/auth/attempts";
 import { setAccessSession } from "@/lib/auth/session";
 
 export interface AccessActionState {
@@ -33,7 +41,11 @@ export async function verifyAccess(
   formData: FormData,
 ): Promise<AccessActionState> {
   const expectedCode = getAccessCode();
-  const candidate = String(formData.get("code") ?? "").trim();
+  const parsed = z
+    .string()
+    .max(256)
+    .safeParse(formData.get("code") ?? "");
+  const candidate = parsed.success ? parsed.data.trim() : "";
   const attemptCount = Number.isSafeInteger(previousState.attempts)
     ? Math.max(0, Math.min(previousState.attempts, 10_000))
     : 0;
@@ -46,7 +58,25 @@ export async function verifyAccess(
     };
   }
 
-  if (candidate.length > 128 || !matchesAccessCode(candidate, expectedCode)) {
+  // Counted before the code is compared: 5 tries every 15 minutes.
+  const fingerprint = await clientFingerprint("visitor");
+  if (!(await registerAttempt("visitor", fingerprint))) {
+    await recordAuthEvent("visitor", "blocked", fingerprint);
+    await delay(450);
+    return {
+      status: "error",
+      message:
+        "Too many tries. The door is taking a 15-minute nap — try again later.",
+      attempts: attemptCount + 1,
+    };
+  }
+
+  if (
+    !parsed.success ||
+    candidate.length > 128 ||
+    !matchesAccessCode(candidate, expectedCode)
+  ) {
+    await recordAuthEvent("visitor", "failed", fingerprint);
     await delay(450);
     return {
       status: "error",
@@ -56,6 +86,10 @@ export async function verifyAccess(
   }
 
   await setAccessSession();
+  await Promise.all([
+    clearAttempts("visitor", fingerprint),
+    recordAuthEvent("visitor", "login", fingerprint),
+  ]);
 
   return {
     status: "success",

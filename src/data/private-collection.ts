@@ -11,3 +11,5 @@ export const privateCollection = {
   exchangeDescription:
     "Ten photographs from you. One exclusive photograph from me.",
 } as const;
+
+export type PrivateCollectionOffer = typeof privateCollection;

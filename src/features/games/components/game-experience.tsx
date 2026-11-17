@@ -66,9 +66,11 @@ const engines: Record<
 export function GameExperience({
   game,
   initialProgress,
+  memoryFaces,
 }: {
   readonly game: VgGameDefinition;
   readonly initialProgress: GameProgress;
+  readonly memoryFaces?: GameEngineProps["memoryFaces"];
 }) {
   const reduceMotion = Boolean(useReducedMotion()),
     [progress, setProgress] = useState(initialProgress),
@@ -302,6 +304,7 @@ export function GameExperience({
               reduceMotion={reduceMotion}
               soundEnabled={sound}
               archivedSecrets={progress.discoveredSecrets}
+              memoryFaces={memoryFaces}
               onFinish={finish}
               onRestart={() => void startRun()}
               onScoreChange={() => undefined}

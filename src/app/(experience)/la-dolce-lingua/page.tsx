@@ -20,6 +20,7 @@ import {
 } from "@/features/italian-corner/original-academy/progress-actions";
 import { WorldCollection } from "@/features/italian-corner/world/world-collection";
 import { WorldMap } from "@/features/italian-corner/world/world-map";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "La Dolce Lingua",
@@ -44,6 +45,7 @@ const volumes = [
 ] as const;
 
 export default async function LaDolceLinguaPage() {
+  await requireAccessSession();
   const [progress, collectibles] = await Promise.all([
     loadOriginalProgress(),
     loadWorldCollectibles(),

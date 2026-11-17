@@ -22,8 +22,7 @@ import {
 import Image from "@/features/media/components/media-image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ARCADE } from "@/data/arcade-config";
-import { arcadeMemories } from "@/data/arcade-memories";
-import { getMediaAsset } from "@/data/media";
+import { arcadeMemoryIds } from "@/data/arcade-memory-ids";
 import {
   ArcadeResult,
   ArcadeStats,
@@ -181,21 +180,20 @@ export function MemoriesGame(props: GameEngineProps) {
         }}
       >
         {snapshot.deck.map((card, index) => {
-          const memoryIndex = arcadeMemories.findIndex(
-              (memory) => memory.id === card.memoryId,
+          const memoryIndex = arcadeMemoryIds.indexOf(
+              card.memoryId as (typeof arcadeMemoryIds)[number],
             ),
-            memory = arcadeMemories[memoryIndex],
+            face = props.memoryFaces?.find(
+              (candidate) => candidate.id === card.memoryId,
+            ),
+            memory = { title: face?.title ?? card.memoryId },
             Icon = symbols[memoryIndex];
           const matched = snapshot.matched.has(index),
-            open = matched || snapshot.open.includes(index),
-            mediaId =
-              card.variant === 1
-                ? (memory.matchingImage ?? memory.image)
-                : memory.image;
+            open = matched || snapshot.open.includes(index);
           // Keep faces mounted behind the card backs so private photographs
           // start loading when the board opens, before the first flip.
           const seen = seenCards.has(index);
-          const media = mediaId ? getMediaAsset(mediaId) : null;
+          const media = face?.src ? { src: face.src } : null;
           return (
             <button
               key={card.instanceId}

@@ -8,17 +8,22 @@ import {
   Tape,
 } from "@/components/design-system";
 import { FadeIn } from "@/components/motion/fade-in";
-import { openWhenLetters } from "@/data/open-when";
+import { loadVisibleLetters } from "@/features/admin/repositories/content";
 import { Envelope } from "@/features/open-when/components/envelope";
 import { loadOpenWhenState } from "@/features/open-when/repositories/get-open-when-state-repository";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Open when",
-  description: "Eleven private letters for very specific emotional weather.",
+  description: "Private letters for very specific emotional weather.",
 };
 
 export default async function OpenWhenPage() {
-  const state = await loadOpenWhenState();
+  await requireAccessSession();
+  const [state, openWhenLetters] = await Promise.all([
+    loadOpenWhenState(),
+    loadVisibleLetters(),
+  ]);
   const openedSlugs = new Set(state.openedLetters.map((letter) => letter.slug));
   const openedCount = openWhenLetters.filter((letter) =>
     openedSlugs.has(letter.slug),

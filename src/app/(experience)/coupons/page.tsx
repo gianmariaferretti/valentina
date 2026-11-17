@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { Sticker } from "@/components/design-system";
 import { FadeIn } from "@/components/motion/fade-in";
-import { coupons } from "@/data/coupons";
+import { loadCouponCatalogue } from "@/features/admin/repositories/content";
 import { REUNION_COUPON_ID } from "@/data/coupons-apart";
 import { nextReunionDate } from "@/data/reunion";
 import { loadCasinoCoupons } from "@/features/casino/repositories/load-casino";
@@ -18,6 +18,7 @@ import {
 } from "@/features/coupons/lib/coupon-domain";
 import { loadCouponState } from "@/features/coupons/repositories/get-coupon-state-repository";
 import { cn } from "@/lib/cn";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Valentina’s Wallet",
@@ -38,10 +39,12 @@ export default async function CouponsPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const [walletState, casinoCoupons, params] = await Promise.all([
+  await requireAccessSession();
+  const [walletState, casinoCoupons, params, coupons] = await Promise.all([
     loadCouponState(),
     loadCasinoCoupons(),
     searchParams,
+    loadCouponCatalogue(),
   ]);
   const resolvedCoupons = resolveCoupons(
     [...coupons, ...casinoCoupons],

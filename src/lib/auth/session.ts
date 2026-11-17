@@ -1,96 +1,49 @@
 import "server-only";
 
-import { createHmac, timingSafeEqual } from "node:crypto";
-
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { cache } from "react";
 
-const ACCESS_COOKIE = "vg_access";
-const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 30;
-const MINIMUM_PRODUCTION_SECRET_LENGTH = 5;
+import { getRevokedBefore } from "./revocation";
+import {
+  ACCESS_COOKIE,
+  accessCookieOptions,
+  createAccessToken,
+  parseAccessToken,
+  type SessionToken,
+} from "./token";
 
-export function getAuthSecret(): string | null {
-  const configuredSecret = process.env.AUTH_SECRET;
+export { getAuthSecret } from "./token";
 
-  if (
-    configuredSecret &&
-    (process.env.NODE_ENV !== "production" ||
-      configuredSecret.length >= MINIMUM_PRODUCTION_SECRET_LENGTH)
-  ) {
-    return configuredSecret;
-  }
-  if (process.env.NODE_ENV !== "production")
-    return "vg-local-development-secret";
-
-  return null;
-}
-
-function sign(expiresAt: string, secret: string): string {
-  return createHmac("sha256", secret).update(expiresAt).digest("base64url");
-}
-
-export function createAccessToken(): string {
-  const secret = getAuthSecret();
-
-  if (!secret) {
-    throw new Error("AUTH_SECRET must be configured in production.");
-  }
-
-  const expiresAt = String(
-    Math.floor(Date.now() / 1000) + SESSION_DURATION_SECONDS,
-  );
-
-  return `${expiresAt}.${sign(expiresAt, secret)}`;
-}
-
-export function verifyAccessToken(token: string | undefined): boolean {
-  const secret = getAuthSecret();
-  if (!secret || !token) return false;
-
-  const parts = token.split(".");
-  const [expiresAt, signature] = parts;
-  if (
-    parts.length !== 2 ||
-    !/^\d{10,12}$/.test(expiresAt ?? "") ||
-    !signature ||
-    !Number.isSafeInteger(Number(expiresAt)) ||
-    Number(expiresAt) <= Date.now() / 1000
-  ) {
-    return false;
-  }
-
-  const expected = Buffer.from(sign(expiresAt, secret));
-  const received = Buffer.from(signature);
-
-  return (
-    expected.length === received.length && timingSafeEqual(expected, received)
-  );
+/** Signature, expiry and "logged out everywhere" all checked. */
+export async function readAccessSession(): Promise<SessionToken | null> {
+  const cookieStore = await cookies();
+  const session = parseAccessToken(cookieStore.get(ACCESS_COOKIE)?.value);
+  if (!session) return null;
+  if (session.issuedAt < (await getRevokedBefore("visitor"))) return null;
+  return session;
 }
 
 export async function hasValidAccessSession(): Promise<boolean> {
-  const cookieStore = await cookies();
-  return verifyAccessToken(cookieStore.get(ACCESS_COOKIE)?.value);
+  return (await readAccessSession()) !== null;
 }
+
+/**
+ * Data Access Layer guard: every page and every loader of private data calls
+ * it. Deduplicated within one render; redirects to the entrance otherwise.
+ */
+export const requireAccessSession = cache(async (): Promise<SessionToken> => {
+  const session = await readAccessSession();
+  if (!session) redirect("/access");
+  return session;
+});
 
 export async function setAccessSession(): Promise<void> {
   const cookieStore = await cookies();
-
-  cookieStore.set(ACCESS_COOKIE, createAccessToken(), {
-    httpOnly: true,
-    path: "/",
-    priority: "high",
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
-  });
+  cookieStore.set(ACCESS_COOKIE, createAccessToken(), accessCookieOptions());
 }
 
 export async function clearAccessSession(): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.set(ACCESS_COOKIE, "", {
-    httpOnly: true,
-    maxAge: 0,
-    path: "/",
-    priority: "high",
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
-  });
+  cookieStore.set(ACCESS_COOKIE, "", accessCookieOptions(0));
 }

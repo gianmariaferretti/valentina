@@ -9,6 +9,7 @@ import {
   loadCasinoLedger,
   loadCasinoSnapshot,
 } from "@/features/casino/repositories/load-casino";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Kiss Debt",
@@ -24,6 +25,7 @@ function formatDate(value: string): string {
 }
 
 export default async function KissDebtPage() {
+  await requireAccessSession();
   const [snapshot, ledger] = await Promise.all([
     loadCasinoSnapshot(),
     loadCasinoLedger(),

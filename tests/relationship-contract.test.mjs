@@ -65,7 +65,7 @@ test("the sealed note remains in a server-only module", () => {
   assert.match(secretModule, /I would choose you again\./);
 });
 
-test("administrator configuration requires a distinct passphrase of at least four characters", () => {
+test("administrator configuration requires a distinct passphrase of at least 24 characters", () => {
   const longPassphrase = "a-long-independent-contract-passphrase";
   assert.equal(
     adminConfigurationIssue(null, longPassphrase, "site"),
@@ -79,7 +79,14 @@ test("administrator configuration requires a distinct passphrase of at least fou
     adminConfigurationIssue("site-secret", longPassphrase, longPassphrase),
     "reused_site_code",
   );
-  assert.equal(adminConfigurationIssue("site-secret", "abcd", "site"), null);
+  assert.equal(
+    adminConfigurationIssue("site-secret", "x".repeat(23), "site"),
+    "missing_or_short_passphrase",
+  );
+  assert.equal(
+    adminConfigurationIssue("site-secret", "x".repeat(24), "site"),
+    null,
+  );
 });
 
 test("administrator cookie signature is bound to the site session, passphrase and expiry", () => {

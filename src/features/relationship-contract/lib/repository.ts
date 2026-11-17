@@ -1,6 +1,8 @@
 import "server-only";
 
 import { agreementNumber, treatyVersion } from "@/data/relationship-contract";
+import { readAdminSession } from "@/lib/auth/admin-session";
+import { hasValidAccessSession } from "@/lib/auth/session";
 import { reportPersistenceFailure } from "@/lib/persistence/persistence-error";
 import type { Json } from "@/lib/supabase/database.types";
 import {
@@ -37,6 +39,18 @@ function emptyContract(loadFailed = false): LoadedContract {
 }
 
 export async function loadContract(): Promise<LoadedContract> {
+  // Data Access Layer: signatures and Article 41 only with a valid session.
+  if (!(await hasValidAccessSession())) return emptyContract(true);
+  return readContract();
+}
+
+/** Gianmaria's control panel (its own session). */
+export async function loadContractForAdmin(): Promise<LoadedContract> {
+  if (!(await readAdminSession())) return emptyContract(true);
+  return readContract();
+}
+
+async function readContract(): Promise<LoadedContract> {
   try {
     const { client, userId } = getSupabaseServerContext();
     const { data: contract, error } = await client
