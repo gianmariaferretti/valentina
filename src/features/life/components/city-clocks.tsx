@@ -6,7 +6,13 @@ import { Portal } from "@/components/ui/portal";
 import { useModalDialog } from "@/hooks/use-modal-dialog";
 
 import type { City } from "../lib/schemas";
-import { isNightAt, weatherIcon, type CityWeather } from "../lib/weather";
+import {
+  isNightAt,
+  meteoconFor,
+  weatherIcon,
+  type CityWeather,
+} from "../lib/weather";
+import { WeatherIcon } from "./weather-icon";
 
 export interface CityWithWeather {
   city: City;
@@ -68,11 +74,17 @@ export function CityClocks({ items }: { items: CityWithWeather[] }) {
             : now
               ? isNightAt(city.timeZone, now)
               : false;
+          // Day or night from the API, else from the city's local time.
           const icon = weather
-            ? weatherIcon(weather.code, weather.isDay).icon
+            ? meteoconFor(weather.code, weather.isDay)
             : night
-              ? "🌙"
-              : "☀️";
+              ? "clear-night"
+              : "clear-day";
+          const iconLabel = weather
+            ? weatherIcon(weather.code, weather.isDay).label
+            : night
+              ? "Night"
+              : "Day";
           return (
             <li className="shrink-0 snap-start" key={`${city.name}-${index}`}>
               <button
@@ -97,7 +109,7 @@ export function CityClocks({ items }: { items: CityWithWeather[] }) {
                 >
                   {now ? timeIn(city.timeZone, now) : "--:--"}
                 </span>
-                <span aria-hidden="true">{icon}</span>
+                <WeatherIcon label={iconLabel} size={26} slug={icon} />
                 {weather ? <span>{weather.temperature}°</span> : null}
                 {city.who ? (
                   <span className="text-xs opacity-70">· {city.who}</span>
@@ -146,15 +158,15 @@ export function CityClocks({ items }: { items: CityWithWeather[] }) {
                 <ul className="mt-4 grid gap-1.5">
                   {selected.weather.daily.map((day) => {
                     const w = weatherIcon(day.code);
+                    const slug = meteoconFor(day.code, true);
                     return (
                       <li
                         className="flex items-center justify-between gap-3 rounded-xl bg-[var(--paper)] px-3 py-2 text-sm"
                         key={day.date}
                       >
                         <span className="w-16">{weekday(day.date)}</span>
-                        <span aria-hidden="true" className="text-lg">
-                          {w.icon}
-                        </span>
+                        {/* The label is next to it: the icon is decorative. */}
+                        <WeatherIcon label="" size={34} slug={slug} />
                         <span className="flex-1 text-[var(--muted)]">
                           {w.label}
                         </span>

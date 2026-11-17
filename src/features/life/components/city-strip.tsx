@@ -3,7 +3,7 @@ import { cityGlobe } from "@/features/globe/lib/city-globe-data";
 
 import { loadCitiesWithWeather } from "../repositories/life";
 import { defaultCities } from "../lib/schemas";
-import { weatherIcon } from "../lib/weather";
+import { meteoconFor, weatherIcon } from "../lib/weather";
 import { CityClocks } from "./city-clocks";
 
 /** Server part: cities from the panel, weather from Open-Meteo (cached). */
@@ -12,21 +12,20 @@ export async function CityStrip({ globe = false }: { globe?: boolean }) {
     defaultCities.map((city) => ({ city, weather: null })),
   );
   if (!globe) return <CityClocks items={items} />;
-  const badges = Object.fromEntries(
-    items.flatMap(({ city, weather }) =>
-      weather
-        ? [
-            [
-              city.name,
-              `${weatherIcon(weather.code, weather.isDay).icon} ${weather.temperature}°`,
-            ],
-          ]
-        : [],
-    ),
-  );
+  const badges: Record<string, string> = {};
+  const icons: Record<string, { icon: string; label: string }> = {};
+  for (const { city, weather } of items) {
+    if (!weather) continue;
+    badges[city.name] = `${weather.temperature}°`;
+    icons[city.name] = {
+      icon: meteoconFor(weather.code, weather.isDay),
+      label: weatherIcon(weather.code, weather.isDay).label,
+    };
+  }
   const { points, arcs } = cityGlobe(
     items.map(({ city }) => city),
     badges,
+    icons,
   );
   return (
     <div className="grid gap-4">

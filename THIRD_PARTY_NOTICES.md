@@ -100,3 +100,35 @@ palette; no asset from the original repository is shipped.
 | `cobe`  | 2.0.1   | MIT     | The globe with our cities (home, Next time, cover); loaded on demand | <https://github.com/shuding/cobe> |
 
 Copyright (c) 2021 Shu Ding. The static fallback globe (SVG) is original code.
+
+## Site v4 — weather icons
+
+| Package                 | Version | License | Use                                              | Source                                   |
+| ----------------------- | ------- | ------- | ------------------------------------------------ | ---------------------------------------- |
+| `@meteocons/svg`        | 0.1.0   | MIT     | Animated weather icons (clocks, forecast, globe) | <https://github.com/basmilius/meteocons> |
+| `@meteocons/svg-static` | 0.1.0   | MIT     | The same icons, still, for reduced motion        | <https://github.com/basmilius/meteocons> |
+
+Meteocons — Copyright (c) 2020-present Bas Milius. Licensed under the MIT
+License:
+
+> Permission is hereby granted, free of charge, to any person obtaining a copy
+> of this software and associated documentation files (the "Software"), to deal
+> in the Software without restriction, including without limitation the rights
+> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+> copies of the Software, and to permit persons to whom the Software is
+> furnished to do so, subject to the following conditions:
+>
+> The above copyright notice and this permission notice shall be included in all
+> copies or substantial portions of the Software.
+>
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> SOFTWARE.
+
+Only the 21 icons the site uses are copied, by `scripts/sync-weather-icons.mjs`,
+into `public/weather/animated` and `public/weather/static`. Each copied file
+keeps a comment with the copyright notice.

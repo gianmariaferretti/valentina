@@ -4,6 +4,8 @@ import createGlobe, { type Arc, type Globe, type Marker } from "cobe";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { alongGreatCircle, anglesFor, centerOf } from "../lib/geo";
+import { WeatherIcon } from "@/features/life/components/weather-icon";
+
 import type { GlobeProps } from "../lib/types";
 
 type Rgb = [number, number, number];
@@ -324,6 +326,13 @@ export default function LiveGlobe({
                   <span className="font-mono tabular-nums">
                     {timeIn(point.timeZone, now)}
                   </span>
+                ) : null}
+                {point.weather ? (
+                  <WeatherIcon
+                    label={point.weather.label}
+                    size={20}
+                    slug={point.weather.icon}
+                  />
                 ) : null}
                 {point.badge ? <span>{point.badge}</span> : null}
               </span>
