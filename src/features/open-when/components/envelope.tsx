@@ -1,3 +1,4 @@
+import "@/features/open-when/open-when.css";
 import Link from "next/link";
 import type { CSSProperties, MouseEventHandler } from "react";
 

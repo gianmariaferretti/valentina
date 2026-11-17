@@ -32,6 +32,8 @@ interface CouponTicketProps {
   covered?: boolean;
   onScratched?: (id: string) => void;
   glow?: boolean;
+  /** The card in the foreground (coupon of the day): always shimmering. */
+  featured?: boolean;
 }
 
 /**
@@ -106,6 +108,7 @@ function TicketView({
   covered = false,
   onScratched,
   glow = false,
+  featured = false,
   redeemSlot = false,
 }: CouponTicketProps & { redeemSlot?: boolean }) {
   const ticketRef = useRef<HTMLDivElement>(null);
@@ -115,7 +118,10 @@ function TicketView({
   useHoloTilt(
     ticketRef,
     coupon.status !== "undiscovered" &&
-      (rarity === "premium" || rarity === "legendary"),
+      (rarity === "premium" ||
+        rarity === "legendary" ||
+        rarity === "impossible"),
+    featured,
   );
 
   if (coupon.status === "undiscovered") {

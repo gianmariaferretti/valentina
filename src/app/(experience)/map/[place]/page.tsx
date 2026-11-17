@@ -1,3 +1,5 @@
+import "maplibre-gl/dist/maplibre-gl.css";
+import "@/features/map/map.css";
 import {
   ArrowLeft,
   ArrowRight,
@@ -23,7 +25,7 @@ import {
 } from "@/components/design-system";
 import { getAdjacentPlaces, getPlace, places } from "@/data/places";
 import { creditPlaceVisit } from "@/features/kisses/repositories/kisses";
-import { PlaceMiniMap } from "@/features/map/components/place-mini-map";
+import { PlaceMiniMapLazy } from "@/features/map/components/place-mini-map-lazy";
 import type { Destination, DestinationSticker } from "@/features/map/types";
 import { requireAccessSession } from "@/lib/auth/session";
 import { reportPersistenceFailure } from "@/lib/persistence/persistence-error";
@@ -196,7 +198,7 @@ export default async function PlacePage({ params }: PlacePageProps) {
           <div>
             <SectionLabel index="02">At these coordinates</SectionLabel>
             <div className="mt-6 overflow-hidden rounded-[1.75rem] border border-[var(--line)] bg-[var(--paper-deep)] p-2">
-              <PlaceMiniMap place={place} />
+              <PlaceMiniMapLazy place={place} />
             </div>
           </div>
           <div className="flex flex-col justify-between rounded-[1.75rem] bg-[var(--ink)] p-7 text-[var(--paper)] sm:p-8 lg:mt-12">

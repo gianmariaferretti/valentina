@@ -1,3 +1,5 @@
+import "maplibre-gl/dist/maplibre-gl.css";
+import "@/features/map/map.css";
 import { Compass } from "lucide-react";
 import type { Metadata } from "next";
 

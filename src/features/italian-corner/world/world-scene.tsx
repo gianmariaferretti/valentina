@@ -89,7 +89,6 @@ export function WorldScene({
             alt=""
             aria-hidden="true"
             fill
-            priority
             sizes="(max-width: 640px) 95px, 170px"
             src={`/images/academy/character-${world.characterId}.webp`}
           />

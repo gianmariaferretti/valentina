@@ -16,8 +16,10 @@ import styles from "@/features/coupons/components/wallet.module.css";
 import { formatStampDate } from "@/features/coupons/components/stamp-date";
 import {
   createWalletItem,
+  dayKey,
   getCouponWalletStats,
   isVisibleInWallet,
+  pickCouponOfTheDay,
   resolveCoupons,
 } from "@/features/coupons/lib/coupon-domain";
 import { loadCouponState } from "@/features/coupons/repositories/get-coupon-state-repository";
@@ -42,6 +44,17 @@ export const metadata: Metadata = {
 };
 
 const STRIP_TICKETS = 60;
+
+/** Today's calendar date in Rome, as the day index the wallet uses. */
+function romeDayKey(now: Date): number {
+  const [y, m, d] = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Rome",
+  })
+    .format(now)
+    .split("-")
+    .map(Number);
+  return dayKey(new Date(y, m - 1, d));
+}
 
 const shortcuts: {
   href: string;
@@ -110,6 +123,7 @@ export default async function HomePage() {
   const candidates = items.filter(
     (item) => item.status === "available" && item.href && !item.scratchable,
   );
+  const initialPick = pickCouponOfTheDay(candidates, romeDayKey(new Date()));
   const recent = recentlyUnlocked(items, resolved, walletState);
   const closest = closestToUnlock(items, resolved, games.games);
   const days = daysUntil(nextTime.at, new Date());
@@ -131,7 +145,7 @@ export default async function HomePage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
         <FadeIn>
-          <DailyCoupon candidates={candidates} />
+          <DailyCoupon candidates={candidates} initialPick={initialPick} />
         </FadeIn>
 
         <div className="grid gap-4">

@@ -38,7 +38,19 @@ export default async function ExperienceLayout({
       <SiteHeader
         casinoBadge={casinoBadge}
         couponsBadge={couponsBadge}
-        progress={<ProgressIndicator />}
+        progress={
+          // Streams in: the header and the page don't wait for its queries.
+          <Suspense
+            fallback={
+              <div
+                aria-hidden="true"
+                className="min-h-11 border-t border-[var(--line)]"
+              />
+            }
+          >
+            <ProgressIndicator />
+          </Suspense>
+        }
       />
       <main className="flex-1">{children}</main>
       <div className="pb-[var(--tabbar)]">
