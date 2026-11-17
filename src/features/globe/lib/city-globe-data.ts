@@ -24,6 +24,7 @@ const distance = (a: LatLng, b: LatLng) =>
 export function cityGlobe(
   cities: readonly GlobeCity[],
   badges: Readonly<Record<string, string>> = {},
+  weather: Readonly<Record<string, { icon: string; label: string }>> = {},
 ): { points: GlobePoint[]; arcs: GlobeArc[] } {
   const seen = new Set<string>();
   const raw = cities.map((city) => {
@@ -36,6 +37,7 @@ export function cityGlobe(
       location: [city.latitude, city.longitude] as LatLng,
       timeZone: city.timeZone,
       badge: badges[city.name],
+      weather: weather[city.name],
     };
   });
   const points: GlobePoint[] = staggerLabels(raw);

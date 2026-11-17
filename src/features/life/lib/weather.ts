@@ -100,3 +100,43 @@ export function isNightAt(timeZone: string, now: Date): boolean {
   );
   return hour < 6 || hour >= 20;
 }
+
+/**
+ * WMO weather code → Meteocons icon (day or night). Every slug returned
+ * here is copied by scripts/sync-weather-icons.mjs into public/weather/.
+ */
+export function meteoconFor(code: number, isDay = true): string {
+  const dn = isDay ? "day" : "night";
+  if (code === 0) return `clear-${dn}`;
+  if (code === 1 || code === 2) return `partly-cloudy-${dn}`;
+  if (code === 3) return `overcast-${dn}`;
+  if (code === 45 || code === 48) return `fog-${dn}`;
+  if (code >= 51 && code <= 55) return `partly-cloudy-${dn}-drizzle`;
+  if (code === 56 || code === 57 || code === 66 || code === 67) return "sleet";
+  if (code >= 61 && code <= 65) return "rain";
+  if (code >= 71 && code <= 77) return "snow";
+  if (code >= 80 && code <= 82) return `partly-cloudy-${dn}-rain`;
+  if (code === 85 || code === 86) return `partly-cloudy-${dn}-snow`;
+  if (code === 95) return `thunderstorms-${dn}-rain`;
+  if (code >= 96) return `thunderstorms-${dn}-hail`;
+  return `overcast-${dn}`;
+}
+
+/** Every icon meteoconFor can return (kept in sync by a test). */
+export const METEOCONS_USED = [
+  ...["clear", "partly-cloudy", "overcast", "fog"].flatMap((name) => [
+    `${name}-day`,
+    `${name}-night`,
+  ]),
+  ...["drizzle", "rain", "snow"].flatMap((kind) => [
+    `partly-cloudy-day-${kind}`,
+    `partly-cloudy-night-${kind}`,
+  ]),
+  "sleet",
+  "rain",
+  "snow",
+  "thunderstorms-day-rain",
+  "thunderstorms-night-rain",
+  "thunderstorms-day-hail",
+  "thunderstorms-night-hail",
+] as const;

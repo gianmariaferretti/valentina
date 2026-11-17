@@ -7,8 +7,10 @@ export interface GlobePoint {
   readonly location: LatLng;
   /** IANA time zone: the label shows the live local time. */
   readonly timeZone?: string;
-  /** Extra label text, e.g. weather "☀️ 14°". */
+  /** Extra label text, e.g. "14°". */
   readonly badge?: string;
+  /** Meteocons icon slug and its label, shown next to the badge. */
+  readonly weather?: { readonly icon: string; readonly label: string };
   /** Put the label under the dot (when a nearby city's label is above). */
   readonly below?: boolean;
   /** Dot only, no label (crowded clusters on small globes). */
