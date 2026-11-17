@@ -71,3 +71,13 @@ Reviewed for ideas only, no code copied: `johakr/html5-slot-machine` (reel strip
 ## Email notifications
 
 - Package: `resend` 6.38.1 — MIT — <https://github.com/resend/resend-node>. Called only on the server to send Gianmaria's notification emails. Its optional `@react-email/render` peer is not installed; the emails are plain HTML written in this project.
+
+## Installable app (PWA)
+
+| Package              | Version | License | Use                                                                 | Source                               |
+| -------------------- | ------- | ------- | ------------------------------------------------------------------- | ------------------------------------ |
+| `serwist`            | 9.5.15  | MIT     | Service worker: caches static assets and public pages only          | <https://github.com/serwist/serwist> |
+| `@serwist/turbopack` | 9.5.15  | MIT     | Builds and serves the service worker with Next.js and Turbopack     | <https://github.com/serwist/serwist> |
+| `esbuild`            | 0.28.x  | MIT     | Bundles the service worker at build time (not shipped to the pages) | <https://github.com/evanw/esbuild>   |
+
+The V+G monogram icons are original, drawn from plain shapes in `scripts/generate-icons.mjs`; no third-party artwork or fonts are used.

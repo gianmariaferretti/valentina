@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { CasinoNavBadge } from "@/features/casino/components/casino-nav-badge";
 import { CouponsNavBadge } from "@/features/coupons/components/coupons-nav-badge";
 import { KissListener } from "@/features/kisses/components/kiss-listener";
+import { IosInstallBanner } from "@/features/pwa/components/ios-install-banner";
 import { HeartListener } from "@/features/notifications/components/heart-listener";
 import { MissYouButton } from "@/features/notifications/components/miss-you-button";
 import { hasValidAccessSession } from "@/lib/auth/session";
@@ -48,6 +49,7 @@ export default async function ExperienceLayout({
       <MissYouButton />
       <HeartListener />
       <KissListener />
+      <IosInstallBanner />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { withSerwist } from "@serwist/turbopack";
 import type { NextConfig } from "next";
 
 const isDevelopment = process.env.NODE_ENV === "development";
@@ -72,10 +73,16 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        // The service worker must always be checked for updates.
+        source: "/serwist/:path*",
+        headers: [{ key: "Cache-Control", value: "no-cache" }],
+      },
     ];
   },
   poweredByHeader: false,
   reactStrictMode: true,
 };
 
-export default nextConfig;
+// Serwist (PWA) bundles the service worker with esbuild at build time.
+export default withSerwist(nextConfig);
