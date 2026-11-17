@@ -1,20 +1,15 @@
 "use client";
 
 import { ArrowUpRight, LocateFixed, MapPin, X } from "lucide-react";
-import {
-  AttributionControl,
-  LngLatBounds,
-  Map as MapLibreMap,
-  Marker,
-  NavigationControl,
-} from "maplibre-gl";
+import type { LngLatBounds, Map as MapLibreMap, Marker } from "maplibre-gl";
 import Image from "@/features/media/components/media-image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
-  configureMapLibreWorker,
+  loadMapLibre,
   MAP_STYLE_URL,
+  type MapLibre,
   toMapLibreLngLat,
 } from "@/features/map/lib/map-config";
 import type { Destination } from "@/features/map/types";
@@ -54,8 +49,11 @@ function nearbyGroups(
   });
 }
 
-function buildBounds(destinations: readonly Destination[]): LngLatBounds {
-  const bounds = new LngLatBounds();
+function buildBounds(
+  maplibre: MapLibre,
+  destinations: readonly Destination[],
+): LngLatBounds {
+  const bounds = new maplibre.LngLatBounds();
   destinations.forEach((destination) =>
     bounds.extend(toMapLibreLngLat(destination.coordinates)),
   );
@@ -127,6 +125,7 @@ export function EuropeMapExperience({
 }) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
+  const libraryRef = useRef<MapLibre | null>(null);
   const markersRef = useRef<DestinationMarker[]>([]);
   const clusterMarkersRef = useRef<DestinationMarker[]>([]);
   const lastTriggerRef = useRef<HTMLElement | null>(null);
@@ -141,9 +140,10 @@ export function EuropeMapExperience({
 
   const frameAllDestinations = useCallback(() => {
     const map = mapRef.current;
-    if (!map || destinations.length === 0) return;
+    const maplibre = libraryRef.current;
+    if (!map || !maplibre || destinations.length === 0) return;
 
-    map.fitBounds(buildBounds(destinations), {
+    map.fitBounds(buildBounds(maplibre, destinations), {
       duration:
         map.getContainer().clientWidth < 640 ||
         window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -162,127 +162,154 @@ export function EuropeMapExperience({
   useEffect(() => {
     const container = mapContainerRef.current;
     if (!container) return;
+    let cancelled = false;
+    let teardown = () => {};
 
-    configureMapLibreWorker();
+    void loadMapLibre()
+      .then((maplibre) => {
+        if (cancelled) return;
+        libraryRef.current = maplibre;
+        const {
+          AttributionControl,
+          Map: MapLibreMap,
+          Marker,
+          NavigationControl,
+        } = maplibre;
 
-    const map = new MapLibreMap({
-      attributionControl: false,
-      canvasContextAttributes: { antialias: true },
-      center: [5.8, 49.2],
-      cooperativeGestures: true,
-      dragRotate: false,
-      maxPitch: 0,
-      maxZoom: 13,
-      minZoom: 2.2,
-      pitchWithRotate: false,
-      style: MAP_STYLE_URL,
-      zoom: 3.5,
-      container,
-    });
-    mapRef.current = map;
-
-    map.addControl(
-      new NavigationControl({ showCompass: false, showZoom: true }),
-      "top-right",
-    );
-    map.addControl(new AttributionControl({ compact: true }), "bottom-right");
-
-    const markers = destinations.map((destination) => {
-      const element = createMarkerElement(destination);
-      element.style.visibility = "hidden";
-      const handleClick = (event: MouseEvent) => {
-        event.stopPropagation();
-        lastTriggerRef.current = element;
-        setSelectedCluster(null);
-        setSelectedSlug(destination.slug);
-      };
-      element.addEventListener("click", handleClick);
-
-      return {
-        marker: new Marker({ anchor: "bottom", element })
-          .setLngLat(toMapLibreLngLat(destination.coordinates))
-          .addTo(map),
-        element,
-        handleClick,
-      };
-    });
-    markersRef.current = markers;
-
-    const updateClusters = () => {
-      clusterMarkersRef.current.forEach(({ marker, element, handleClick }) => {
-        element.removeEventListener("click", handleClick);
-        marker.remove();
-      });
-      clusterMarkersRef.current = [];
-      markers.forEach(({ element }) => {
-        element.style.display = "none";
-      });
-      for (const group of nearbyGroups(destinations, map)) {
-        if (group.length === 1) {
-          const index = destinations.indexOf(group[0]);
-          markers[index].element.style.display = "grid";
-          markers[index].element.style.visibility = "visible";
-          continue;
-        }
-        const element = createClusterElement(group);
-        const handleClick = (event: MouseEvent) => {
-          event.stopPropagation();
-          lastTriggerRef.current = element;
-          setSelectedSlug(null);
-          setSelectedCluster(group);
-        };
-        element.addEventListener("click", handleClick);
-        const longitude =
-          group.reduce((sum, place) => sum + place.coordinates[0], 0) /
-          group.length;
-        const latitude =
-          group.reduce((sum, place) => sum + place.coordinates[1], 0) /
-          group.length;
-        clusterMarkersRef.current.push({
-          marker: new Marker({ anchor: "bottom", element })
-            .setLngLat([longitude, latitude])
-            .addTo(map),
-          element,
-          handleClick,
+        const map = new MapLibreMap({
+          attributionControl: false,
+          canvasContextAttributes: { antialias: true },
+          center: [5.8, 49.2],
+          cooperativeGestures: true,
+          dragRotate: false,
+          maxPitch: 0,
+          maxZoom: 13,
+          minZoom: 2.2,
+          pitchWithRotate: false,
+          style: MAP_STYLE_URL,
+          zoom: 3.5,
+          container,
         });
-      }
-    };
+        mapRef.current = map;
 
-    const handleLoad = () => {
-      setMapError(false);
-      frameAllDestinations();
-      updateClusters();
-    };
-    const handleError = () => {
-      if (!map.isStyleLoaded()) setMapError(true);
-    };
+        map.addControl(
+          new NavigationControl({ showCompass: false, showZoom: true }),
+          "top-right",
+        );
+        map.addControl(
+          new AttributionControl({ compact: true }),
+          "bottom-right",
+        );
 
-    map.once("load", handleLoad);
-    map.on("error", handleError);
-    map.on("moveend", updateClusters);
+        const markers = destinations.map((destination) => {
+          const element = createMarkerElement(destination);
+          element.style.visibility = "hidden";
+          const handleClick = (event: MouseEvent) => {
+            event.stopPropagation();
+            lastTriggerRef.current = element;
+            setSelectedCluster(null);
+            setSelectedSlug(destination.slug);
+          };
+          element.addEventListener("click", handleClick);
 
-    const resizeObserver = new ResizeObserver(() => {
-      map.resize();
-      frameAllDestinations();
-    });
-    resizeObserver.observe(container);
+          return {
+            marker: new Marker({ anchor: "bottom", element })
+              .setLngLat(toMapLibreLngLat(destination.coordinates))
+              .addTo(map),
+            element,
+            handleClick,
+          };
+        });
+        markersRef.current = markers;
+
+        const updateClusters = () => {
+          clusterMarkersRef.current.forEach(
+            ({ marker, element, handleClick }) => {
+              element.removeEventListener("click", handleClick);
+              marker.remove();
+            },
+          );
+          clusterMarkersRef.current = [];
+          markers.forEach(({ element }) => {
+            element.style.display = "none";
+          });
+          for (const group of nearbyGroups(destinations, map)) {
+            if (group.length === 1) {
+              const index = destinations.indexOf(group[0]);
+              markers[index].element.style.display = "grid";
+              markers[index].element.style.visibility = "visible";
+              continue;
+            }
+            const element = createClusterElement(group);
+            const handleClick = (event: MouseEvent) => {
+              event.stopPropagation();
+              lastTriggerRef.current = element;
+              setSelectedSlug(null);
+              setSelectedCluster(group);
+            };
+            element.addEventListener("click", handleClick);
+            const longitude =
+              group.reduce((sum, place) => sum + place.coordinates[0], 0) /
+              group.length;
+            const latitude =
+              group.reduce((sum, place) => sum + place.coordinates[1], 0) /
+              group.length;
+            clusterMarkersRef.current.push({
+              marker: new Marker({ anchor: "bottom", element })
+                .setLngLat([longitude, latitude])
+                .addTo(map),
+              element,
+              handleClick,
+            });
+          }
+        };
+
+        const handleLoad = () => {
+          setMapError(false);
+          frameAllDestinations();
+          updateClusters();
+        };
+        const handleError = () => {
+          if (!map.isStyleLoaded()) setMapError(true);
+        };
+
+        map.once("load", handleLoad);
+        map.on("error", handleError);
+        map.on("moveend", updateClusters);
+
+        const resizeObserver = new ResizeObserver(() => {
+          map.resize();
+          frameAllDestinations();
+        });
+        resizeObserver.observe(container);
+
+        teardown = () => {
+          resizeObserver.disconnect();
+          clusterMarkersRef.current.forEach(
+            ({ marker, element, handleClick }) => {
+              element.removeEventListener("click", handleClick);
+              marker.remove();
+            },
+          );
+          clusterMarkersRef.current = [];
+          markers.forEach(({ marker, element, handleClick }) => {
+            element.removeEventListener("click", handleClick);
+            marker.remove();
+          });
+          markersRef.current = [];
+          map.off("error", handleError);
+          map.off("moveend", updateClusters);
+          map.remove();
+          mapRef.current = null;
+        };
+      })
+      .catch(() => {
+        if (!cancelled) setMapError(true);
+      });
 
     return () => {
-      resizeObserver.disconnect();
-      clusterMarkersRef.current.forEach(({ marker, element, handleClick }) => {
-        element.removeEventListener("click", handleClick);
-        marker.remove();
-      });
-      clusterMarkersRef.current = [];
-      markers.forEach(({ marker, element, handleClick }) => {
-        element.removeEventListener("click", handleClick);
-        marker.remove();
-      });
-      markersRef.current = [];
-      map.off("error", handleError);
-      map.off("moveend", updateClusters);
-      map.remove();
-      mapRef.current = null;
+      cancelled = true;
+      teardown();
     };
   }, [destinations, frameAllDestinations]);
 

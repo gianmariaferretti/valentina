@@ -1,3 +1,4 @@
+import "@/features/rewards/reward-reveal.css";
 import { ArrowUpRight, Gift, Sparkles } from "lucide-react";
 import Link from "next/link";
 

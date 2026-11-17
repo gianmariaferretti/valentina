@@ -1,10 +1,9 @@
 "use client";
 
-import { AttributionControl, Map as MapLibreMap, Marker } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
 
 import {
-  configureMapLibreWorker,
+  loadMapLibre,
   MAP_STYLE_URL,
   toMapLibreLngLat,
 } from "@/features/map/lib/map-config";
@@ -39,55 +38,70 @@ export function PlaceMiniMap({ place }: { place: Destination }) {
   useEffect(() => {
     const container = containerRef.current;
     if (!container || !shouldLoad) return;
+    let cancelled = false;
+    let teardown = () => {};
 
-    configureMapLibreWorker();
+    void loadMapLibre()
+      .then(({ AttributionControl, Map: MapLibreMap, Marker }) => {
+        if (cancelled) return;
+        const map = new MapLibreMap({
+          attributionControl: false,
+          center: toMapLibreLngLat(place.coordinates),
+          cooperativeGestures: true,
+          dragRotate: false,
+          maxPitch: 0,
+          pitchWithRotate: false,
+          scrollZoom: false,
+          style: MAP_STYLE_URL,
+          zoom: 9.2,
+          container,
+        });
+        map.addControl(
+          new AttributionControl({ compact: true }),
+          "bottom-right",
+        );
 
-    const map = new MapLibreMap({
-      attributionControl: false,
-      center: toMapLibreLngLat(place.coordinates),
-      cooperativeGestures: true,
-      dragRotate: false,
-      maxPitch: 0,
-      pitchWithRotate: false,
-      scrollZoom: false,
-      style: MAP_STYLE_URL,
-      zoom: 9.2,
-      container,
-    });
-    map.addControl(new AttributionControl({ compact: true }), "bottom-right");
+        const element = document.createElement("div");
+        element.className = "vg-map-marker vg-map-marker--mini";
+        element.setAttribute("aria-hidden", "true");
 
-    const element = document.createElement("div");
-    element.className = "vg-map-marker vg-map-marker--mini";
-    element.setAttribute("aria-hidden", "true");
+        const monogram = document.createElement("span");
+        monogram.className = "vg-map-marker__monogram";
+        monogram.textContent = "V+G";
+        const code = document.createElement("span");
+        code.className = "vg-map-marker__code";
+        code.textContent = place.travelCode;
+        const point = document.createElement("span");
+        point.className = "vg-map-marker__point";
+        element.append(monogram, code, point);
 
-    const monogram = document.createElement("span");
-    monogram.className = "vg-map-marker__monogram";
-    monogram.textContent = "V+G";
-    const code = document.createElement("span");
-    code.className = "vg-map-marker__code";
-    code.textContent = place.travelCode;
-    const point = document.createElement("span");
-    point.className = "vg-map-marker__point";
-    element.append(monogram, code, point);
+        const marker = new Marker({ anchor: "bottom", element })
+          .setLngLat(toMapLibreLngLat(place.coordinates))
+          .addTo(map);
 
-    const marker = new Marker({ anchor: "bottom", element })
-      .setLngLat(toMapLibreLngLat(place.coordinates))
-      .addTo(map);
+        const handleError = () => {
+          if (!map.isStyleLoaded()) setMapError(true);
+        };
+        map.once("load", () => setMapError(false));
+        map.on("error", handleError);
 
-    const handleError = () => {
-      if (!map.isStyleLoaded()) setMapError(true);
-    };
-    map.once("load", () => setMapError(false));
-    map.on("error", handleError);
+        const resizeObserver = new ResizeObserver(() => map.resize());
+        resizeObserver.observe(container);
 
-    const resizeObserver = new ResizeObserver(() => map.resize());
-    resizeObserver.observe(container);
+        teardown = () => {
+          resizeObserver.disconnect();
+          map.off("error", handleError);
+          marker.remove();
+          map.remove();
+        };
+      })
+      .catch(() => {
+        if (!cancelled) setMapError(true);
+      });
 
     return () => {
-      resizeObserver.disconnect();
-      map.off("error", handleError);
-      marker.remove();
-      map.remove();
+      cancelled = true;
+      teardown();
     };
   }, [place, shouldLoad]);
 

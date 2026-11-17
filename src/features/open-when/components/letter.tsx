@@ -1,3 +1,4 @@
+import "@/features/open-when/open-when.css";
 import { Heart, PenLine } from "lucide-react";
 
 import { HandwrittenNote, Tape } from "@/components/design-system";

@@ -1,3 +1,4 @@
+import "@/features/open-when/open-when.css";
 import { MailOpen, PenLine, ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 

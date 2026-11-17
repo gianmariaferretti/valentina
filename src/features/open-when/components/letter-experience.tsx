@@ -1,5 +1,7 @@
 "use client";
 
+import "@/features/open-when/open-when.css";
+
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useState, useTransition } from "react";
 

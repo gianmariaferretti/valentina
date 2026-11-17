@@ -241,7 +241,8 @@ a:focus-visible > .ticket {
   opacity: 0.75;
 }
 
-.ticket[data-rarity="legendary"][data-live="false"] .shine {
+/* Moves only on the active card (touched, hovered, focused or featured). */
+.ticket[data-rarity="legendary"][data-active="true"][data-live="false"] .shine {
   animation: holo-drift 9s ease-in-out infinite alternate;
 }
 
@@ -275,11 +276,14 @@ a:focus-visible > .ticket {
     radial-gradient(circle, #fff 0 1px, transparent 1.5px) 0 0 / 37px 41px,
     radial-gradient(circle, #f2c84b 0 1px, transparent 1.5px) 11px 17px / 53px
       47px;
-  animation: twinkle 3.2s steps(2) infinite;
   opacity: 0.55;
 }
 
-.ticket[data-rarity="impossible"] .title {
+.ticket[data-rarity="impossible"][data-active="true"] .shine {
+  animation: twinkle 3.2s steps(2) infinite;
+}
+
+.ticket[data-rarity="impossible"][data-active="true"] .title {
   animation: glitch 5s infinite;
 }
 

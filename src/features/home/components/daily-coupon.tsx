@@ -12,23 +12,27 @@ import {
 import type { CouponWalletItem } from "@/features/coupons/types";
 
 /**
- * Today's coupon, big, with its rarity finish. Picked from the local date
- * after hydration (the same pick as in the wallet), so it changes at midnight.
+ * Today's coupon, big, with its rarity finish. The server renders the pick
+ * for today in Rome (so it is in the HTML at once); the browser then checks
+ * its own date and switches only if it differs (near midnight, or abroad).
+ * The same pick as in the wallet, changing at midnight.
  */
 export function DailyCoupon({
   candidates,
+  initialPick,
 }: {
   candidates: readonly CouponWalletItem[];
+  initialPick: CouponWalletItem | null;
 }) {
   const [pick, setPick] = useState<CouponWalletItem | null | undefined>(
-    undefined,
+    initialPick,
   );
 
   useEffect(() => {
-    const timer = window.setTimeout(
-      () => setPick(pickCouponOfTheDay(candidates, dayKey(new Date()))),
-      0,
-    );
+    const timer = window.setTimeout(() => {
+      const local = pickCouponOfTheDay(candidates, dayKey(new Date()));
+      setPick((current) => (current?.id === local?.id ? current : local));
+    }, 0);
     return () => window.clearTimeout(timer);
   }, [candidates]);
 
@@ -65,6 +69,7 @@ export function DailyCoupon({
         <div className="grid gap-3">
           <div className="text-[1.04rem] sm:text-[1.12rem]">
             <CouponTicket
+              featured
               coupon={{
                 ...pick,
                 // The home shows it; redeeming happens on the coupon page.
