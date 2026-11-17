@@ -6,7 +6,8 @@ import { Sticker } from "@/components/design-system";
 import { FadeIn } from "@/components/motion/fade-in";
 import { loadCouponCatalogue } from "@/features/admin/repositories/content";
 import { REUNION_COUPON_ID } from "@/data/coupons-apart";
-import { nextReunionDate } from "@/data/reunion";
+import { isoToRomeLocal } from "@/features/life/lib/rome-time";
+import { loadNextTime } from "@/features/life/repositories/life";
 import { loadCasinoCoupons } from "@/features/casino/repositories/load-casino";
 import { CouponWallet } from "@/features/coupons/components/coupon-wallet";
 import styles from "@/features/coupons/components/wallet.module.css";
@@ -40,12 +41,18 @@ export default async function CouponsPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   await requireAccessSession();
-  const [walletState, casinoCoupons, params, coupons] = await Promise.all([
-    loadCouponState(),
-    loadCasinoCoupons(),
-    searchParams,
-    loadCouponCatalogue(),
-  ]);
+  const [walletState, casinoCoupons, params, coupons, nextTime] =
+    await Promise.all([
+      loadCouponState(),
+      loadCasinoCoupons(),
+      searchParams,
+      loadCouponCatalogue(),
+      loadNextTime(),
+    ]);
+  // Same date as the Next time page (set in the panel; reunion.ts is the fallback).
+  const nextReunionDate = nextTime.at
+    ? isoToRomeLocal(nextTime.at).slice(0, 10)
+    : null;
   const resolvedCoupons = resolveCoupons(
     [...coupons, ...casinoCoupons],
     walletState,

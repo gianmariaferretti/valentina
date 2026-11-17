@@ -77,6 +77,8 @@ export interface CouponWalletState {
   readonly version: 1;
   readonly redemptions: readonly CouponRedemption[];
   readonly unlockedCouponIds: readonly string[];
+  /** When each coupon was unlocked (coupon id → ISO date), if known. */
+  readonly unlockedAt?: Readonly<Record<string, string>>;
 }
 
 export interface ResolvedCoupon extends Omit<

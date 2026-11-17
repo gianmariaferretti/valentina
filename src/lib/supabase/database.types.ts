@@ -14,6 +14,195 @@ export type Database = {
   };
   public: {
     Tables: {
+      life_lists: {
+        Row: {
+          id: string;
+          list: string;
+          title: string;
+          notes: string | null;
+          category: string | null;
+          sort: number;
+          status: string;
+          proposed_by: string;
+          done_at: string | null;
+          done_by: string | null;
+          reward: Json | null;
+          rewarded_at: string | null;
+          photo_object: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          list: string;
+          title: string;
+          notes?: string | null;
+          category?: string | null;
+          sort?: number;
+          status?: string;
+          proposed_by?: string;
+          done_at?: string | null;
+          done_by?: string | null;
+          reward?: Json | null;
+          rewarded_at?: string | null;
+          photo_object?: string | null;
+        };
+        Update: {
+          id?: string;
+          list?: string;
+          title?: string;
+          notes?: string | null;
+          category?: string | null;
+          sort?: number;
+          status?: string;
+          proposed_by?: string;
+          done_at?: string | null;
+          done_by?: string | null;
+          reward?: Json | null;
+          rewarded_at?: string | null;
+          photo_object?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      songs: {
+        Row: {
+          id: string;
+          title: string;
+          artist: string;
+          spotify_url: string | null;
+          song_date: string | null;
+          place: string | null;
+          why: string | null;
+          sort: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          artist: string;
+          spotify_url?: string | null;
+          song_date?: string | null;
+          place?: string | null;
+          why?: string | null;
+          sort?: number;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          artist?: string;
+          spotify_url?: string | null;
+          song_date?: string | null;
+          place?: string | null;
+          why?: string | null;
+          sort?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      notification_outbox: {
+        Row: {
+          id: string;
+          kind: string;
+          payload: Json;
+          subject: string;
+          status: string;
+          attempts: number;
+          last_error: string | null;
+          provider_id: string | null;
+          created_at: string;
+          sent_at: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          kind: string;
+          payload?: Json;
+          subject: string;
+          status?: string;
+          attempts?: number;
+          last_error?: string | null;
+          provider_id?: string | null;
+          created_at?: string;
+          sent_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          kind?: string;
+          payload?: Json;
+          subject?: string;
+          status?: string;
+          attempts?: number;
+          last_error?: string | null;
+          provider_id?: string | null;
+          created_at?: string;
+          sent_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      email_action_tokens: {
+        Row: {
+          nonce: string;
+          action: string;
+          payload: Json;
+          expires_at: string;
+          used_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          nonce: string;
+          action: string;
+          payload?: Json;
+          expires_at: string;
+          used_at?: string | null;
+        };
+        Update: {
+          nonce?: string;
+          action?: string;
+          payload?: Json;
+          expires_at?: string;
+          used_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      miss_you_taps: {
+        Row: { id: number; tapped_at: string; notified_at: string | null };
+        Insert: { tapped_at?: string; notified_at?: string | null };
+        Update: {
+          id?: number;
+          tapped_at?: string;
+          notified_at?: string | null;
+        };
+        Relationships: [];
+      };
+      hearts: {
+        Row: {
+          id: string;
+          message: string | null;
+          source: string;
+          created_at: string;
+          seen_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          message?: string | null;
+          source?: string;
+          seen_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          message?: string | null;
+          source?: string;
+          created_at?: string;
+          seen_at?: string | null;
+        };
+        Relationships: [];
+      };
       content_overrides: {
         Row: {
           kind: string;
@@ -677,6 +866,27 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      complete_life_item: {
+        Args: {
+          p_user_id: string;
+          p_id: string;
+          p_done: boolean;
+          p_by: string;
+        };
+        Returns: {
+          done_at: string | null;
+          reward: Json | null;
+          newly_rewarded: boolean;
+        }[];
+      };
+      use_email_action_token: {
+        Args: { p_nonce: string };
+        Returns: { action: string; payload: Json }[];
+      };
+      claim_miss_you_taps: {
+        Args: { p_gap_seconds: number };
+        Returns: number;
+      };
       admin_reset_casino: {
         Args: {
           p_user_id: string;

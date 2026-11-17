@@ -17,13 +17,14 @@ import {
 /**
  * First line of defence: every route needs Valentina's session except the
  * cover, the entrance, static/PWA files and the pages that have their own
- * check (the admin panel, signed email-action links). Pages and data loaders
+ * check (the admin panel, signed email-action links, the cron job with
+ * CRON_SECRET). Pages and data loaders
  * check again on the server (src/lib/auth/session.ts): this check is
  * optimistic, never the only one.
  */
 
 const PUBLIC_PATHS = new Set(["/", "/access", "/robots.txt", "/offline"]);
-const PUBLIC_PREFIXES = ["/admin", "/action"];
+const PUBLIC_PREFIXES = ["/admin", "/action", "/api/cron"];
 
 const noStore = {
   "Cache-Control": "private, no-store, max-age=0",

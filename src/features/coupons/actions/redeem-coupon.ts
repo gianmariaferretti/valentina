@@ -1,9 +1,11 @@
 "use server";
 
+import { after } from "next/server";
 import { z } from "zod";
 
 import { casinoConfig } from "@/data/casino-config";
 import { findCatalogueCoupon } from "@/features/admin/repositories/content";
+import { notifyCouponRedeemed } from "@/features/notifications/notify";
 import {
   findCasinoCoupon,
   redeemCasinoCouponWithReset,
@@ -25,7 +27,12 @@ export interface RedeemCouponResult {
   redeemedAt?: string;
   /** Redeeming a casino coupon started a fresh casino season. */
   casinoReset?: boolean;
+  /** The email to Gianmaria really left (Resend accepted it). */
+  notified?: boolean;
 }
+
+/** How long the redemption waits for the email before answering. */
+const NOTIFY_WAIT_MS = 2500;
 
 const couponIdSchema = z.string().regex(/^[a-z0-9-]{1,100}$/);
 
@@ -88,11 +95,29 @@ export async function redeemCoupon(
     // Every coupon page is dynamic; the client refreshes once the stub has
     // fallen and the stamp has landed (see ticket-tear.tsx).
 
+    // The email never blocks the redemption: it is already saved. If Resend
+    // is slow, sending continues after the response (and is retried later).
+    const sending = notifyCouponRedeemed({
+      id: resolvedCoupon.id,
+      title: resolvedCoupon.title,
+      setting: resolvedCoupon.setting,
+      rarity: resolvedCoupon.rarity,
+      redeemedAt,
+    });
+    const status = await Promise.race([
+      sending,
+      new Promise<"slow">((resolve) =>
+        setTimeout(() => resolve("slow"), NOTIFY_WAIT_MS),
+      ),
+    ]);
+    if (status === "slow") after(() => sending.then(() => undefined));
+
     return {
       status: "success",
-      message: "Coupon redeemed. Gianmaria has been formally notified.",
+      message: "Coupon redeemed.",
       redeemedAt,
       casinoReset,
+      notified: status === "sent",
     };
   } catch (error) {
     reportPersistenceFailure("redeem coupon", error);

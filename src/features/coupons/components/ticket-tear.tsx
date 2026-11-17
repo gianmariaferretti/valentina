@@ -103,6 +103,8 @@ export function TicketTearProvider({
           status: "error" as const,
           message: "The connection dropped. Nothing was redeemed — try again.",
           redeemedAt: undefined,
+          notified: false,
+          casinoReset: false,
         })),
         wait(reduced ? REDUCED_MS : TEAR_MS),
       ]);
@@ -117,11 +119,17 @@ export function TicketTearProvider({
       await wait(reduced ? REDUCED_MS : STAMP_MS);
       setPhase("done");
       // Global toast: it survives the ticket re-rendering after the refresh.
-      toast(notifications[Math.floor(Math.random() * notifications.length)], {
-        description: "V&G System · now",
-        icon: "💌",
-        duration: 5000,
-      });
+      // Only claim Gianmaria was notified when the email really left.
+      toast(
+        result.notified
+          ? notifications[Math.floor(Math.random() * notifications.length)]
+          : "Saved. Gianmaria's email is still on its way — the carrier pigeon is stuck in traffic.",
+        {
+          description: "V&G System · now",
+          icon: result.notified ? "💌" : "🕊️",
+          duration: 5000,
+        },
+      );
       if (result.casinoReset)
         toast("The Kiss Casino has been reset — fresh start, new luck.", {
           description: "Your other coupons are safe in the wallet.",

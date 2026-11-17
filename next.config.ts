@@ -26,6 +26,8 @@ const contentSecurityPolicy = [
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
+  // Our songs: Spotify's embed player only.
+  "frame-src https://open.spotify.com",
   ...(isDevelopment ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
 

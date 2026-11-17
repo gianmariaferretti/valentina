@@ -131,36 +131,31 @@ export default async function AdminHome() {
       href: "/admin/notifiche",
       icon: "📨",
       title: "Notifiche",
-      text: "Email, prova di invio, interruttori",
-      soon: "Fase 2",
+      text: "Email, prova di invio, cuori, interruttori",
     },
     {
       href: "/admin/next-time",
       icon: "✈️",
       title: "Next time",
       text: "Prossimo incontro, cose da fare, valigia",
-      soon: "Fase 3",
     },
     {
       href: "/admin/bucket-list",
       icon: "🗺️",
       title: "Bucket list",
       text: "Cose da fare nella vita",
-      soon: "Fase 3",
     },
     {
       href: "/admin/canzoni",
       icon: "🎵",
       title: "Canzoni",
       text: "Le nostre canzoni",
-      soon: "Fase 3",
     },
     {
       href: "/admin/citta",
       icon: "🕰️",
       title: "Città e orologi",
       text: "Città, fusi orari, chi c'è",
-      soon: "Fase 3",
     },
   ];
 

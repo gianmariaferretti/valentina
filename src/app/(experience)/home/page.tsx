@@ -1,229 +1,363 @@
-import { LockKeyhole } from "lucide-react";
+import { ArrowUpRight, Dices, Plane } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
+import { Suspense } from "react";
 
-import {
-  DoodleArrow,
-  HandwrittenNote,
-  Sticker,
-} from "@/components/design-system";
 import { FadeIn } from "@/components/motion/fade-in";
-import { Eyebrow } from "@/components/ui/eyebrow";
-import { DashboardCard } from "@/features/home/components/dashboard-card";
+import { Icon } from "@/components/ui/icon";
+import { loadCouponCatalogue } from "@/features/admin/repositories/content";
+import { CasinoNavBadge } from "@/features/casino/components/casino-nav-badge";
+import {
+  loadCasinoCoupons,
+  loadCasinoSnapshot,
+} from "@/features/casino/repositories/load-casino";
+import { loadChallengeState } from "@/features/challenges/repositories/get-challenge-state-repository";
+import styles from "@/features/coupons/components/wallet.module.css";
+import { formatStampDate } from "@/features/coupons/components/stamp-date";
+import {
+  createWalletItem,
+  getCouponWalletStats,
+  isVisibleInWallet,
+  resolveCoupons,
+} from "@/features/coupons/lib/coupon-domain";
+import { loadCouponState } from "@/features/coupons/repositories/get-coupon-state-repository";
+import { DailyCoupon } from "@/features/home/components/daily-coupon";
+import {
+  closestToUnlock,
+  daysUntil,
+  recentlyUnlocked,
+} from "@/features/home/lib/home-wallet";
+import {
+  CityStrip,
+  CityStripFallback,
+} from "@/features/life/components/city-strip";
+import { loadNextTime } from "@/features/life/repositories/life";
+import { MissYouButton } from "@/features/notifications/components/miss-you-button";
 import { requireAccessSession } from "@/lib/auth/session";
+import { cn } from "@/lib/cn";
+import type { IconName } from "@/types/navigation";
 
 export const metadata: Metadata = {
   title: "Home",
 };
 
-const dashboardCards = [
+const STRIP_TICKETS = 60;
+
+const shortcuts: {
+  href: string;
+  title: string;
+  note: string;
+  icon: IconName;
+}[] = [
   {
-    href: "/coupons",
-    title: "OUR COUPONS",
-    description:
-      "Promises, dates, useful favors and at least one suspiciously specific loophole.",
-    eyebrow: "The main event",
-    icon: "coupons" as const,
-    index: "01 / 09",
-    tone: "burgundy" as const,
-    sticker: "girlfriend-approved" as const,
-  },
-  {
-    href: "/map",
-    title: "OUR MAP",
-    description: "The places that became ours, whether they agreed or not.",
-    eyebrow: "Coordinates",
-    icon: "map" as const,
-    index: "02 / 09",
-    tone: "paper" as const,
-    sticker: "location" as const,
-  },
-  {
-    href: "/open-when",
-    title: "OPEN WHEN",
-    description:
-      "Emergency correspondence for very specific emotional weather.",
-    eyebrow: "For later",
-    icon: "open-when" as const,
-    index: "03 / 09",
-    tone: "ink" as const,
+    href: "/memories",
+    title: "Memories",
+    note: "Map, letters, songs",
+    icon: "map",
   },
   {
     href: "/challenges",
-    title: "OUR GAMES",
-    description:
-      "Five private operations involving memory, timing and avoidable pressure.",
-    eyebrow: "Playable files",
-    icon: "challenges" as const,
-    index: "04 / 09",
-    tone: "taupe" as const,
-    sticker: "classified" as const,
+    title: "Games",
+    note: "Five private files",
+    icon: "challenges",
   },
   {
-    href: "/awards",
-    title: "OUR AWARDS",
-    description:
-      "Recognition for excellence in snacks, patience and being right.",
-    eyebrow: "Official-ish",
-    icon: "awards" as const,
-    index: "05 / 09",
-    tone: "taupe" as const,
-    sticker: "legendary" as const,
-  },
-  {
-    href: "/quiz",
-    title: "Do You Actually Know Your Boyfriend?",
-    description: "Let's find out how well you really know me.",
-    eyebrow: "No pressure",
-    cta: "Take the Quiz",
-    icon: "quiz" as const,
-    index: "06 / 09",
-    tone: "paper" as const,
+    href: "/open-when",
+    title: "Open when",
+    note: "Letters for later",
+    icon: "open-when",
   },
   {
     href: "/gallery",
-    title: "OUR GALLERY",
-    description:
-      "Evidence that we went outside and occasionally looked composed.",
-    eyebrow: "Selected evidence",
-    icon: "gallery" as const,
-    index: "07 / 09",
-    tone: "ink" as const,
+    title: "Gallery",
+    note: "Selected evidence",
+    icon: "gallery",
   },
+  { href: "/quiz", title: "Quiz", note: "No pressure", icon: "quiz" },
   {
     href: "/la-dolce-lingua",
-    title: "La Dolce Lingua",
-    description: "Your little Italian adventure starts here.",
-    eyebrow: "The Italian Academy",
-    cta: "Learn Italian",
-    icon: "italian-corner" as const,
-    index: "08 / 09",
-    tone: "sage" as const,
+    title: "Italian",
+    note: "La Dolce Lingua",
+    icon: "italian-corner",
   },
   {
     href: "/relationship-contract",
-    title: "THE RELATIONSHIP CONTRACT™",
-    description: "Forty articles. Two countries. One very serious love story.",
-    eyebrow: "Diplomatic file · VG-2026-001",
-    cta: "Review the Agreement",
-    icon: "contract" as const,
-    index: "09 / 09",
-    tone: "paper" as const,
-    sticker: "classified" as const,
+    title: "Contract",
+    note: "Forty articles",
+    icon: "contract",
   },
-] as const;
+  { href: "/awards", title: "Awards", note: "Avoidable chaos", icon: "awards" },
+];
 
 export default async function HomePage() {
   await requireAccessSession();
+  const [walletState, casinoCoupons, catalogue, nextTime, games, casino] =
+    await Promise.all([
+      loadCouponState(),
+      loadCasinoCoupons(),
+      loadCouponCatalogue(),
+      loadNextTime(),
+      loadChallengeState(),
+      loadCasinoSnapshot(),
+    ]);
+
+  const resolved = resolveCoupons(
+    [...catalogue, ...casinoCoupons],
+    walletState,
+  ).filter(isVisibleInWallet);
+  const items = resolved.map(createWalletItem);
+  const stats = getCouponWalletStats(resolved);
+  const candidates = items.filter(
+    (item) => item.status === "available" && item.href && !item.scratchable,
+  );
+  const recent = recentlyUnlocked(items, resolved, walletState);
+  const closest = closestToUnlock(items, resolved, games.games);
+  const days = daysUntil(nextTime.at, new Date());
+  const stripCount = Math.min(STRIP_TICKETS, stats.total);
+  const stripFilled = Math.round(
+    (stats.redeemed / Math.max(1, stats.total)) * stripCount,
+  );
+
   return (
-    <div className="page-container py-6 sm:py-10 lg:py-14">
+    <div className="page-container py-5 sm:py-10">
       <FadeIn>
-        <section className="relative overflow-hidden rounded-[2rem] bg-[var(--ink)] px-6 py-8 text-[var(--paper-white)] sm:px-10 sm:py-12 lg:min-h-[39rem] lg:px-16 lg:py-16">
-          <div
-            aria-hidden="true"
-            className="absolute -top-52 -right-40 size-[38rem] rounded-full bg-[var(--oxblood)] opacity-75 blur-3xl"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute right-8 bottom-7 font-display text-[12rem] leading-none tracking-[-0.09em] text-white/[0.035] sm:text-[18rem] lg:text-[27rem]"
-          >
-            365
-          </div>
-
-          <div className="relative flex min-h-[31rem] flex-col">
-            <div className="flex items-start justify-between gap-4">
-              <Eyebrow className="text-white/50">
-                V + G · Private archive
-              </Eyebrow>
-              <Sticker
-                className="hidden sm:inline-flex"
-                rotation={3}
-                size="sm"
-                variant="girlfriend-approved"
-              />
-            </div>
-
-            <div className="my-auto py-14">
-              <h1 className="max-w-5xl font-display text-[clamp(3.25rem,12vw,10.5rem)] leading-[0.75] tracking-[-0.075em]">
-                365 DAYS
-                <br />
-                <span className="ml-[0.22em] italic text-[var(--sand)]">
-                  OF US
-                </span>
-              </h1>
-            </div>
-
-            <div className="flex flex-col gap-7 border-t border-white/15 pt-6 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="font-display text-2xl sm:text-3xl">
-                  Valentina <span className="text-[var(--red-muted)]">&</span>{" "}
-                  Gianmaria
-                </p>
-                <p className="mt-2 text-[0.62rem] font-semibold tracking-[0.18em] text-white/48 uppercase">
-                  31.10.2025 → ∞
-                </p>
-              </div>
-              <HandwrittenNote
-                className="max-w-[16rem] text-left sm:text-right"
-                rotation={-2}
-                tone="paper"
-              >
-                one year down, an unreasonable number to go
-              </HandwrittenNote>
-            </div>
-          </div>
-        </section>
+        <p className="text-[0.6rem] font-bold tracking-[0.2em] text-[var(--muted)] uppercase">
+          V + G · Valentina&apos;s wallet
+        </p>
+        <h1 className="mt-2 font-display text-[clamp(2.4rem,9vw,5.5rem)] leading-[0.85] tracking-[-0.05em]">
+          Good to see you<span className="text-[var(--rust)]">.</span>
+        </h1>
       </FadeIn>
 
-      <section className="py-14 sm:py-20 lg:py-24">
-        <FadeIn delay={0.08}>
-          <div className="mb-8 flex flex-col gap-5 sm:mb-10 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <Eyebrow>Choose your next discovery</Eyebrow>
-              <h2 className="mt-4 max-w-3xl font-display text-4xl leading-[0.94] tracking-[-0.045em] sm:text-6xl">
-                The archive is yours.
-              </h2>
-            </div>
-            <DoodleArrow
-              className="hidden md:flex"
-              direction="left"
-              label="Start with the good stuff"
-            />
-          </div>
+      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
+        <FadeIn>
+          <DailyCoupon candidates={candidates} />
         </FadeIn>
 
-        <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {dashboardCards.map((card, index) => (
-            <FadeIn
-              className="h-full min-w-0"
-              delay={0.1 + index * 0.035}
-              key={card.href}
+        <div className="grid gap-4">
+          <FadeIn delay={0.04}>
+            <Link
+              aria-label={`Collected: ${stats.redeemed} of ${stats.total} coupons. Open the wallet`}
+              className="block rounded-[1.4rem] bg-[var(--ink)] p-5 text-[var(--paper-white)] transition hover:bg-[#2a1f1c] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--rust)]"
+              href="/coupons"
             >
-              <DashboardCard {...card} />
-            </FadeIn>
-          ))}
+              <span className="flex items-baseline justify-between gap-3">
+                <span className="font-display text-5xl tracking-[-0.05em]">
+                  {stats.redeemed}
+                  <span className="text-xl text-white/60">
+                    {" "}
+                    / {stats.total}
+                  </span>
+                </span>
+                <span className="text-[0.6rem] font-bold tracking-[0.17em] text-white/70 uppercase">
+                  Collected
+                </span>
+              </span>
+              <span aria-hidden="true" className={cn(styles.strip, "mt-3")}>
+                {Array.from({ length: stripCount }, (_, index) => (
+                  <span
+                    className={styles.stripTicket}
+                    data-filled={index < stripFilled}
+                    key={index}
+                  />
+                ))}
+              </span>
+              <span className="mt-3 flex items-center gap-1 text-xs text-white/75">
+                {stats.available} ready to use · open the wallet
+                <ArrowUpRight aria-hidden="true" size={14} />
+              </span>
+            </Link>
+          </FadeIn>
 
-          <FadeIn className="h-full min-w-0" delay={0.32}>
-            <article className="flex h-full min-h-[21rem] flex-col rounded-[1.75rem] border border-dashed border-[var(--line-strong)] bg-transparent p-6 text-[var(--muted)] sm:p-7">
-              <div className="flex items-start justify-between gap-5">
-                <span className="grid size-12 place-items-center rounded-full border border-dashed border-[var(--line-strong)]">
-                  <LockKeyhole aria-hidden="true" size={19} strokeWidth={1.5} />
+          <FadeIn delay={0.06}>
+            <Link
+              aria-label="Enter the Kiss Casino"
+              className={cn(
+                styles.neon,
+                "focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--rust)]",
+              )}
+              href="/coupons/casino"
+            >
+              <span aria-hidden="true" className={styles.bulbs} />
+              <span className={styles.neonSub}>
+                {casino.failed
+                  ? "Open late"
+                  : `${casino.state.balance} 💋 in your pocket`}
+                <Suspense fallback={null}>
+                  <CasinoNavBadge />
+                </Suspense>
+              </span>
+              <span className={styles.neonTitle}>Kiss Casino</span>
+              <span className="text-xs text-[#ffd9e8]">
+                Win coupons. Lose kisses. The house is Gianmaria.
+              </span>
+            </Link>
+          </FadeIn>
+
+          <FadeIn delay={0.08}>
+            <Link
+              className="flex items-center gap-4 rounded-[1.4rem] border border-[var(--line-strong)] bg-[var(--paper-white)] p-5 transition hover:border-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--rust)]"
+              href="/next-time"
+            >
+              <span className="grid size-12 shrink-0 place-items-center rounded-full bg-[var(--ink)] text-[var(--paper-white)]">
+                <Plane aria-hidden="true" size={20} />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[0.6rem] font-bold tracking-[0.16em] text-[var(--muted)] uppercase">
+                  Next time · {nextTime.from} → {nextTime.to}
                 </span>
-                <span className="font-mono text-[0.62rem] tracking-[0.15em] opacity-55">
-                  LOCKED
+                <span className="block font-display text-2xl leading-tight tracking-[-0.03em]">
+                  {days === null
+                    ? "Date to be announced"
+                    : days === 0
+                      ? "Today. Finally."
+                      : `${days} ${days === 1 ? "day" : "days"} to go`}
                 </span>
-              </div>
-              <div className="mt-auto pt-14">
-                <h2 className="font-display text-5xl tracking-[-0.045em]">
-                  ???
-                </h2>
-                <p className="mt-4 text-sm leading-6">
-                  You haven&apos;t unlocked this yet.
-                </p>
-              </div>
-            </article>
+              </span>
+              <ArrowUpRight
+                aria-hidden="true"
+                className="ml-auto shrink-0"
+                size={18}
+              />
+            </Link>
           </FadeIn>
         </div>
+      </div>
+
+      <div className="mt-6">
+        <Suspense fallback={<CityStripFallback />}>
+          <CityStrip />
+        </Suspense>
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-[var(--muted)]">
+        <MissYouButton variant="inline" />
+        <span>Tap it. He gets an email. Really.</span>
+      </div>
+
+      <section aria-labelledby="recent-title" className="mt-10">
+        <h2
+          className="font-display text-3xl tracking-[-0.03em]"
+          id="recent-title"
+        >
+          Fresh in the wallet
+        </h2>
+        {recent.length === 0 ? (
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            Nothing new yet. Win a game or visit the casino and it lands here.
+          </p>
+        ) : (
+          <ul className="-mx-5 mt-3 flex snap-x gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] sm:mx-0 sm:px-0">
+            {recent.map(({ coupon, at }) => (
+              <li className="w-56 shrink-0 snap-start" key={coupon.id}>
+                <Link
+                  className={cn(
+                    styles.albumStub,
+                    "h-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--rust)]",
+                  )}
+                  href={`/coupons/${coupon.id}`}
+                >
+                  <span className={styles.code}>
+                    {coupon.source === "casino" ? (
+                      <Dices
+                        aria-label="Won at the Kiss Casino"
+                        className="mr-1 inline"
+                        size={12}
+                      />
+                    ) : null}
+                    {coupon.code}
+                  </span>
+                  <span className="font-display text-xl leading-tight">
+                    {coupon.title}
+                  </span>
+                  <span className="mt-auto text-[0.6rem] font-bold tracking-[0.12em] text-[var(--muted)] uppercase">
+                    {coupon.source === "casino" ? "Won" : "Unlocked"} ·{" "}
+                    {formatStampDate(at)}
+                    {coupon.status === "redeemed" ? " · used" : ""}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
+
+      {closest.length ? (
+        <section aria-labelledby="closest-title" className="mt-10">
+          <h2
+            className="font-display text-3xl tracking-[-0.03em]"
+            id="closest-title"
+          >
+            Almost yours
+          </h2>
+          <ul className="mt-3 grid gap-3 md:grid-cols-3">
+            {closest.map(({ coupon, percent }) => (
+              <li key={coupon.id}>
+                <Link
+                  className="block h-full rounded-[1.4rem] border border-[var(--line)] bg-[var(--paper-white)] p-4 transition hover:border-[var(--line-strong)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--rust)]"
+                  href={coupon.href ?? "/coupons"}
+                >
+                  <span className="text-[0.58rem] font-bold tracking-[0.16em] text-[var(--rust)] uppercase">
+                    Sealed · {coupon.rarity}
+                  </span>
+                  <span className="mt-1 block font-display text-xl leading-tight">
+                    {coupon.title}
+                  </span>
+                  <span className="mt-1 block text-xs text-[var(--muted)]">
+                    {coupon.unlockCondition}
+                  </span>
+                  <span
+                    aria-label={`${percent}% of the way there`}
+                    aria-valuemax={100}
+                    aria-valuemin={0}
+                    aria-valuenow={percent}
+                    className="mt-3 block h-2.5 overflow-hidden rounded-full bg-[var(--paper-deep)]"
+                    role="progressbar"
+                  >
+                    <span
+                      className="block h-full rounded-full bg-[var(--rust)]"
+                      style={{ width: `${Math.max(3, percent)}%` }}
+                    />
+                  </span>
+                  <span className="mt-1 block text-right text-xs tabular-nums text-[var(--muted)]">
+                    {percent}%
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      <nav aria-labelledby="shortcuts-title" className="mt-10 pb-4">
+        <h2
+          className="font-display text-3xl tracking-[-0.03em]"
+          id="shortcuts-title"
+        >
+          Everything else
+        </h2>
+        <ul className="-mx-5 mt-3 flex snap-x gap-2.5 overflow-x-auto px-5 pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-4 sm:px-0">
+          {shortcuts.map((item) => (
+            <li className="w-36 shrink-0 snap-start sm:w-auto" key={item.href}>
+              <Link
+                className="flex h-full flex-col gap-3 rounded-2xl border border-[var(--line)] bg-[var(--paper-white)] p-3.5 transition hover:border-[var(--line-strong)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--rust)]"
+                href={item.href}
+              >
+                <span className="grid size-9 place-items-center rounded-full border border-[var(--line)]">
+                  <Icon name={item.icon} size={16} />
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold">
+                    {item.title}
+                  </span>
+                  <span className="block text-xs text-[var(--muted)]">
+                    {item.note}
+                  </span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </div>
   );
 }
