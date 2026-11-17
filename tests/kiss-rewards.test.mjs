@@ -149,7 +149,7 @@ test("a backlog becomes one toast; a few credits stay separate", () => {
 });
 
 test("the migration: one credit per event, service-role only, forced RLS", () => {
-  const sql = read("supabase/migrations/20261117140000_site_kiss_rewards.sql");
+  const sql = read("supabase/migrations/20261117134041_site_kiss_rewards.sql");
   assert.match(sql, /primary key \(user_id, event_key\)/);
   assert.match(
     sql,
