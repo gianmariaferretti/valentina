@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { Sticker } from "@/components/design-system";
 import { FadeIn } from "@/components/motion/fade-in";
+import { RollingGroup, RollingNumber } from "@/components/ui/rolling-number";
 import { loadCouponCatalogue } from "@/features/admin/repositories/content";
 import { REUNION_COUPON_ID } from "@/data/coupons-apart";
 import { isoToRomeLocal } from "@/features/life/lib/rome-time";
@@ -103,11 +104,13 @@ export default async function CouponsPage({
 
               <div className="lg:text-right">
                 <p className="font-display text-6xl tracking-[-0.06em] sm:text-7xl">
-                  {stats.redeemed}
-                  <span className="text-2xl text-white/60">
-                    {" "}
-                    / {stats.total}
-                  </span>
+                  <RollingGroup>
+                    <RollingNumber rollIn value={stats.redeemed} />
+                    <span className="ml-1.5 text-2xl text-white/60">
+                      {" "}
+                      / <RollingNumber value={stats.total} />
+                    </span>
+                  </RollingGroup>
                 </p>
                 <p className="mt-2 text-[0.6rem] font-bold tracking-[0.17em] text-white/70 uppercase">
                   Collected

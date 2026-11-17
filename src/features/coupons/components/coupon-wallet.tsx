@@ -14,6 +14,7 @@ import type {
   CouponSetting,
   CouponWalletItem,
 } from "@/features/coupons/types";
+import { RollingNumber } from "@/components/ui/rolling-number";
 import { cn } from "@/lib/cn";
 
 import { AlbumStub, CouponTicket } from "./coupon-ticket";
@@ -160,6 +161,8 @@ export function CouponWallet({
     [section],
   );
 
+  const stubs = section.filter((item) => item.status === "redeemed").length;
+
   const visible = useMemo(
     () => section.filter((item) => matchesFilter(item, filter)),
     [section, filter],
@@ -236,6 +239,12 @@ export function CouponWallet({
               type="button"
             >
               {filterLabels[value]}
+              {value === "album" ? (
+                <>
+                  {" · "}
+                  <RollingNumber value={stubs} />
+                </>
+              ) : null}
             </button>
           ))}
         </div>

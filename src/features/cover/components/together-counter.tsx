@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 
+import { RollingGroup, RollingNumber } from "@/components/ui/rolling-number";
+
 import { togetherAt } from "../lib/together";
 
-const pad = (value: number) => String(value).padStart(2, "0");
+const two = { minimumIntegerDigits: 2 } as const;
 
 /** Live count of the time together since 31.10.2025. */
 export function TogetherCounter() {
@@ -25,14 +27,40 @@ export function TogetherCounter() {
     <p className="mt-7 font-mono text-xs tracking-[0.18em] text-white/70 uppercase sm:text-sm">
       <span className="sr-only">Together for </span>
       <span className="font-display text-3xl tracking-[-0.02em] text-[var(--paper-white)] normal-case tabular-nums sm:text-4xl">
-        {t ? t.days : "···"}
+        {t ? <RollingNumber rollIn value={t.days} /> : "···"}
       </span>{" "}
       days together
       <span
         aria-hidden="true"
         className="mt-1 block tabular-nums text-white/55"
       >
-        {t ? `${pad(t.hours)}h ${pad(t.minutes)}m ${pad(t.seconds)}s` : " "}
+        {t ? (
+          <RollingGroup>
+            <RollingNumber
+              digits={{ 1: { max: 2 } }}
+              format={two}
+              suffix="h "
+              trend={1}
+              value={t.hours}
+            />
+            <RollingNumber
+              digits={{ 1: { max: 5 } }}
+              format={two}
+              suffix="m "
+              trend={1}
+              value={t.minutes}
+            />
+            <RollingNumber
+              digits={{ 1: { max: 5 } }}
+              format={two}
+              suffix="s"
+              trend={1}
+              value={t.seconds}
+            />
+          </RollingGroup>
+        ) : (
+          " "
+        )}
       </span>
     </p>
   );

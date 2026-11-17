@@ -1,5 +1,6 @@
 "use client";
 
+import { RollingNumber } from "@/components/ui/rolling-number";
 import type { CouponSetting } from "@/features/coupons/types";
 
 import styles from "./wallet.module.css";
@@ -29,7 +30,7 @@ export function SettingToggle({ mode, counts, onChange }: SettingToggleProps) {
         <TogetherIllustration />
         <span className={styles.toggleLabel}>Together</span>
         <span className={styles.toggleCount}>
-          In person · {counts.together}
+          In person · <RollingNumber rollIn value={counts.together} />
         </span>
       </button>
       <button
@@ -41,7 +42,7 @@ export function SettingToggle({ mode, counts, onChange }: SettingToggleProps) {
         <ApartIllustration />
         <span className={styles.toggleLabel}>Apart</span>
         <span className={styles.toggleCount}>
-          Long distance · {counts.apart}
+          Long distance · <RollingNumber rollIn value={counts.apart} />
         </span>
       </button>
     </div>

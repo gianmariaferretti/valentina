@@ -24,6 +24,7 @@
   "dependencies": {
     "@meteocons/svg": "^0.1.0",
     "@meteocons/svg-static": "^0.1.0",
+    "@number-flow/react": "^0.6.2",
     "@serwist/turbopack": "^9.5.15",
     "@supabase/supabase-js": "^2.117.3",
     "canvas-confetti": "^1.9.4",
