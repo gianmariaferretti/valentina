@@ -4,12 +4,17 @@ import type { ReactNode } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "@/app/globals.css";
 
+import { Pwa } from "@/features/pwa/components/pwa";
+
 export const metadata: Metadata = {
   title: {
     default: "V&G — Year One",
     template: "%s · V&G",
   },
   description: "A private interactive archive for two people.",
+  applicationName: "V+G",
+  // Installed on an iPhone: full screen, named V+G.
+  appleWebApp: { capable: true, title: "V+G", statusBarStyle: "default" },
   formatDetection: {
     address: false,
     email: false,
@@ -44,7 +49,9 @@ export default function RootLayout({
 }: Readonly<{ children: ReactNode }>) {
   return (
     <html data-scroll-behavior="smooth" lang="en">
-      <body className="paper-noise antialiased">{children}</body>
+      <body className="paper-noise antialiased">
+        <Pwa>{children}</Pwa>
+      </body>
     </html>
   );
 }

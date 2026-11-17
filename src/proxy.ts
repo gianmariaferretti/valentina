@@ -23,7 +23,14 @@ import {
  * optimistic, never the only one.
  */
 
-const PUBLIC_PATHS = new Set(["/", "/access", "/robots.txt", "/offline"]);
+const PUBLIC_PATHS = new Set([
+  "/",
+  "/access",
+  "/robots.txt",
+  "/offline",
+  // The PWA manifest (its 11-letter extension escapes the matcher below).
+  "/manifest.webmanifest",
+]);
 const PUBLIC_PREFIXES = ["/admin", "/action", "/api/cron"];
 
 const noStore = {
