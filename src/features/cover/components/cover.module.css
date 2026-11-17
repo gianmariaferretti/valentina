@@ -1,0 +1,170 @@
+/* Cover page: travel lines, boarding pass. */
+
+.lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.route {
+  fill: none;
+  stroke: rgba(255, 220, 200, 0.42);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw 5.5s cubic-bezier(0.45, 0, 0.25, 1) forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+.dot {
+  fill: rgba(255, 220, 200, 0.75);
+}
+
+.city {
+  fill: rgba(255, 240, 230, 0.38);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-family: var(--font-sans, system-ui), sans-serif;
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ---------------------------------------------------------- boarding pass */
+
+.pass {
+  position: relative;
+  display: flex;
+  width: min(100%, 31rem);
+  margin-inline: auto;
+  color: var(--ink);
+  filter: drop-shadow(0 24px 40px rgba(0, 0, 0, 0.35));
+}
+
+.main,
+.stub {
+  background: #fbf5ec;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 1.1rem 1.2rem 1rem;
+  border-radius: 1rem 0 0 1rem;
+  text-align: left;
+  /* Perforation notches */
+  mask:
+    radial-gradient(circle at right 0 top 0, transparent 0.6rem, #000 0.62rem)
+      top right / 51% 51% no-repeat,
+    radial-gradient(
+        circle at right 0 bottom 0,
+        transparent 0.6rem,
+        #000 0.62rem
+      )
+      bottom right / 51% 51% no-repeat,
+    linear-gradient(#000, #000) left / 50% 100% no-repeat;
+}
+
+.stub {
+  position: relative;
+  display: flex;
+  width: 7.2rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.8rem 0.6rem;
+  border-left: 2px dashed rgba(36, 30, 28, 0.35);
+  border-radius: 0 1rem 1rem 0;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  mask:
+    radial-gradient(circle at left 0 top 0, transparent 0.6rem, #000 0.62rem)
+      top left / 51% 51% no-repeat,
+    radial-gradient(circle at left 0 bottom 0, transparent 0.6rem, #000 0.62rem)
+      bottom left / 51% 51% no-repeat,
+    linear-gradient(#000, #000) right / 50% 100% no-repeat;
+}
+
+.stub:active {
+  cursor: grabbing;
+}
+
+.label {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(36, 30, 28, 0.55);
+}
+
+.value {
+  font-family: var(--font-display, serif);
+  font-size: 1.35rem;
+  line-height: 1.05;
+}
+
+.barcode {
+  width: 100%;
+  height: 2rem;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--ink) 0 2px,
+    transparent 2px 4px,
+    var(--ink) 4px 5px,
+    transparent 5px 8px
+  );
+  opacity: 0.85;
+}
+
+.hint {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--rust);
+  text-align: center;
+}
+
+.nudge {
+  animation: nudge 2.4s ease-in-out 1.2s infinite;
+}
+
+@keyframes nudge {
+  0%,
+  70%,
+  100% {
+    transform: translateX(0);
+  }
+  80% {
+    transform: translateX(6px) rotate(1deg);
+  }
+  90% {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nudge {
+    animation: none;
+  }
+  .stub {
+    cursor: default;
+  }
+}

@@ -67,3 +67,7 @@ Reviewed for ideas only, no code copied: `johakr/html5-slot-machine` (reel strip
 ### Holographic prize card (GPL-3.0)
 
 `src/features/casino/components/holo-card.tsx` and `src/features/casino/components/holo-card.module.css` are derived from **pokemon-cards-css** by Simon Goellner (@simeydotme), <https://github.com/simeydotme/pokemon-cards-css>, licensed under the GNU General Public License v3.0. Only the CSS gradient/blend layers and the pointer-to-CSS-variable interaction maths were adapted. No images, textures, card artwork, names, logos or other assets from that project are used. Each derived file carries an attribution header. These two derived files remain under the upstream GPL-3.0 terms (© Simon Goellner); because of them the site's code is distributed under the GPL, as GPL-3.0-or-later (`LICENSE`).
+
+## Email notifications
+
+- Package: `resend` 6.38.1 — MIT — <https://github.com/resend/resend-node>. Called only on the server to send Gianmaria's notification emails. Its optional `@react-email/render` peer is not installed; the emails are plain HTML written in this project.

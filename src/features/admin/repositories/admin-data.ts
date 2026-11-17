@@ -136,12 +136,16 @@ export interface ActivityItem {
 
 /** What Valentina did lately, newest first. */
 export async function loadActivity(limit = 40): Promise<ActivityItem[]> {
-  const [coupons, letters, casino, logins] = await Promise.all([
-    loadAdminCoupons(),
-    loadAdminLetters(),
-    loadCasinoAdmin().catch(() => null),
-    loadAuthEvents(30).catch(() => []),
-  ]);
+  const [coupons, letters, casino, logins, taps, hearts, ticks] =
+    await Promise.all([
+      loadAdminCoupons(),
+      loadAdminLetters(),
+      loadCasinoAdmin().catch(() => null),
+      loadAuthEvents(30).catch(() => []),
+      loadMissYouTaps(200).catch(() => []),
+      loadHearts(30).catch(() => []),
+      loadRecentTicks(30).catch(() => []),
+    ]);
   const items: ActivityItem[] = [];
   for (const coupon of coupons)
     if (coupon.redeemedAt)
@@ -190,7 +194,56 @@ export async function loadActivity(limit = 40): Promise<ActivityItem[]> {
         text: `È entrata nel sito (${event.detail ?? "dispositivo"})`,
         href: "/admin/sicurezza",
       });
+  // Taps within 10 minutes of each other count as one "Miss you ×n".
+  let group: { at: string; count: number } | null = null;
+  for (const tap of [...taps].reverse()) {
+    if (
+      group &&
+      new Date(tap.tapped_at).getTime() - new Date(group.at).getTime() <
+        10 * 60 * 1000
+    ) {
+      group.count++;
+      continue;
+    }
+    if (group) items.push(missYouItem(group));
+    group = { at: tap.tapped_at, count: 1 };
+  }
+  if (group) items.push(missYouItem(group));
+  for (const heart of hearts)
+    items.push({
+      at: heart.created_at,
+      icon: "❤️",
+      text: `Le hai mandato un cuore${heart.message ? `: “${heart.message}”` : ""} · ${heart.seen_at ? "visto" : "non ancora visto"}`,
+      href: "/admin/notifiche",
+    });
+  for (const tick of ticks)
+    items.push({
+      at: tick.done_at,
+      icon: tick.list === "bucket" ? "🗺️" : "✅",
+      text: `Ha spuntato${tick.list === "bucket" ? " dalla bucket list" : ""}: ${tick.title}`,
+      href: tick.list === "bucket" ? "/admin/bucket-list" : "/admin/next-time",
+    });
   return items.sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit);
+}
+
+/** Items Valentina ticked (lists and bucket list), newest first. */
+export async function loadRecentTicks(
+  limit = 30,
+): Promise<{ list: string; title: string; done_at: string }[]> {
+  const { client } = getSupabaseServerContext();
+  const { data, error } = await client
+    .from("life_lists")
+    .select("list, title, done_at")
+    .eq("done_by", "valentina")
+    .not("done_at", "is", null)
+    .order("done_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []).flatMap((row) =>
+    row.done_at
+      ? [{ list: row.list, title: row.title, done_at: row.done_at }]
+      : [],
+  );
 }
 
 export interface AuthEventRow {
@@ -221,4 +274,45 @@ export async function loadContractRewardRequest(): Promise<string | null> {
     .not("reward_requested_at", "is", null)
     .maybeSingle();
   return data?.reward_requested_at ?? null;
+}
+
+function missYouItem(group: { at: string; count: number }): ActivityItem {
+  return {
+    at: group.at,
+    icon: "💌",
+    text: `Miss you${group.count > 1 ? ` ×${group.count}` : ""}`,
+    href: "/admin/notifiche",
+  };
+}
+
+export async function loadMissYouTaps(
+  limit = 200,
+): Promise<{ tapped_at: string; notified_at: string | null }[]> {
+  const { client } = getSupabaseServerContext();
+  const { data, error } = await client
+    .from("miss_you_taps")
+    .select("tapped_at, notified_at")
+    .order("tapped_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function loadHearts(limit = 30): Promise<
+  {
+    id: string;
+    message: string | null;
+    created_at: string;
+    seen_at: string | null;
+    source: string;
+  }[]
+> {
+  const { client } = getSupabaseServerContext();
+  const { data, error } = await client
+    .from("hearts")
+    .select("id, message, created_at, seen_at, source")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data ?? [];
 }

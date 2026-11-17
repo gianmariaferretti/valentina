@@ -8,7 +8,7 @@ export function Toaster() {
     <SonnerToaster
       closeButton={false}
       gap={10}
-      offset={{ bottom: 16 }}
+      offset={{ bottom: "calc(var(--tabbar, 0px) + 16px)" }}
       position="bottom-center"
       toastOptions={{
         unstyled: true,

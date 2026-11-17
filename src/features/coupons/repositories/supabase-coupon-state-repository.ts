@@ -28,6 +28,11 @@ export class SupabaseCouponStateRepository implements CouponStateRepository {
       unlockedCouponIds: (data ?? [])
         .filter((row) => row.unlocked_at !== null)
         .map((row) => row.coupon_id),
+      unlockedAt: Object.fromEntries(
+        (data ?? []).flatMap((row) =>
+          row.unlocked_at ? [[row.coupon_id, row.unlocked_at]] : [],
+        ),
+      ),
     };
   }
 

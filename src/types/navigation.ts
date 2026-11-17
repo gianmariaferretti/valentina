@@ -8,14 +8,19 @@ export type IconName =
   | "coupons"
   | "gallery"
   | "home"
+  | "memories"
+  | "more"
   | "italian-corner"
   | "map"
+  | "next-time"
+  | "bucket-list"
+  | "songs"
   | "open-when"
   | "quiz"
   | "secret"
   | "year-two";
 
-export type NavigationGroup = "primary" | "more";
+export type NavigationGroup = "tab" | "memories" | "more";
 
 export interface NavigationItem {
   readonly title: string;

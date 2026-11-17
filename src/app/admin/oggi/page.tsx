@@ -129,8 +129,7 @@ export default async function TodayPage() {
             )}
           </Card>
           <p className="mt-2 text-xs text-[var(--muted)]">
-            &quot;Miss you&quot; e spunte della bucket list compariranno qui con
-            le Fasi 2 e 3.
+            Lo storico completo delle email è in Notifiche.
           </p>
         </section>
       </div>
