@@ -92,3 +92,11 @@ Copyright (c) 2017 Pavel Dobryakov. The full MIT notice is kept at the top of
 `fluid-engine.ts`. The port removes the debug panel, analytics, promo popup and
 screenshot capture, generates the dithering texture in code and uses the site
 palette; no asset from the original repository is shipped.
+
+## Site v4 — globe
+
+| Package | Version | License | Use                                                                  | Source                            |
+| ------- | ------- | ------- | -------------------------------------------------------------------- | --------------------------------- |
+| `cobe`  | 2.0.1   | MIT     | The globe with our cities (home, Next time, cover); loaded on demand | <https://github.com/shuding/cobe> |
+
+Copyright (c) 2021 Shu Ding. The static fallback globe (SVG) is original code.

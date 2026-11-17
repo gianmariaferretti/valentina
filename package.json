@@ -25,6 +25,7 @@
     "@serwist/turbopack": "^9.5.15",
     "@supabase/supabase-js": "^2.117.3",
     "canvas-confetti": "^1.9.4",
+    "cobe": "^2.0.1",
     "esbuild": "^0.28.2",
     "howler": "^2.2.4",
     "lucide-react": "^1.52.0",

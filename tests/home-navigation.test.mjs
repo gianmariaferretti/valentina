@@ -200,17 +200,26 @@ test("new pages require the session; the public cover stays public-safe", () => 
       read(`src/app/(experience)/${page}/page.tsx`),
       /await requireAccessSession\(\)/,
     );
-  const cover = [
-    read("src/app/page.tsx"),
+  // Client code on the cover never imports private data.
+  const coverClient = [
     read("src/features/cover/components/travel-lines.tsx"),
     read("src/features/cover/components/boarding-pass.tsx"),
     read("src/features/cover/lib/together.ts"),
+    read("src/features/globe/components/city-globe.tsx"),
+    read("src/features/globe/components/live-globe.tsx"),
+    read("src/features/globe/components/static-globe.tsx"),
   ].join("\n");
-  // No private data, media, Supabase or session code on the public page.
   assert.doesNotMatch(
-    cover,
-    /data\/places|media|supabase|getMediaAsset|session/i,
+    coverClient,
+    /data\/places|features\/media|supabase|getMediaAsset|session/i,
   );
+  // The server page passes only city names and coordinates to the globe.
+  const page = read("src/app/page.tsx");
+  assert.match(
+    page,
+    /places\.map\(\(place\) => \(\{\s*id: globeId\(place\.city\),\s*name: place\.city,\s*location: \[place\.coordinates\[1\], place\.coordinates\[0\]\] as const,\s*\}\)\)/,
+  );
+  assert.doesNotMatch(page, /session|supabase|getMediaAsset|timeZone|badge/);
   assert.match(read("src/app/page.tsx"), /href="\/access"/);
   assert.match(read("src/app/page.tsx"), /YEAR TWO/);
 });

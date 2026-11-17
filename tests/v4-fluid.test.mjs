@@ -39,11 +39,14 @@ test("the fluid loads lazily, watches passively and has a static fallback", () =
     cover,
     /dynamic\(\(\) => import\("\.\/fluid-layer"\), \{ ssr: false \}\)/,
   );
-  assert.match(cover, /prefers-reduced-motion: reduce/);
-  assert.match(cover, /getBattery/);
-  assert.match(cover, /requestIdleCallback/);
-  // No GPU (software WebGL) keeps the static gradient.
-  assert.match(cover, /swiftshader\|llvmpipe/);
+  assert.match(cover, /canRunEffects\(\)/);
+  assert.match(cover, /afterFirstPaint\(/);
+  const caps = read("src/lib/effects/capabilities.ts");
+  assert.match(caps, /prefers-reduced-motion: reduce/);
+  assert.match(caps, /getBattery/);
+  assert.match(caps, /requestIdleCallback/);
+  // No GPU (software WebGL) keeps the static version.
+  assert.match(caps, /swiftshader\|llvmpipe/);
   const layer = read("src/features/landing/fluid/fluid-layer.tsx");
   assert.match(layer, /passive: true/);
   assert.match(layer, /IntersectionObserver/);

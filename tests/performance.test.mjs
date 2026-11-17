@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import test from "node:test";
 
 const read = (path) =>
@@ -95,7 +95,13 @@ test("holographic effects run only on the active card", () => {
 });
 
 test("other report fixes stay in place", () => {
-  assert.match(read("src/app/(experience)/loading.tsx"), /min-h-\[100svh\]/);
+  // No loading.tsx in the private area: its skeleton made React hold the
+  // real content back (~300 ms reveal throttle), which pushed the mobile LCP
+  // of home and Next time past 3 s. Pages answer in ~30 ms without it.
+  assert.equal(
+    existsSync(new URL("../src/app/(experience)/loading.tsx", import.meta.url)),
+    false,
+  );
   assert.match(
     read("src/app/(experience)/layout.tsx"),
     /<Suspense[\s\S]{0,240}<ProgressIndicator \/>\s*<\/Suspense>/,

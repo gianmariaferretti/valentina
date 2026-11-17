@@ -1,11 +1,29 @@
 import { ArrowRight } from "lucide-react";
 
+import { places } from "@/data/places";
+
 import { FadeIn } from "@/components/motion/fade-in";
 import { LinkButton } from "@/components/ui/button";
 import { BoardingPass } from "@/features/cover/components/boarding-pass";
 import { TogetherCounter } from "@/features/cover/components/together-counter";
 import { TravelLines } from "@/features/cover/components/travel-lines";
+import { CityGlobe } from "@/features/globe/components/city-globe";
+import { globeId, staggerLabels } from "@/features/globe/lib/types";
 import { CoverFluid } from "@/features/landing/fluid/cover-fluid";
+
+/**
+ * Only the names and coordinates of our trips' cities reach the browser:
+ * the rest of places.ts (captions, notes) stays on the server.
+ */
+const tripCities = staggerLabels(
+  places.map((place) => ({
+    id: globeId(place.city),
+    name: place.city,
+    location: [place.coordinates[1], place.coordinates[0]] as const,
+  })),
+  3,
+  // On this small globe a crowded cluster keeps one name; the rest are dots.
+).map((city) => ({ ...city, quiet: city.below }));
 
 /** Public cover. Nothing private here: city names and a day counter only. */
 export default function EntryPage() {
@@ -21,6 +39,15 @@ export default function EntryPage() {
         aria-hidden="true"
         className="absolute inset-x-6 top-6 bottom-6 border border-white/8 sm:inset-x-10 sm:top-10 sm:bottom-10"
       />
+      {/* Small and discreet: city names of our trips, nothing else. */}
+      <div className="pointer-events-auto absolute top-9 right-9 z-0 w-24 opacity-90 sm:top-12 sm:right-14 sm:w-36 lg:w-40">
+        <CityGlobe
+          compact
+          label="A small globe with the cities of our trips"
+          points={tripCities}
+          theme="night"
+        />
+      </div>
 
       <div className="relative mx-auto flex min-h-svh w-full max-w-[100rem] flex-col px-8 py-9 sm:px-14 sm:py-12 lg:px-20 lg:py-16">
         <FadeIn>
