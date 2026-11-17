@@ -7,6 +7,7 @@ import { awards } from "@/data/awards";
 import { AwardRevealCard } from "@/features/awards/components/award-reveal-card";
 
 import styles from "@/features/awards/components/awards.module.css";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "The V&G Awards",
@@ -14,7 +15,8 @@ export const metadata: Metadata = {
     "Celebrating excellence, chaos and questionable decisions from Year One.",
 };
 
-export default function AwardsPage() {
+export default async function AwardsPage() {
+  await requireAccessSession();
   return (
     <div className={`page-container ${styles.page}`}>
       <FadeIn>

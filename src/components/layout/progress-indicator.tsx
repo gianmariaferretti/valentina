@@ -1,4 +1,4 @@
-import { coupons } from "@/data/coupons";
+import { loadCouponCatalogue } from "@/features/admin/repositories/content";
 import {
   getCouponWalletStats,
   resolveCoupons,
@@ -11,9 +11,10 @@ function formatCount(value: number): string {
 }
 
 export async function ProgressIndicator() {
-  const [siteProgress, couponState] = await Promise.all([
+  const [siteProgress, couponState, coupons] = await Promise.all([
     loadSiteProgress(),
     loadCouponState(),
+    loadCouponCatalogue(),
   ]);
   const couponStats = getCouponWalletStats(
     resolveCoupons(coupons, couponState),

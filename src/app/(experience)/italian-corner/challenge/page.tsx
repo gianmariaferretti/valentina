@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 
 import { CornerQuiz } from "@/features/italian-corner/quiz/corner-quiz";
 import { loadCornerQuiz } from "@/features/italian-corner/quiz/quiz-actions";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = { title: "The Italian Challenge" };
 
 export default async function ItalianChallengePage() {
+  await requireAccessSession();
   return (
     <CornerQuiz
       quizId="italian"

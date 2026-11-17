@@ -1,7 +1,9 @@
 "use server";
 
+import { z } from "zod";
+
 import { casinoConfig } from "@/data/casino-config";
-import { getCoupon } from "@/data/coupons";
+import { findCatalogueCoupon } from "@/features/admin/repositories/content";
 import {
   findCasinoCoupon,
   redeemCasinoCouponWithReset,
@@ -25,6 +27,8 @@ export interface RedeemCouponResult {
   casinoReset?: boolean;
 }
 
+const couponIdSchema = z.string().regex(/^[a-z0-9-]{1,100}$/);
+
 export async function redeemCoupon(
   couponId: string,
 ): Promise<RedeemCouponResult> {
@@ -35,7 +39,7 @@ export async function redeemCoupon(
     };
   }
 
-  if (typeof couponId !== "string" || couponId.length > 100) {
+  if (!couponIdSchema.safeParse(couponId).success) {
     return {
       status: "error",
       message: "This coupon does not exist. Allegedly.",
@@ -43,7 +47,8 @@ export async function redeemCoupon(
   }
 
   // Kiss Casino wins are per-win instances stored outside the fixed catalogue.
-  const coupon = getCoupon(couponId) ?? (await findCasinoCoupon(couponId));
+  const coupon =
+    (await findCatalogueCoupon(couponId)) ?? (await findCasinoCoupon(couponId));
   if (!coupon) {
     return {
       status: "error",

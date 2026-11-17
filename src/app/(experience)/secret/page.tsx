@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
+import { privateCollection } from "@/data/private-collection";
+import { archiveScenes, investigationDocuments } from "@/data/spicy-archive";
 import { SpicyArchive } from "@/features/secret/components/spicy-archive";
 import { loadArchiveProgress } from "@/features/secret/actions/archive-actions";
 import { readArchiveProof } from "@/features/secret/lib/archive-session";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "The Spicy Archive",
@@ -9,6 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function SecretPage() {
+  await requireAccessSession();
   const imageAlt =
     process.env.SPICY_ARCHIVE_IMAGE_ALT ||
     (process.env.SPICY_ARCHIVE_OBJECT
@@ -20,6 +24,9 @@ export default async function SecretPage() {
   ]);
   return (
     <SpicyArchive
+      archiveScenes={archiveScenes}
+      investigationDocuments={investigationDocuments}
+      privateOffer={privateCollection}
       imageAlt={imageAlt}
       initialStage={proof?.stage ?? "discovery"}
       progress={progress}

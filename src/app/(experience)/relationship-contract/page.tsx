@@ -2,13 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { SigningDesk } from "@/features/relationship-contract/components/signing-desk";
-import {
-  getContractAdminConfigurationIssue,
-  hasContractAdminSession,
-} from "@/features/relationship-contract/lib/admin-session";
 import { loadContract } from "@/features/relationship-contract/lib/repository";
 
 import "./relationship-contract.css";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "The Relationship Contract™",
@@ -18,11 +15,8 @@ export const metadata: Metadata = {
 };
 
 export default async function RelationshipContractPage() {
-  const [{ document, state }, isAdmin] = await Promise.all([
-    loadContract(),
-    hasContractAdminSession(),
-  ]);
-  const adminConfigurationIssue = getContractAdminConfigurationIssue();
+  await requireAccessSession();
+  const { document, state } = await loadContract();
   const fullyExecuted = state.status === "fully_executed" && !state.loadFailed;
 
   return (
@@ -215,11 +209,7 @@ export default async function RelationshipContractPage() {
               </a>
             </section>
 
-            <SigningDesk
-              adminConfigurationIssue={adminConfigurationIssue}
-              isAdmin={isAdmin}
-              state={state}
-            />
+            <SigningDesk state={state} />
 
             {fullyExecuted ? (
               <section

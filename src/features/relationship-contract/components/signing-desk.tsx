@@ -5,10 +5,7 @@ import Image from "next/image";
 import { useState, useTransition } from "react";
 
 import {
-  authoriseGianmaria,
-  endGianmariaSession,
   requestContractReward,
-  signAsGianmaria,
   signAsValentina,
   withdrawSignature,
 } from "../actions";
@@ -17,7 +14,6 @@ import type {
   ContractSignature,
   ContractState,
 } from "../types";
-import type { AdminConfigurationIssue } from "../lib/admin-crypto";
 import { SignaturePad } from "./signature-pad";
 
 function RomeDate({ value }: { value: string }) {
@@ -57,19 +53,10 @@ function ArchivedSignature({ signature }: { signature: ContractSignature }) {
   );
 }
 
-export function SigningDesk({
-  state,
-  isAdmin,
-  adminConfigurationIssue,
-}: {
-  state: ContractState;
-  isAdmin: boolean;
-  adminConfigurationIssue: AdminConfigurationIssue;
-}) {
+export function SigningDesk({ state }: { state: ContractState }) {
   const router = useRouter();
   const [image, setImage] = useState<string | null>(null);
   const [reviewed, setReviewed] = useState(false);
-  const [passphrase, setPassphrase] = useState("");
   const [feedback, setFeedback] = useState<ContractActionResult | null>(null);
   const [pending, startTransition] = useTransition();
   const isFinal = state.status === "fully_executed";
@@ -205,112 +192,11 @@ export function SigningDesk({
         </div>
       ) : null}
 
-      {!state.loadFailed &&
-      state.status === "awaiting_countersignature" &&
-      isAdmin ? (
-        <div className="contract-signing__paper contract-signing__paper--admin">
-          <p className="contract-overline">
-            03 / Signature of the Italian Party
-          </p>
-          <h3>Gianmaria, your countersignature.</h3>
-          <p>
-            Review the same version of the Agreement and sign by hand. This
-            action reveals the sealed Article 41.
-          </p>
-          <SignaturePad label="Gianmaria's signature" onChange={setImage} />
-          {image ? (
-            <div className="contract-preview">
-              <p>Signature preview</p>
-              <Image
-                alt="Preview of your handwritten countersignature"
-                height={240}
-                src={image}
-                unoptimized
-                width={700}
-              />
-            </div>
-          ) : null}
-          <label className="contract-check">
-            <input
-              checked={reviewed}
-              onChange={(event) => setReviewed(event.target.checked)}
-              type="checkbox"
-            />
-            <span>
-              I have read and understood this commemorative Agreement.
-            </span>
-          </label>
-          <button
-            className="contract-primary-button"
-            disabled={!image || !reviewed || pending}
-            onClick={() => image && run(() => signAsGianmaria(image, reviewed))}
-            type="button"
-          >
-            {pending ? "Archiving countersignature…" : "Countersign Agreement"}
-          </button>
-        </div>
-      ) : null}
-
-      {!state.loadFailed &&
-      !isAdmin &&
-      state.status === "awaiting_countersignature" ? (
-        <details className="contract-admin-entry">
-          <summary>Gianmaria&apos;s private signing desk</summary>
-          <p>
-            A separate passphrase is required. The general site code is not
-            sufficient.
-          </p>
-          {adminConfigurationIssue ? (
-            <p className="contract-alert" role="status">
-              {adminConfigurationIssue === "missing_access_secret"
-                ? "The private signing service is not configured. Gianmaria must check the server access secret and redeploy."
-                : "The separate signing passphrase is unavailable or invalid. Gianmaria must set a unique secret of at least 4 characters in Vercel Production and redeploy."}
-            </p>
-          ) : (
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                run(() => authoriseGianmaria(passphrase));
-                setPassphrase("");
-              }}
-            >
-              <label htmlFor="contract-admin-code">
-                Private administrator passphrase
-              </label>
-              <input
-                autoComplete="off"
-                id="contract-admin-code"
-                maxLength={256}
-                onChange={(event) => setPassphrase(event.target.value)}
-                required
-                type="password"
-                value={passphrase}
-              />
-              <button
-                className="contract-secondary-button"
-                disabled={pending}
-                type="submit"
-              >
-                Open signing desk
-              </button>
-            </form>
-          )}
-        </details>
-      ) : null}
-
-      {isAdmin ? (
-        <button
-          className="contract-text-button contract-admin-exit"
-          onClick={() =>
-            startTransition(async () => {
-              await endGianmariaSession();
-              router.refresh();
-            })
-          }
-          type="button"
-        >
-          Close Gianmaria&apos;s signing desk
-        </button>
+      {!state.loadFailed && state.status === "awaiting_countersignature" ? (
+        <p className="contract-admin-entry">
+          Gianmaria countersigns from his private desk. Article 41 unseals the
+          moment he does.
+        </p>
       ) : null}
 
       {feedback ? (
@@ -362,13 +248,6 @@ export function SigningDesk({
               </button>
             )}
           </div>
-          {isAdmin && state.rewardRequestedAt ? (
-            <p className="contract-admin-notice">
-              Gianmaria&apos;s desk: Valentina requested the reward on{" "}
-              <RomeDate value={state.rewardRequestedAt} />. No automatic
-              notification was sent.
-            </p>
-          ) : null}
         </div>
       ) : null}
     </section>

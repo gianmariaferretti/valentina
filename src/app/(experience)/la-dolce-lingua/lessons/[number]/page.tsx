@@ -15,6 +15,7 @@ import {
   buildSupplementalActivities,
   publicSupplementalActivities,
 } from "@/features/italian-corner/original-academy/supplemental-model";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "La Dolce Lingua · Lezione",
@@ -26,6 +27,7 @@ export default async function OriginalLessonPage({
 }: {
   params: Promise<{ number: string }>;
 }) {
+  await requireAccessSession();
   const { number: raw } = await params;
   if (!/^\d{3}$/.test(raw)) notFound();
   const lesson = await getOriginalLesson(Number(raw));

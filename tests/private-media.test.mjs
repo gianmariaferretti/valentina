@@ -149,36 +149,43 @@ test("Private media actual handler: auth first, 401/403/404/503, private no-stor
   delete globalThis.__mediaRoute;
 });
 
-test("Signed session: existing tokens remain valid; expiry, extra parts, nonnumeric expiry and forgery rejected", async () => {
+test("Signed session: expiry, extra parts, nonnumeric times, old formats and forgery rejected", async () => {
   const previous = process.env.AUTH_SECRET;
-  process.env.AUTH_SECRET = "isolated-unit-test-secret-only";
-  const auth = await importSource(
-    transpile("src/lib/auth/session.ts")
-      .replace('import "server-only";', "")
-      .replace(
-        /import \{ cookies \} from [^;]+;/,
-        "const cookies = async () => ({ get: () => undefined });",
-      ),
-  );
+  process.env.AUTH_SECRET = "isolated-unit-test-secret-only-32-chars+";
+  const auth = await import("../src/lib/auth/token.ts");
   const token = auth.createAccessToken();
-  assert.ok(auth.verifyAccessToken(token));
-  const sign = (expiry) =>
-    expiry +
-    "." +
-    createHmac("sha256", process.env.AUTH_SECRET)
-      .update(expiry)
-      .digest("base64url");
+  assert.ok(auth.parseAccessToken(token));
+  const now = Math.floor(Date.now() / 1000);
+  const sign = (issued, expiry) => {
+    const payload = `v2.${issued}.${expiry}`;
+    return (
+      payload +
+      "." +
+      createHmac("sha256", process.env.AUTH_SECRET)
+        .update(`vg-access:${payload}`)
+        .digest("base64url")
+    );
+  };
+  assert.ok(
+    auth.parseAccessToken(sign(now, now + 60)),
+    "a hand-signed token verifies",
+  );
   for (const invalid of [
     undefined,
     "",
     token + ".extra",
     token + "tampered",
-    sign("NaN"),
-    sign("Infinity"),
-    sign("1"),
-    sign(String(Math.floor(Date.now() / 1000) - 1)),
+    sign("NaN", now + 60),
+    sign(now, "Infinity"),
+    sign(now, "1"),
+    sign(now, now - 1),
+    sign(now + 3600, now + 7200),
+    // Pre-v2 cookies (expiry.signature) are no longer accepted.
+    `${now + 60}.${createHmac("sha256", process.env.AUTH_SECRET)
+      .update(String(now + 60))
+      .digest("base64url")}`,
   ])
-    assert.equal(auth.verifyAccessToken(invalid), false);
+    assert.equal(auth.parseAccessToken(invalid), null, String(invalid));
   if (previous === undefined) delete process.env.AUTH_SECRET;
   else process.env.AUTH_SECRET = previous;
 });

@@ -10,6 +10,7 @@ import {
 import { PageIntro } from "@/components/ui/page-intro";
 import { places } from "@/data/places";
 import { EuropeMapExperience } from "@/features/map/components/europe-map-experience";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Our map",
@@ -17,7 +18,8 @@ export const metadata: Metadata = {
     "An interactive atlas of the places in Valentina and Gianmaria’s first year.",
 };
 
-export default function MapPage() {
+export default async function MapPage() {
+  await requireAccessSession();
   return (
     <div className="pb-16 sm:pb-20 lg:pb-28">
       <div className="page-container pt-10 sm:pt-14 lg:pt-20">

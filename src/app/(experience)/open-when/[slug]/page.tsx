@@ -4,7 +4,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Sticker } from "@/components/design-system";
-import { getOpenWhenLetter, openWhenLetters } from "@/data/open-when";
+import {
+  findVisibleLetter,
+  loadVisibleLetters,
+} from "@/features/admin/repositories/content";
 import { getExperienceReward } from "@/data/rewards";
 import { LetterExperience } from "@/features/open-when/components/letter-experience";
 import {
@@ -13,19 +16,16 @@ import {
 } from "@/features/open-when/lib/open-when-domain";
 import { loadOpenWhenState } from "@/features/open-when/repositories/get-open-when-state-repository";
 import { createRewardPresentation } from "@/features/rewards/lib/reward-domain";
+import { requireAccessSession } from "@/lib/auth/session";
 
 interface LetterPageProps {
   readonly params: Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
-  return openWhenLetters.map((letter) => ({ slug: letter.slug }));
-}
-
 export async function generateMetadata({
   params,
 }: LetterPageProps): Promise<Metadata> {
-  const letter = getOpenWhenLetter((await params).slug);
+  const letter = await findVisibleLetter((await params).slug);
   return {
     title: letter ? `Open when ${letter.title.toLowerCase()}` : "Letter",
     description: letter?.preview,
@@ -33,7 +33,11 @@ export async function generateMetadata({
 }
 
 export default async function LetterPage({ params }: LetterPageProps) {
-  const letter = getOpenWhenLetter((await params).slug);
+  await requireAccessSession();
+  const [letter, openWhenLetters] = await Promise.all([
+    findVisibleLetter((await params).slug),
+    loadVisibleLetters(),
+  ]);
   if (!letter) notFound();
 
   const sequence = openWhenLetters.findIndex(

@@ -18,6 +18,9 @@ import {
 import { LinkButton } from "@/components/ui/button";
 import { PageIntro } from "@/components/ui/page-intro";
 import type { StickerVariant } from "@/types/design-system";
+import { notFound } from "next/navigation";
+
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Design system",
@@ -55,7 +58,10 @@ const stickerVariants: readonly StickerVariant[] = [
   "heart",
 ];
 
-export default function DesignSystemPage() {
+export default async function DesignSystemPage() {
+  // A design reference for development only: not part of the site.
+  if (process.env.NODE_ENV === "production") notFound();
+  await requireAccessSession();
   return (
     <div className="page-container py-10 sm:py-14 lg:py-20">
       <PageIntro

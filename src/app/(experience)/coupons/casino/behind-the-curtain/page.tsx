@@ -5,12 +5,10 @@ import { notFound } from "next/navigation";
 
 import { HandwrittenNote } from "@/components/design-system";
 import { casinoConfig as config } from "@/data/casino-config";
-import {
-  gianmariaCurtainMessage,
-  gianmariaCurtainSignoff,
-} from "@/data/casino-curtain";
+import { loadCurtainMessage } from "@/features/admin/repositories/content";
 import { FinaleClaim } from "@/features/casino/components/finale-claim";
 import { loadCasinoSnapshot } from "@/features/casino/repositories/load-casino";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Behind the Curtain",
@@ -20,7 +18,11 @@ const percent = (value: number) =>
   `${(value * 100).toFixed(value < 0.01 ? 1 : 0)}%`;
 
 export default async function BehindTheCurtainPage() {
-  const snapshot = await loadCasinoSnapshot();
+  await requireAccessSession();
+  const [snapshot, curtainMessage] = await Promise.all([
+    loadCasinoSnapshot(),
+    loadCurtainMessage(),
+  ]);
   if (snapshot.failed || !snapshot.state.curtain.unlocked) notFound();
   const { stats, curtain } = snapshot.state;
   const returned = stats.wagered > 0 ? stats.kissesWon / stats.wagered : 0;
@@ -180,7 +182,7 @@ export default async function BehindTheCurtainPage() {
           A message from Gianmaria
         </h2>
         <div className="rounded-[1.6rem] border border-[var(--line-strong)] bg-[var(--paper-white)] p-6 sm:p-9">
-          {gianmariaCurtainMessage.map((paragraph) => (
+          {curtainMessage.paragraphs.map((paragraph) => (
             <p
               className="mt-3 font-display text-2xl leading-snug first:mt-0"
               key={paragraph}
@@ -189,7 +191,7 @@ export default async function BehindTheCurtainPage() {
             </p>
           ))}
           <HandwrittenNote className="mt-4 block text-right" tone="burgundy">
-            {gianmariaCurtainSignoff}
+            {curtainMessage.signoff}
           </HandwrittenNote>
         </div>
       </section>

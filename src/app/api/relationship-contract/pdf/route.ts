@@ -22,6 +22,9 @@ export async function GET() {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="VG-2026-001-${label}.pdf"`,
         "Cache-Control": "private, no-store, max-age=0",
+        "CDN-Cache-Control": "no-store",
+        "Vercel-CDN-Cache-Control": "no-store",
+        Vary: "Cookie",
         "X-Content-Type-Options": "nosniff",
       },
     });

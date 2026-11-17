@@ -1,5 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
+/** Audit A4: administrator passphrases are at least 24 characters. */
+export const MINIMUM_ADMIN_PASSPHRASE_LENGTH = 24;
+
 export type AdminConfigurationIssue =
   | "missing_access_secret"
   | "missing_or_short_passphrase"
@@ -12,7 +15,7 @@ export function adminConfigurationIssue(
   siteCode: string | undefined,
 ): AdminConfigurationIssue {
   if (!accessSecret) return "missing_access_secret";
-  if (!passphrase || passphrase.length < 4)
+  if (!passphrase || passphrase.length < MINIMUM_ADMIN_PASSPHRASE_LENGTH)
     return "missing_or_short_passphrase";
   if (siteCode && passphrase === siteCode) return "reused_site_code";
   return null;

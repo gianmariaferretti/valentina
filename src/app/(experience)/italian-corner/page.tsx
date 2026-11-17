@@ -1,6 +1,7 @@
 import { ArrowUpRight, BookOpen, Clock3, Languages } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Italian Corner",
@@ -26,7 +27,8 @@ const experiences = [
   },
 ] as const;
 
-export default function ItalianCornerPage() {
+export default async function ItalianCornerPage() {
+  await requireAccessSession();
   return (
     <div className="page-container py-8 sm:py-12 lg:py-16">
       <header className="relative overflow-hidden rounded-[2rem] bg-[var(--oxblood)] px-6 py-10 text-[var(--paper-white)] sm:px-10 sm:py-14 lg:px-16 lg:py-20">

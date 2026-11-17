@@ -114,6 +114,12 @@ export interface GameEngineProps {
   readonly reduceMotion: boolean;
   readonly soundEnabled: boolean;
   readonly archivedSecrets: readonly string[];
+  /** Memory game only: titles and photos, sent by the server page. */
+  readonly memoryFaces?: readonly {
+    readonly id: string;
+    readonly title: string;
+    readonly src: string | null;
+  }[];
   readonly onFinish: (result: GameRunResult) => void;
   readonly onRestart: () => void;
   readonly onScoreChange: (score: number) => void;

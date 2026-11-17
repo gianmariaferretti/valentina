@@ -11,7 +11,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Sticker } from "@/components/design-system";
-import { coupons, getCoupon } from "@/data/coupons";
+import { findCatalogueCoupon } from "@/features/admin/repositories/content";
 import { findCasinoCoupon } from "@/features/casino/repositories/load-casino";
 import { RedemptionControl } from "@/features/coupons/components/redemption-control";
 import {
@@ -27,6 +27,7 @@ import {
 import { loadCouponState } from "@/features/coupons/repositories/get-coupon-state-repository";
 import type { CouponRarity } from "@/features/coupons/types";
 import { cn } from "@/lib/cn";
+import { requireAccessSession } from "@/lib/auth/session";
 
 interface CouponPageProps {
   params: Promise<{ id: string }>;
@@ -39,12 +40,8 @@ const rarityClassNames: Record<CouponRarity, string> = {
   impossible: "bg-[var(--ink)] text-[var(--paper-white)]",
 };
 
-export function generateStaticParams() {
-  return coupons.map((coupon) => ({ id: coupon.id }));
-}
-
 async function findCoupon(id: string) {
-  return getCoupon(id) ?? (await findCasinoCoupon(id));
+  return (await findCatalogueCoupon(id)) ?? (await findCasinoCoupon(id));
 }
 
 export async function generateMetadata({
@@ -73,6 +70,7 @@ function formatDate(value: string): string {
 }
 
 export default async function CouponPage({ params }: CouponPageProps) {
+  await requireAccessSession();
   const coupon = await findCoupon((await params).id);
   if (!coupon) notFound();
 

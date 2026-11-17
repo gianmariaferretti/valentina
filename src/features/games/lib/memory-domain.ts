@@ -1,5 +1,5 @@
 import { ARCADE } from "../../../data/arcade-config.ts";
-import { arcadeMemories } from "../../../data/arcade-memories.ts";
+import { arcadeMemoryIds } from "../../../data/arcade-memory-ids.ts";
 import { seededRandom, shuffled } from "./arcade-random.ts";
 const C = ARCADE.memory;
 export interface MemoryCard {
@@ -19,10 +19,10 @@ export interface MemoryState {
 }
 export function createMemoryState(seed: number): MemoryState {
   const deck = shuffled(
-    arcadeMemories.flatMap((memory) =>
+    arcadeMemoryIds.flatMap((id) =>
       [0, 1].map((variant) => ({
-        memoryId: memory.id,
-        instanceId: `${memory.id}-${variant}`,
+        memoryId: id,
+        instanceId: `${id}-${variant}`,
         variant,
       })),
     ),

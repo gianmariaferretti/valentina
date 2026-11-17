@@ -9,6 +9,7 @@ import {
 import { FadeIn } from "@/components/motion/fade-in";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { DashboardCard } from "@/features/home/components/dashboard-card";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -111,7 +112,8 @@ const dashboardCards = [
   },
 ] as const;
 
-export default function HomePage() {
+export default async function HomePage() {
+  await requireAccessSession();
   return (
     <div className="page-container py-6 sm:py-10 lg:py-14">
       <FadeIn>

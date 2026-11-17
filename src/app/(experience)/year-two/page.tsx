@@ -2,10 +2,12 @@ import { ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
 
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = { title: "Year Two" };
 
-export default function YearTwoPage() {
+export default async function YearTwoPage() {
+  await requireAccessSession();
   return (
     <div className="page-container py-8 sm:py-12 lg:py-16">
       <section className="relative grid min-h-[calc(100svh-12rem)] overflow-hidden rounded-[2.25rem] bg-[var(--rust)] p-7 text-white sm:p-12 lg:grid-cols-[minmax(0,1fr)_22rem] lg:p-16">

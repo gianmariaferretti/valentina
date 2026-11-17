@@ -1,9 +1,11 @@
 import type { ArchiveStage } from "@/features/secret/lib/archive-domain";
 
-export const archiveScenes: Record<
+export type ArchiveScenes = Record<
   ArchiveStage,
   { title: string; paragraphs: readonly string[]; action?: string }
-> = {
+>;
+
+export const archiveScenes: ArchiveScenes = {
   discovery: {
     title: "CLASSIFIED ARCHIVE",
     paragraphs: [
@@ -50,3 +52,31 @@ export const archiveScenes: Record<
     paragraphs: ["Some things are better kept between us."],
   },
 };
+
+export interface InvestigationDocument {
+  readonly id: string;
+  readonly token: string;
+  readonly label: string;
+  readonly clue: string;
+}
+
+export const investigationDocuments: readonly InvestigationDocument[] = [
+  {
+    id: "date",
+    token: "31",
+    label: "Document 01 · Origin",
+    clue: "The file begins on the day our Year One record starts: 31 October 2025.",
+  },
+  {
+    id: "recipient",
+    token: "V",
+    label: "Document 02 · Recipient",
+    clue: "Clearance belongs to Valentina, and to Valentina only.",
+  },
+  {
+    id: "subject",
+    token: "G",
+    label: "Document 03 · Subject",
+    clue: "The person under investigation is Gianmaria.",
+  },
+];

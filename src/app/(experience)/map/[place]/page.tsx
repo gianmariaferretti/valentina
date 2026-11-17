@@ -23,6 +23,7 @@ import {
 import { getAdjacentPlaces, getPlace, places } from "@/data/places";
 import { PlaceMiniMap } from "@/features/map/components/place-mini-map";
 import type { Destination, DestinationSticker } from "@/features/map/types";
+import { requireAccessSession } from "@/lib/auth/session";
 
 interface PlacePageProps {
   params: Promise<{ place: string }>;
@@ -78,6 +79,7 @@ function MemorySticker({ sticker }: { sticker: DestinationSticker }) {
 }
 
 export default async function PlacePage({ params }: PlacePageProps) {
+  await requireAccessSession();
   const place = getPlace((await params).place);
   if (!place) notFound();
 

@@ -1,8 +1,13 @@
 "use server";
 
+import { z } from "zod";
+
 import { revalidatePath } from "next/cache";
 
-import { getOpenWhenLetter, openWhenLetters } from "@/data/open-when";
+import {
+  findVisibleLetter,
+  loadVisibleLetters,
+} from "@/features/admin/repositories/content";
 import { getExperienceReward } from "@/data/rewards";
 import { getOpenWhenStateRepository } from "@/features/open-when/repositories/get-open-when-state-repository";
 import { createRewardPresentation } from "@/features/rewards/lib/reward-domain";
@@ -21,19 +26,27 @@ export interface OpenLetterResult {
   readonly reward?: GrantedExperienceReward;
 }
 
+const slugSchema = z.string().regex(/^[a-z0-9-]{1,80}$/);
+
 export async function openLetter(slug: string): Promise<OpenLetterResult> {
   if (!(await hasValidAccessSession())) {
     return { status: "error", message: "Your private session has expired." };
   }
 
-  const letter = getOpenWhenLetter(slug);
+  const parsed = slugSchema.safeParse(slug);
+  const letter = parsed.success
+    ? await findVisibleLetter(parsed.data)
+    : undefined;
   if (!letter) {
     return { status: "error", message: "That envelope does not exist." };
   }
 
   try {
     const repository = getOpenWhenStateRepository();
-    const state = await repository.get();
+    const [state, openWhenLetters] = await Promise.all([
+      repository.get(),
+      loadVisibleLetters(),
+    ]);
     const validOpenedCount = state.openedLetters.filter((openedLetter) =>
       openWhenLetters.some((item) => item.slug === openedLetter.slug),
     ).length;

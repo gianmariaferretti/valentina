@@ -4,12 +4,14 @@ import Link from "next/link";
 import { KissCasino } from "@/features/casino/components/kiss-casino";
 import { toView } from "@/features/casino/lib/engine";
 import { loadCasinoSnapshot } from "@/features/casino/repositories/load-casino";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Kiss Casino",
 };
 
 export default async function KissCasinoPage() {
+  await requireAccessSession();
   const snapshot = await loadCasinoSnapshot();
 
   return (

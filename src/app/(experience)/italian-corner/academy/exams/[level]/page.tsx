@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { LevelExam } from "@/features/italian-corner/academy/level-exam";
 import { getPublishedLessons } from "@/features/italian-corner/academy/lesson-store";
+import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = { title: "Italian level examination" };
 
@@ -12,6 +13,7 @@ export default async function LevelExamPage({
 }: {
   params: Promise<{ level: string }>;
 }) {
+  await requireAccessSession();
   const raw = (await params).level.toUpperCase();
   if (raw !== "A2" && raw !== "B1" && raw !== "B2") notFound();
   const level = raw;

@@ -4,6 +4,8 @@ import { getVgGame, retiredGameSlugs, vgGames } from "@/data/games";
 import { getChallengeProgress } from "@/features/challenges/lib/challenge-domain";
 import { loadChallengeState } from "@/features/challenges/repositories/get-challenge-state-repository";
 import { GameExperience } from "@/features/games/components/game-experience";
+import { loadMemoryFaces } from "@/features/games/lib/memory-faces";
+import { requireAccessSession } from "@/lib/auth/session";
 interface Props {
   readonly params: Promise<{ game: string }>;
 }
@@ -14,6 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: getVgGame((await params).game)?.title ?? "Arcade" };
 }
 export default async function ChallengePage({ params }: Props) {
+  await requireAccessSession();
   const slug = (await params).game;
   if ((retiredGameSlugs as readonly string[]).includes(slug))
     redirect("/challenges");
@@ -23,6 +26,9 @@ export default async function ChallengePage({ params }: Props) {
     <GameExperience
       game={game}
       key={game.gameId}
+      memoryFaces={
+        game.engine === "365-memories" ? loadMemoryFaces() : undefined
+      }
       initialProgress={getChallengeProgress(
         game.gameId,
         await loadChallengeState(),

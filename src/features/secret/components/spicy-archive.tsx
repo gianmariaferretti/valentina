@@ -14,7 +14,11 @@ import {
   useTransition,
   type CSSProperties,
 } from "react";
-import { archiveScenes } from "@/data/spicy-archive";
+import type {
+  ArchiveScenes,
+  InvestigationDocument,
+} from "@/data/spicy-archive";
+import type { PrivateCollectionOffer } from "@/data/private-collection";
 import { useModalDialog } from "@/hooks/use-modal-dialog";
 import {
   advanceArchive,
@@ -37,26 +41,7 @@ import {
 import styles from "./spicy-archive.module.css";
 
 const subscribe = () => () => {};
-const investigationDocuments = [
-  {
-    id: "date",
-    token: "31",
-    label: "Document 01 · Origin",
-    clue: "The file begins on the day our Year One record starts: 31 October 2025.",
-  },
-  {
-    id: "recipient",
-    token: "V",
-    label: "Document 02 · Recipient",
-    clue: "Clearance belongs to Valentina, and to Valentina only.",
-  },
-  {
-    id: "subject",
-    token: "G",
-    label: "Document 03 · Subject",
-    clue: "The person under investigation is Gianmaria.",
-  },
-] as const;
+
 const PrivateCollection = dynamic(
   () =>
     import("./private-collection").then((module) => module.PrivateCollection),
@@ -73,10 +58,17 @@ const PrivateCollection = dynamic(
 );
 
 export function SpicyArchive({
+  archiveScenes,
+  investigationDocuments,
+  privateOffer,
   imageAlt,
   initialStage,
   progress: initialProgress,
 }: {
+  /** Texts come from the server page, never from a client bundle (audit A6). */
+  readonly archiveScenes: ArchiveScenes;
+  readonly investigationDocuments: readonly InvestigationDocument[];
+  readonly privateOffer: PrivateCollectionOffer;
   readonly imageAlt: string;
   readonly initialStage: ArchiveStage;
   readonly progress: ArchiveProgress;
@@ -408,6 +400,7 @@ export function SpicyArchive({
               transition={{ duration: reducedMotion ? 0 : 0.3 }}
             >
               <PrivateCollection
+                offer={privateOffer}
                 titleRef={titleRef}
                 onBack={() => {
                   setCollectionOpen(false);
