@@ -46,6 +46,14 @@ export const navigationItems = [
     group: "memories",
   },
   {
+    title: "Our story",
+    shortTitle: "Our story",
+    href: "/our-story",
+    description: "Year One, chapter by chapter, scrolling.",
+    icon: "our-story",
+    group: "memories",
+  },
+  {
     title: "Gallery",
     shortTitle: "Gallery",
     href: "/gallery",
