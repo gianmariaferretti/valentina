@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useOptimistic, useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { ink, Mark } from "@/components/annotations/mark";
+
 import { proposeListItem, toggleListItem } from "../actions/lists";
 import type { ListItem } from "../repositories/life";
 
@@ -80,10 +82,27 @@ export function Checklist({
                 />
                 <span
                   className={
-                    item.doneAt ? "text-[var(--muted)] line-through" : ""
+                    item.doneAt
+                      ? list === "suitcase"
+                        ? "text-[var(--muted)]"
+                        : "text-[var(--muted)] line-through"
+                      : ""
                   }
                 >
-                  {item.title}
+                  {list === "suitcase" ? (
+                    // Packed: struck through by hand, like on a paper list.
+                    <Mark
+                      active={Boolean(item.doneAt)}
+                      color={ink.rust}
+                      multiline
+                      strokeWidth={1.5}
+                      type="strike-through"
+                    >
+                      {item.title}
+                    </Mark>
+                  ) : (
+                    item.title
+                  )}
                   {item.notes ? (
                     <span className="block text-xs text-[var(--muted)] no-underline">
                       {item.notes}

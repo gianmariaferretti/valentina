@@ -39,6 +39,7 @@
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "resend": "^6.38.1",
+    "rough-notation": "^0.5.1",
     "server-only": "^0.0.1",
     "serwist": "^9.5.15",
     "sonner": "^2.0.8",

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { ink, Mark } from "@/components/annotations/mark";
 import { places } from "@/data/places";
 import { CityGlobe } from "@/features/globe/components/city-globe";
 import type { LatLng } from "@/features/globe/lib/geo";
@@ -14,6 +15,14 @@ import {
 import { requireAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = { title: "Next time" };
+
+/** "Sunday 20 December", in Rome time like the panel's date. */
+const landingDay = new Intl.DateTimeFormat("en-GB", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  timeZone: "Europe/Rome",
+});
 
 /** Coordinates for a city name: the panel's cities first, then our places. */
 function locate(
@@ -46,6 +55,20 @@ export default async function NextTimePage() {
         <h1 className="mt-2 font-display text-[clamp(2.6rem,10vw,5rem)] leading-[0.9] italic">
           Next time
         </h1>
+        {next.at ? (
+          <p className="mt-3 text-base text-[var(--muted)] sm:text-lg">
+            Landing on{" "}
+            <Mark
+              className="mx-3.5 font-display text-[1.25em] text-[var(--ink)] italic"
+              color={ink.wine}
+              padding={[4, 6]}
+              type="circle"
+            >
+              {landingDay.format(new Date(next.at))}
+            </Mark>{" "}
+            in {next.to}.
+          </p>
+        ) : null}
       </header>
       <div className="grid items-center gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <DepartureBoard next={next} />

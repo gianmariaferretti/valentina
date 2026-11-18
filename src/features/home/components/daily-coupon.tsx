@@ -4,6 +4,7 @@ import { Shuffle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { ink, Mark } from "@/components/annotations/mark";
 import { CouponTicket } from "@/features/coupons/components/coupon-ticket";
 import {
   dayKey,
@@ -17,6 +18,8 @@ import type { CouponWalletItem } from "@/features/coupons/types";
  * its own date and switches only if it differs (near midnight, or abroad).
  * The same pick as in the wallet, changing at midnight.
  */
+const CIRCLED_KEY = "vg.daily-coupon.circled";
+
 export function DailyCoupon({
   candidates,
   initialPick,
@@ -28,10 +31,22 @@ export function DailyCoupon({
     initialPick,
   );
 
+  // Circled by hand on the first visit of the day only.
+  const [firstToday, setFirstToday] = useState(false);
+
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      const local = pickCouponOfTheDay(candidates, dayKey(new Date()));
+      const today = dayKey(new Date());
+      const local = pickCouponOfTheDay(candidates, today);
       setPick((current) => (current?.id === local?.id ? current : local));
+      try {
+        if (window.localStorage.getItem(CIRCLED_KEY) !== String(today)) {
+          window.localStorage.setItem(CIRCLED_KEY, String(today));
+          setFirstToday(true);
+        }
+      } catch {
+        // Private mode: no circle, the coupon is still there.
+      }
     }, 0);
     return () => window.clearTimeout(timer);
   }, [candidates]);
@@ -67,7 +82,16 @@ export function DailyCoupon({
         </div>
       ) : (
         <div className="grid gap-3">
-          <div className="text-[1.04rem] sm:text-[1.12rem]">
+          <Mark
+            active={firstToday}
+            as="div"
+            className="block text-[1.04rem] sm:text-[1.12rem]"
+            color={ink.wine}
+            iterations={1}
+            padding={[10, 14]}
+            strokeWidth={2.5}
+            type="circle"
+          >
             <CouponTicket
               featured
               coupon={{
@@ -77,7 +101,7 @@ export function DailyCoupon({
                 callToAction: "USE TODAY?",
               }}
             />
-          </div>
+          </Mark>
           {pick.href ? (
             <Link
               className="inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--ink)] px-6 text-xs font-bold tracking-[0.14em] text-[var(--paper-white)] uppercase transition hover:bg-[var(--oxblood)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--rust)]"

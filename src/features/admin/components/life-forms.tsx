@@ -290,7 +290,7 @@ function SongForm({
         defaultValue={song?.why ?? ""}
         maxLength={600}
         name="why"
-        placeholder="Il perché, in poche righe (in inglese)"
+        placeholder="Il perché, in poche righe (in inglese). ==Così== per l'evidenziatore"
       />
       <button
         className={buttonClass("primary", "sm:col-span-2 sm:w-auto")}
