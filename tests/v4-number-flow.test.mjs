@@ -27,7 +27,7 @@ test("rolling numbers where the counters are", () => {
     "src/app/(experience)/home/page.tsx":
       /togetherAt\(today\.getTime\(\)\)[\s\S]*RollingNumber[\s\S]*RollingGroup[\s\S]*casino\.state\.balance/,
     "src/features/life/components/departure-board.tsx":
-      /role="timer"[\s\S]*RollingGroup/,
+      /RollingGroup[\s\S]*role="timer"/,
     "src/features/casino/components/casino-panels.tsx":
       /return <RollingNumber value=\{value\} \/>/,
     "src/features/kisses/components/kiss-listener.tsx":

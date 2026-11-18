@@ -47,53 +47,224 @@
   gap: 2px;
 }
 
-.flap {
+/* One split flap: a static top and bottom half, plus two leaves while it
+   flips (the old top half falls, the new bottom half bounces into place). */
+.slot {
+  --h: clamp(1.7rem, 8.4vw, 2.6rem);
   position: relative;
-  display: grid;
-  place-items: center;
-  width: clamp(1.05rem, 5.4vw, 1.75rem);
-  height: clamp(1.6rem, 8vw, 2.5rem);
-  border-radius: 0.25rem;
-  background: linear-gradient(180deg, #2b2d33 0 49%, #1c1d21 51% 100%);
+  display: block;
+  width: clamp(1.15rem, 5.6vw, 1.8rem);
+  height: var(--h);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: clamp(0.8rem, 4.2vw, 1.35rem);
+  font-size: clamp(0.85rem, 4.4vw, 1.4rem);
   font-weight: 700;
   color: #f4f1e8;
-  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.6);
-  perspective: 200px;
+  perspective: 260px;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.45));
 }
 
-.flap::after {
-  content: "";
+.top,
+.bottom {
   position: absolute;
   left: 0;
   right: 0;
-  top: 50%;
-  height: 1px;
-  background: rgba(0, 0, 0, 0.7);
+  height: calc(50% - 0.5px);
+  overflow: hidden;
+  backface-visibility: hidden;
 }
 
-.flip {
-  animation: flip 380ms cubic-bezier(0.3, 0.1, 0.3, 1) both;
-  animation-delay: var(--delay, 0ms);
+.top {
+  top: 0;
+  border-radius: 0.25rem 0.25rem 0.1rem 0.1rem;
+  background: linear-gradient(180deg, #34363d, #26282d);
+  transform-origin: 50% 100%;
 }
 
-@keyframes flip {
+.bottom {
+  bottom: 0;
+  border-radius: 0.1rem 0.1rem 0.25rem 0.25rem;
+  background: linear-gradient(180deg, #1f2024, #18191c);
+  transform-origin: 50% 0%;
+}
+
+.top > span,
+.bottom > span {
+  display: block;
+  height: var(--h);
+  line-height: var(--h);
+  text-align: center;
+}
+
+.bottom > span {
+  transform: translateY(-50%);
+}
+
+/* Shade on the halves while a leaf passes over them. */
+.top::after,
+.bottom::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.top::after {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.55));
+}
+
+.bottom::after {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
+}
+
+.slot[data-flipping] > .bottom:not(.leafBottom)::after {
+  animation: shade var(--flip, 150ms) ease-out both;
+}
+
+.leafTop {
+  z-index: 2;
+  animation: fall var(--flip, 150ms) cubic-bezier(0.55, 0.05, 0.9, 0.5) both;
+}
+
+.leafTop::after {
+  animation: darken var(--flip, 150ms) ease-in both;
+}
+
+.leafBottom {
+  z-index: 3;
+  animation: land var(--flip, 150ms) cubic-bezier(0.2, 0.6, 0.4, 1) both;
+  animation-delay: calc(var(--flip, 150ms) * 0.5);
+}
+
+.leafBottom::after {
+  animation: lighten var(--flip, 150ms) ease-out both;
+  animation-delay: calc(var(--flip, 150ms) * 0.5);
+}
+
+/* The last flip of a change is slower and bounces. */
+.slot[data-final] {
+  --flip: 300ms;
+}
+
+.slot[data-final] > .leafBottom {
+  animation-name: land-bounce;
+  animation-duration: 420ms;
+  animation-delay: 140ms;
+}
+
+@keyframes fall {
+  from {
+    transform: rotateX(0deg);
+  }
+  to {
+    transform: rotateX(-90deg);
+  }
+}
+
+@keyframes land {
+  from {
+    transform: rotateX(90deg);
+  }
+  to {
+    transform: rotateX(0deg);
+  }
+}
+
+@keyframes land-bounce {
   0% {
     transform: rotateX(90deg);
-    opacity: 0.3;
   }
-  60% {
-    transform: rotateX(-12deg);
+  55% {
+    transform: rotateX(-14deg);
+  }
+  78% {
+    transform: rotateX(6deg);
   }
   100% {
-    transform: rotateX(0);
+    transform: rotateX(0deg);
+  }
+}
+
+@keyframes darken {
+  to {
     opacity: 1;
   }
 }
 
+@keyframes lighten {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes shade {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.fade {
+  animation: fade 420ms ease-out both;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.cells {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem 1rem;
+}
+
+.wide {
+  grid-column: 1 / -1;
+}
+
+.sound {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  margin: -0.9rem -0.6rem -0.9rem 0;
+  border-radius: 999px;
+  color: #8c8f98;
+}
+
+.sound:hover,
+.sound[aria-pressed="true"] {
+  color: #f2c84b;
+}
+
+.sound:focus-visible {
+  outline: 2px solid #f2c84b;
+  outline-offset: 2px;
+}
+
 .status[data-status="on-time"] {
   color: #7ee08f;
+}
+
+.status[data-status="missing"] {
+  color: #ff9db5;
+}
+
+.status[data-status="almost"] {
+  color: #f2c84b;
 }
 
 .status[data-status="delayed"] {
@@ -126,7 +297,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .flip,
+  .leafTop,
+  .leafBottom,
   .garland {
     animation: none;
   }
