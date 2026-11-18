@@ -164,6 +164,7 @@ test("tabs: Coupons · Casino · Games · Memories, then More", () => {
     memoriesNavigation.map((i) => i.href),
     [
       "/map",
+      "/our-story",
       "/gallery",
       "/open-when",
       "/year-two",

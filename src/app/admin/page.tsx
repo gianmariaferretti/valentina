@@ -146,6 +146,12 @@ export default async function AdminHome() {
       text: "Cose da fare nella vita",
     },
     {
+      href: "/admin/storia",
+      icon: "📖",
+      title: "La nostra storia",
+      text: "I testi di Our story, capitolo per capitolo",
+    },
+    {
       href: "/admin/canzoni",
       icon: "🎵",
       title: "Canzoni",

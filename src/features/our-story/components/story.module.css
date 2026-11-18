@@ -1,0 +1,35 @@
+/* Letter-by-letter writing: plain spans and one CSS animation, so a long
+   story hydrates cheaply. The paragraph gets [data-on] when it is seen. */
+.letter {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.3em);
+}
+
+[data-on] > .word > .letter {
+  animation: type 220ms ease-out forwards;
+  animation-delay: calc(var(--i) * var(--speed, 16ms));
+}
+
+.word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+@keyframes type {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .letter {
+    opacity: 1;
+    transform: none;
+  }
+
+  [data-on] > .word > .letter {
+    animation: none;
+  }
+}
