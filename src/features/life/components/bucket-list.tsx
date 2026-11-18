@@ -11,6 +11,7 @@ import {
 } from "../actions/lists";
 import { bucketCategories } from "../lib/schemas";
 import type { ListItem } from "../repositories/life";
+import { ink, Mark, MarkGroup } from "@/components/annotations/mark";
 import { RollingGroup, RollingNumber } from "@/components/ui/rolling-number";
 import { requestKissCheck } from "@/features/kisses/components/kiss-listener";
 
@@ -76,25 +77,56 @@ function BucketCard({ item, index }: { item: ListItem; index: number }) {
           </span>
         ) : null}
       </p>
-      <p
-        className={`mt-1 font-display text-2xl leading-tight ${item.doneAt ? "pr-24 text-[var(--muted)]" : ""}`}
-      >
-        {item.title}
-      </p>
-      {item.notes ? (
-        <p className="mt-1 text-sm text-[var(--muted)]">{item.notes}</p>
-      ) : null}
-      {item.doneAt ? (
-        <span
-          aria-label={`Done on ${stampDate.format(new Date(item.doneAt))}`}
-          className="absolute top-3 right-3 rotate-[-12deg] rounded-md border-[3px] border-double border-[#2f7d4f] bg-[rgba(255,253,248,0.85)] px-2 py-1 text-center font-mono text-xs font-black tracking-[0.14em] text-[#2f7d4f]"
+      <MarkGroup>
+        <p
+          className={`mt-1 font-display text-2xl leading-tight ${item.doneAt ? "pr-24 text-[var(--muted)]" : ""}`}
         >
-          DONE
-          <span className="block text-[0.55rem] tracking-[0.06em]">
-            {stampDate.format(new Date(item.doneAt))}
-          </span>
-        </span>
-      ) : null}
+          {/* Her ideas get the highlighter; done ones are struck through. */}
+          <Mark
+            active={item.proposedBy === "valentina" && !item.doneAt}
+            color={ink.highlighter}
+            iterations={1}
+            multiline
+            padding={[2, 4]}
+            type="highlight"
+          >
+            <Mark
+              active={Boolean(item.doneAt)}
+              color={ink.ink}
+              multiline
+              order={1}
+              strokeWidth={1.5}
+              type="strike-through"
+            >
+              {item.title}
+            </Mark>
+          </Mark>
+        </p>
+        {item.notes ? (
+          <p className="mt-1 text-sm text-[var(--muted)]">{item.notes}</p>
+        ) : null}
+        {item.doneAt ? (
+          // The circle goes around the stamp from outside: rough-notation
+          // measures an unrotated box, the stamp itself is tilted.
+          <Mark
+            as="div"
+            className="absolute top-3 right-3"
+            color={ink.green}
+            padding={[2, 6]}
+            type="circle"
+          >
+            <span
+              aria-label={`Done on ${stampDate.format(new Date(item.doneAt))}`}
+              className="block rotate-[-12deg] rounded-md border-[3px] border-double border-[#2f7d4f] bg-[rgba(255,253,248,0.85)] px-2 py-1 text-center font-mono text-xs font-black tracking-[0.14em] text-[#2f7d4f]"
+            >
+              DONE
+              <span className="block text-[0.55rem] tracking-[0.06em]">
+                {stampDate.format(new Date(item.doneAt))}
+              </span>
+            </span>
+          </Mark>
+        ) : null}
+      </MarkGroup>
       <div className="mt-3 flex flex-wrap gap-2">
         <button
           className={`min-h-11 rounded-full px-4 text-sm font-semibold ${item.doneAt ? "border border-[var(--line-strong)]" : "bg-[var(--ink)] text-[var(--paper-white)]"}`}
@@ -292,7 +324,18 @@ export function BucketList({ items }: { items: ListItem[] }) {
         {proposed.length ? (
           <ul className="mt-3 grid gap-1 text-sm text-[var(--muted)]">
             {proposed.map((item) => (
-              <li key={item.id}>💡 {item.title} · waiting for approval</li>
+              <li key={item.id}>
+                💡{" "}
+                <Mark
+                  color={ink.highlighter}
+                  iterations={1}
+                  multiline
+                  type="highlight"
+                >
+                  {item.title}
+                </Mark>{" "}
+                · waiting for approval
+              </li>
             ))}
           </ul>
         ) : null}

@@ -90,7 +90,10 @@ export function LetterForm({
           required
         />
       </Field>
-      <Field hint="Una riga vuota tra un paragrafo e l'altro." label="Testo">
+      <Field
+        hint="Una riga vuota tra un paragrafo e l'altro. ==Così== per l'evidenziatore."
+        label="Testo"
+      >
         <textarea
           className={`${inputClass} min-h-56`}
           defaultValue={initial.paragraphs}

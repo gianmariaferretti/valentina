@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { ink, Mark } from "@/components/annotations/mark";
 import { FadeIn } from "@/components/motion/fade-in";
 import { Icon } from "@/components/ui/icon";
 import { RollingGroup, RollingNumber } from "@/components/ui/rolling-number";
@@ -143,7 +144,15 @@ export default async function HomePage() {
           V + G · Valentina&apos;s wallet
         </p>
         <h1 className="mt-2 font-display text-[clamp(2.4rem,9vw,5.5rem)] leading-[0.85] tracking-[-0.05em]">
-          Good to see you<span className="text-[var(--rust)]">.</span>
+          <Mark
+            color={ink.rust}
+            padding={[0, 2]}
+            strokeWidth={3}
+            type="underline"
+          >
+            Good to see you
+          </Mark>
+          <span className="text-[var(--rust)]">.</span>
         </h1>
         <p className="mt-3 text-sm text-[var(--muted)]">
           <RollingNumber

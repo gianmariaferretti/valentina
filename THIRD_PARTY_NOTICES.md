@@ -161,3 +161,12 @@ Both are licensed under the MIT License:
 > LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 > SOFTWARE.
+
+## Site v4 — hand-drawn marks
+
+| Package          | Version | License | Use                                                                         | Source                                          |
+| ---------------- | ------- | ------- | --------------------------------------------------------------------------- | ----------------------------------------------- |
+| `rough-notation` | 0.5.1   | MIT     | Hand-drawn circles, underlines, strikes and highlighter (own React wrapper) | <https://github.com/rough-stuff/rough-notation> |
+
+rough-notation — Copyright (c) 2020 Preet Shihn. Licensed under the MIT
+License (the same permission text quoted above for NumberFlow).

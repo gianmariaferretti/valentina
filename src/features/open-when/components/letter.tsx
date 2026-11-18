@@ -1,6 +1,7 @@
 import "@/features/open-when/open-when.css";
 import { Heart, PenLine } from "lucide-react";
 
+import { HighlightedText } from "@/components/annotations/highlighted-text";
 import { HandwrittenNote, Tape } from "@/components/design-system";
 import type { OpenWhenLetter } from "@/features/open-when/types";
 
@@ -46,13 +47,15 @@ export function Letter({ letter, sequence }: LetterProps) {
         <p className="letter__salutation">{letter.salutation}</p>
         <div className="letter__paragraphs">
           {letter.paragraphs.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
+            <p key={paragraph}>
+              <HighlightedText text={paragraph} />
+            </p>
           ))}
         </div>
         <p className="letter__signoff">{letter.signoff}</p>
         {letter.postscript ? (
           <p className="letter__postscript">
-            <strong>P.S.</strong> {letter.postscript}
+            <strong>P.S.</strong> <HighlightedText text={letter.postscript} />
           </p>
         ) : null}
       </div>

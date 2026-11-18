@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { HighlightedText } from "@/components/annotations/highlighted-text";
+
 import { spotifyEmbed } from "../lib/schemas";
 import type { Song } from "../repositories/life";
 import styles from "./songs.module.css";
@@ -51,7 +53,9 @@ export function SongList({ songs }: { songs: Song[] }) {
                 </p>
               ) : null}
               {song.why ? (
-                <p className="mt-2 text-sm leading-6">{song.why}</p>
+                <p className="mt-2 text-sm leading-6">
+                  <HighlightedText text={song.why} />
+                </p>
               ) : null}
               {embed ? (
                 <button
