@@ -132,3 +132,32 @@ License:
 Only the 21 icons the site uses are copied, by `scripts/sync-weather-icons.mjs`,
 into `public/weather/animated` and `public/weather/static`. Each copied file
 keeps a comment with the copyright notice.
+
+## Site v4 — rolling numbers
+
+| Package              | Version | License | Use                                                         | Source                                   |
+| -------------------- | ------- | ------- | ----------------------------------------------------------- | ---------------------------------------- |
+| `@number-flow/react` | 0.6.2   | MIT     | Rolling digits: days together, countdowns, 💋, counters     | <https://github.com/barvian/number-flow> |
+| `number-flow`        | 0.6.2   | MIT     | The custom element behind `@number-flow/react` (dependency) | <https://github.com/barvian/number-flow> |
+| `esm-env`            | 1.2.2   | MIT     | Environment detection used by `@number-flow/react`          | <https://github.com/benmccann/esm-env>   |
+
+NumberFlow — Copyright (c) 2024 Maxwell Barvian. esm-env — Copyright 2022 Benjamin McCann.
+Both are licensed under the MIT License:
+
+> Permission is hereby granted, free of charge, to any person obtaining a copy
+> of this software and associated documentation files (the "Software"), to deal
+> in the Software without restriction, including without limitation the rights
+> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+> copies of the Software, and to permit persons to whom the Software is
+> furnished to do so, subject to the following conditions:
+>
+> The above copyright notice and this permission notice shall be included in all
+> copies or substantial portions of the Software.
+>
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> SOFTWARE.

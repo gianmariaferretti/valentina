@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { HandwrittenNote } from "@/components/design-system";
+import { RollingNumber } from "@/components/ui/rolling-number";
 import { casinoConfig as config } from "@/data/casino-config";
 import { loadCurtainMessage } from "@/features/admin/repositories/content";
 import { FinaleClaim } from "@/features/casino/components/finale-claim";
@@ -143,7 +144,9 @@ export default async function BehindTheCurtainPage() {
               className="rounded-2xl border border-[var(--line-strong)] bg-[var(--paper-white)] p-4"
               key={label}
             >
-              <dd className="font-display text-3xl">{value}</dd>
+              <dd className="font-display text-3xl">
+                <RollingNumber rollIn value={value} />
+              </dd>
               <dt className="mt-1 text-xs text-[var(--muted)]">{label}</dt>
             </div>
           ))}

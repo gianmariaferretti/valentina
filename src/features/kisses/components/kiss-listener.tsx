@@ -4,6 +4,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
+import { CountUp } from "@/components/ui/rolling-number";
+
 import { collectKisses } from "../actions";
 import { toastLines } from "../lib/rewards";
 
@@ -105,7 +107,12 @@ export function KissListener() {
         for (const line of toastLines(credits)) {
           toast(line.title, {
             icon: "💋",
-            description: `+${line.amount} 💋 for the Kiss Casino`,
+            description: (
+              <>
+                <CountUp prefix="+" value={line.amount} /> 💋 for the Kiss
+                Casino
+              </>
+            ),
           });
           fly(line.amount);
         }

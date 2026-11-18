@@ -11,6 +11,7 @@ import {
 } from "../actions/lists";
 import { bucketCategories } from "../lib/schemas";
 import type { ListItem } from "../repositories/life";
+import { RollingGroup, RollingNumber } from "@/components/ui/rolling-number";
 import { requestKissCheck } from "@/features/kisses/components/kiss-listener";
 
 const stampDate = new Intl.DateTimeFormat("en-GB", {
@@ -173,12 +174,20 @@ export function BucketList({ items }: { items: ListItem[] }) {
   return (
     <div>
       <div className="rounded-[1.4rem] bg-[var(--paper-white)] p-4">
-        <div className="flex items-baseline justify-between">
-          <span className="font-display text-2xl">
-            {done} / {active.length} done
-          </span>
-          <span className="text-xs text-[var(--muted)]">{percent}%</span>
-        </div>
+        <RollingGroup>
+          <div className="flex items-baseline justify-between">
+            <span className="font-display text-2xl">
+              <RollingNumber rollIn value={done} /> /{" "}
+              <RollingNumber value={active.length} /> done
+            </span>
+            <RollingNumber
+              className="text-xs text-[var(--muted)]"
+              rollIn
+              suffix="%"
+              value={percent}
+            />
+          </div>
+        </RollingGroup>
         <div
           aria-label={`${done} of ${active.length} done`}
           aria-valuemax={active.length}

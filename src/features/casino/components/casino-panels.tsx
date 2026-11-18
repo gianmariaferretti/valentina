@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { RollingNumber } from "@/components/ui/rolling-number";
 import { casinoConfig } from "@/data/casino-config";
 import { cn } from "@/lib/cn";
 
@@ -22,29 +23,9 @@ export function useNow(intervalMs: number): number | null {
   return now;
 }
 
-/** Counts up (or down) to the new value; instant with reduced motion. */
+/** Digits roll to the new value (NumberFlow); instant with reduced motion. */
 export function AnimatedNumber({ value }: { value: number }) {
-  const [shown, setShown] = useState(value);
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      const timer = window.setTimeout(() => setShown(value), 0);
-      return () => window.clearTimeout(timer);
-    }
-    let frame = 0;
-    const from = shown;
-    const started = performance.now();
-    const duration = value > from ? 700 : 250;
-    const step = (time: number) => {
-      const progress = Math.min(1, (time - started) / duration);
-      setShown(Math.round(from + (value - from) * (1 - (1 - progress) ** 3)));
-      if (progress < 1) frame = requestAnimationFrame(step);
-    };
-    frame = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(frame);
-    // Only re-run when the target changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
-  return <>{shown}</>;
+  return <RollingNumber value={value} />;
 }
 
 export function Meter({ value, label }: { value: number; label: string }) {

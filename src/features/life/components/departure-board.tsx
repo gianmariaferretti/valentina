@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { boardingLine, countdownTo } from "../lib/countdown";
+import { RollingGroup, RollingNumber } from "@/components/ui/rolling-number";
+
+import { boardingLine, countdownTo, type Countdown } from "../lib/countdown";
 import type { NextTime } from "../lib/schemas";
 import styles from "./next-time.module.css";
 
@@ -39,6 +41,48 @@ function Flaps({ text, label }: { text: string; label: string }) {
           })}
         </span>
       ))}
+    </span>
+  );
+}
+
+const two = { minimumIntegerDigits: 2 } as const;
+
+/** "12 days 04:32:10", every digit rolling (NumberFlow), read as one line. */
+function RollingCountdown({ countdown }: { countdown: Countdown }) {
+  return (
+    <span
+      aria-atomic="true"
+      aria-label={boardingLine(countdown)}
+      className="block font-mono text-2xl font-bold tracking-[0.04em] text-[#f2c84b] tabular-nums sm:text-3xl"
+      role="timer"
+    >
+      <RollingGroup>
+        <RollingNumber
+          suffix={countdown.days === 1 ? " DAY " : " DAYS "}
+          trend={-1}
+          value={countdown.days}
+        />
+        <RollingNumber
+          digits={{ 1: { max: 2 } }}
+          format={two}
+          suffix=":"
+          trend={-1}
+          value={countdown.hours}
+        />
+        <RollingNumber
+          digits={{ 1: { max: 5 } }}
+          format={two}
+          suffix=":"
+          trend={-1}
+          value={countdown.minutes}
+        />
+        <RollingNumber
+          digits={{ 1: { max: 5 } }}
+          format={two}
+          trend={-1}
+          value={countdown.seconds}
+        />
+      </RollingGroup>
     </span>
   );
 }
@@ -117,9 +161,13 @@ export function DepartureBoard({ next }: { next: NextTime }) {
       </div>
       <div className={styles.row}>
         <span className={styles.label}>
-          {landed ? "Arrived" : "Time to go"}
+          {landed ? "Arrived" : "Boarding in"}
         </span>
-        <Flaps label={line} text={line} />
+        {countdown && !landed ? (
+          <RollingCountdown countdown={countdown} />
+        ) : (
+          <Flaps label={line} text={line} />
+        )}
       </div>
       <div className={styles.row}>
         <span className={styles.label}>Status</span>

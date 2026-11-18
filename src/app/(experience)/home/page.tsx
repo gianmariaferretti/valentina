@@ -5,6 +5,7 @@ import { Suspense } from "react";
 
 import { FadeIn } from "@/components/motion/fade-in";
 import { Icon } from "@/components/ui/icon";
+import { RollingGroup, RollingNumber } from "@/components/ui/rolling-number";
 import { loadCouponCatalogue } from "@/features/admin/repositories/content";
 import { CasinoNavBadge } from "@/features/casino/components/casino-nav-badge";
 import {
@@ -23,6 +24,7 @@ import {
   resolveCoupons,
 } from "@/features/coupons/lib/coupon-domain";
 import { loadCouponState } from "@/features/coupons/repositories/get-coupon-state-repository";
+import { togetherAt } from "@/features/cover/lib/together";
 import { DailyCoupon } from "@/features/home/components/daily-coupon";
 import {
   closestToUnlock,
@@ -126,7 +128,9 @@ export default async function HomePage() {
   const initialPick = pickCouponOfTheDay(candidates, romeDayKey(new Date()));
   const recent = recentlyUnlocked(items, resolved, walletState);
   const closest = closestToUnlock(items, resolved, games.games);
-  const days = daysUntil(nextTime.at, new Date());
+  const today = new Date();
+  const days = daysUntil(nextTime.at, today);
+  const together = togetherAt(today.getTime()).days;
   const stripCount = Math.min(STRIP_TICKETS, stats.total);
   const stripFilled = Math.round(
     (stats.redeemed / Math.max(1, stats.total)) * stripCount,
@@ -141,6 +145,14 @@ export default async function HomePage() {
         <h1 className="mt-2 font-display text-[clamp(2.4rem,9vw,5.5rem)] leading-[0.85] tracking-[-0.05em]">
           Good to see you<span className="text-[var(--rust)]">.</span>
         </h1>
+        <p className="mt-3 text-sm text-[var(--muted)]">
+          <RollingNumber
+            className="font-display text-xl text-[var(--ink)] tabular-nums"
+            rollIn
+            value={together}
+          />{" "}
+          days together, and counting.
+        </p>
       </FadeIn>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
@@ -157,11 +169,13 @@ export default async function HomePage() {
             >
               <span className="flex items-baseline justify-between gap-3">
                 <span className="font-display text-5xl tracking-[-0.05em]">
-                  {stats.redeemed}
-                  <span className="text-xl text-white/60">
-                    {" "}
-                    / {stats.total}
-                  </span>
+                  <RollingGroup>
+                    <RollingNumber rollIn value={stats.redeemed} />
+                    <span className="ml-1 text-xl text-white/60">
+                      {" "}
+                      / <RollingNumber value={stats.total} />
+                    </span>
+                  </RollingGroup>
                 </span>
                 <span className="text-[0.6rem] font-bold tracking-[0.17em] text-white/70 uppercase">
                   Collected
@@ -194,9 +208,14 @@ export default async function HomePage() {
             >
               <span aria-hidden="true" className={styles.bulbs} />
               <span className={styles.neonSub}>
-                {casino.failed
-                  ? "Open late"
-                  : `${casino.state.balance} 💋 in your pocket`}
+                {casino.failed ? (
+                  "Open late"
+                ) : (
+                  <>
+                    <RollingNumber rollIn value={casino.state.balance} /> 💋 in
+                    your pocket
+                  </>
+                )}
                 <Suspense fallback={null}>
                   <CasinoNavBadge />
                 </Suspense>
@@ -221,11 +240,16 @@ export default async function HomePage() {
                   Next time · {nextTime.from} → {nextTime.to}
                 </span>
                 <span className="block font-display text-2xl leading-tight tracking-[-0.03em]">
-                  {days === null
-                    ? "Date to be announced"
-                    : days === 0
-                      ? "Today. Finally."
-                      : `${days} ${days === 1 ? "day" : "days"} to go`}
+                  {days === null ? (
+                    "Date to be announced"
+                  ) : days === 0 ? (
+                    "Today. Finally."
+                  ) : (
+                    <>
+                      <RollingNumber rollIn value={days} />{" "}
+                      {days === 1 ? "day" : "days"} to go
+                    </>
+                  )}
                 </span>
               </span>
               <ArrowUpRight
