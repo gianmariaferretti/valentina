@@ -9,6 +9,7 @@ import { Drawer } from "vaul";
 import { Icon } from "@/components/ui/icon";
 import { moreNavigation, tabFor, tabNavigation } from "@/data/navigation";
 import { endAccessSession } from "@/features/access/actions/end-session";
+import { PasskeySetupButton } from "@/features/access/components/passkey-setup";
 import { cn } from "@/lib/cn";
 
 const CASINO_HREF = "/coupons/casino";
@@ -278,6 +279,10 @@ export function TabBar(badges: Badges) {
                     onNavigate={() => setOpen(false)}
                     pathname={pathname}
                   />
+                  {/* Settings: Face ID for this device. */}
+                  <div className="mt-3 border-t border-[var(--line)] pt-3">
+                    <PasskeySetupButton className="flex min-h-12 w-full items-center gap-3 rounded-2xl px-3 text-left text-sm font-semibold transition hover:bg-white/60 disabled:opacity-60" />
+                  </div>
                   <form
                     action={endAccessSession}
                     className="mt-3 border-t border-[var(--line)] pt-3"

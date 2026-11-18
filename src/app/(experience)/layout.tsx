@@ -8,6 +8,7 @@ import { SiteHeader, TabBar } from "@/components/layout/site-header";
 import { Toaster } from "@/components/ui/toaster";
 import { CasinoNavBadge } from "@/features/casino/components/casino-nav-badge";
 import { CouponsNavBadge } from "@/features/coupons/components/coupons-nav-badge";
+import { PasskeyOffer } from "@/features/access/components/passkey-offer";
 import { KissListener } from "@/features/kisses/components/kiss-listener";
 import { IosInstallBanner } from "@/features/pwa/components/ios-install-banner";
 import { HeartListener } from "@/features/notifications/components/heart-listener";
@@ -61,6 +62,7 @@ export default async function ExperienceLayout({
       <MissYouButton />
       <HeartListener />
       <KissListener />
+      <PasskeyOffer />
       <IosInstallBanner />
     </div>
   );

@@ -10,6 +10,8 @@ import {
   verifyAccess,
 } from "@/features/access/actions/verify-access";
 
+import { CODE_LOGIN_KEY } from "./passkey-client";
+
 const initialState: AccessActionState = { status: "idle", attempts: 0 };
 
 export function AccessForm() {
@@ -54,7 +56,18 @@ export function AccessForm() {
   }
 
   return (
-    <form action={formAction} noValidate>
+    <form
+      action={formAction}
+      noValidate
+      onSubmit={() => {
+        // A code login (not Face ID): the archive may offer Face ID next.
+        try {
+          window.sessionStorage.setItem(CODE_LOGIN_KEY, "1");
+        } catch {
+          // Private mode: no offer this time.
+        }
+      }}
+    >
       <label
         className="text-[0.62rem] font-semibold tracking-[0.16em] text-[var(--muted)] uppercase"
         htmlFor="access-code"

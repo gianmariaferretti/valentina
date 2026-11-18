@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 
-import { logoutEverywhere } from "@/features/admin/actions/security";
+import {
+  logoutEverywhere,
+  revokePasskeyFromAdmin,
+} from "@/features/admin/actions/security";
 import { ActionButton } from "@/features/admin/components/admin-ui";
 import {
   Card,
@@ -11,6 +14,7 @@ import {
 } from "@/features/admin/components/admin-shell";
 import { loadAuthEvents } from "@/features/admin/repositories/admin-data";
 import { requireAdminSession } from "@/lib/auth/admin-session";
+import { listPasskeys, type PasskeySummary } from "@/lib/auth/passkey-server";
 
 export const metadata: Metadata = { title: "Sicurezza" };
 
@@ -39,6 +43,18 @@ export default async function SecurityPage() {
       </>
     );
   }
+  let passkeys: PasskeySummary[] | null = null;
+  try {
+    passkeys = await listPasskeys("visitor");
+  } catch {
+    // Migration not applied yet: the section says so.
+  }
+  const day = new Intl.DateTimeFormat("it-IT", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "Europe/Rome",
+  });
   return (
     <div>
       <SectionHeader
@@ -50,7 +66,8 @@ export default async function SecurityPage() {
           <p className="font-semibold">Sito di Valentina</p>
           <p className="text-sm text-[var(--muted)]">
             Chiude tutte le sessioni aperte: dovrà reinserire il codice su ogni
-            dispositivo (effetto entro 30 secondi).
+            dispositivo (effetto entro 30 secondi). Anche le passkey (Face ID)
+            registrate fin qui smettono di funzionare.
           </p>
           <ActionButton
             action={logoutEverywhere.bind(null, "visitor")}
@@ -82,6 +99,62 @@ export default async function SecurityPage() {
           </ActionButton>
         </Card>
       </div>
+      <h2 className="mt-6 mb-2 text-lg font-semibold">
+        Face ID di Valentina (passkey)
+      </h2>
+      <Card className="grid gap-2">
+        {passkeys === null ? (
+          <p className="text-sm text-[var(--muted)]">
+            Non ancora attive: applica la migration 20261118020000_passkeys.sql.
+            Il codice funziona comunque.
+          </p>
+        ) : passkeys.length === 0 ? (
+          <p className="text-sm text-[var(--muted)]">
+            Nessun dispositivo. Valentina può attivarlo dopo aver inserito il
+            codice, o dal menu More.
+          </p>
+        ) : (
+          <ul className="grid gap-2">
+            {passkeys.map((key) => (
+              <li
+                className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[var(--line)] p-3 text-sm"
+                key={key.id}
+              >
+                <span>
+                  <span className="font-semibold">
+                    {key.device ?? "Dispositivo"}
+                  </span>
+                  <span className="block text-xs text-[var(--muted)]">
+                    Aggiunto il {day.format(new Date(key.createdAt))} · ultimo
+                    uso{" "}
+                    {key.lastUsedAt
+                      ? day.format(new Date(key.lastUsedAt))
+                      : "mai"}
+                    {key.usable
+                      ? ""
+                      : key.revokedAt
+                        ? " · revocata"
+                        : " · non valida dopo «esci da tutti i dispositivi»"}
+                  </span>
+                </span>
+                {key.usable ? (
+                  <ActionButton
+                    action={revokePasskeyFromAdmin.bind(null, key.id)}
+                    confirm={{
+                      title: "Revocare questa passkey?",
+                      body: "Da quel dispositivo Valentina dovrà usare il codice.",
+                      confirmLabel: "Revoca",
+                    }}
+                    tone="danger"
+                  >
+                    Revoca
+                  </ActionButton>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
       <h2 className="mt-6 mb-2 text-lg font-semibold">
         Ultimi accessi e tentativi
       </h2>

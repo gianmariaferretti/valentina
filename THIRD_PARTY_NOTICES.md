@@ -198,3 +198,17 @@ committed); each licence is the one stated inside the font file:
 
 Not self-hosted: Excalifont and Liberation Sans (their font files do not
 state an open licence) and Xiaolai (13 MB). The board uses Virgil.
+
+## Site v4 — Face ID (passkeys)
+
+| Package                   | Version | License | Use                                                   | Source                                         |
+| ------------------------- | ------- | ------- | ----------------------------------------------------- | ---------------------------------------------- |
+| `@simplewebauthn/server`  | 14.1.0  | MIT     | Passkey registration and login checks on the server   | <https://github.com/MasterKale/SimpleWebAuthn> |
+| `@simplewebauthn/browser` | 14.0.0  | MIT     | The Face ID / Touch ID prompt in the browser (on tap) | <https://github.com/MasterKale/SimpleWebAuthn> |
+
+SimpleWebAuthn — Copyright (c) 2020 Matthew Miller. MIT License (the same
+permission text quoted above). Its dependencies were checked in the
+installed packages: MIT (@peculiar/\*, @hexagon/base64,
+@levischuck/tiny-cbor, pvtsutils, pvutils, tsyringe), BSD-3-Clause
+(asn1js), 0BSD (tslib) and Apache-2.0 (reflect-metadata). All are
+compatible with GPL-3.0.
