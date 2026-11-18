@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { PassportStamp, Sticker } from "@/components/design-system";
 import { FadeIn } from "@/components/motion/fade-in";
 import { AccessForm } from "@/features/access/components/access-form";
+import { PasskeyButton } from "@/features/access/components/passkey-button";
 import { hasValidAccessSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
@@ -53,6 +54,7 @@ export default async function AccessPage() {
             </div>
 
             <div className="relative mt-10 border-t border-dashed border-[var(--line-strong)] pt-8 lg:mt-0 lg:border-t-0 lg:border-l lg:pt-4 lg:pl-12">
+              <PasskeyButton />
               <AccessForm />
               <PassportStamp
                 className="mt-9 ml-auto hidden opacity-45 sm:flex"
