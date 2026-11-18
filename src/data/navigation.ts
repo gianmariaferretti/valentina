@@ -54,6 +54,14 @@ export const navigationItems = [
     group: "memories",
   },
   {
+    title: "Doodles",
+    shortTitle: "Doodles",
+    href: "/doodles",
+    description: "Draw something. He has to draw back.",
+    icon: "doodles",
+    group: "memories",
+  },
+  {
     title: "Gallery",
     shortTitle: "Gallery",
     href: "/gallery",

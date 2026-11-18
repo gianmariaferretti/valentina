@@ -142,6 +142,18 @@ export function missYouEmail(input: {
   );
 }
 
+/** Valentina sent a doodle: the drawing stays private, the button opens it. */
+export function doodleEmail(input: { panelUrl: string }): RenderedEmail {
+  return render(
+    "🎨 Valentina drew you something",
+    "Valentina drew you something",
+    [
+      "Ti ha mandato un disegno. Lo trovi nel pannello, dove puoi anche rispondere con un disegno tuo.",
+    ],
+    [{ label: "🎨 Guarda il disegno", href: input.panelUrl }],
+  );
+}
+
 export function digestEmail(input: {
   date: string;
   lines: readonly string[];

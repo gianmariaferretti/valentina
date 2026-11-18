@@ -7,6 +7,7 @@ import { siteOrigin } from "./lib/action-token";
 import {
   couponRedeemedEmail,
   digestEmail,
+  doodleEmail,
   missYouEmail,
   testEmail,
 } from "./lib/email-templates";
@@ -47,6 +48,22 @@ export async function notifyCouponRedeemed(coupon: {
     return result.status;
   } catch (error) {
     reportPersistenceFailure("notify coupon redeemed", error);
+    return "failed";
+  }
+}
+
+/** Valentina sent a doodle. Never throws: the doodle is already saved. */
+export async function notifyDoodle(doodleId: string): Promise<DeliveryStatus> {
+  try {
+    await deliverPending(5).catch(() => 0);
+    const result = await queueEmail(
+      "doodle",
+      doodleEmail({ panelUrl: `${siteOrigin()}/admin/disegni` }),
+      { doodleId },
+    );
+    return result.status;
+  } catch (error) {
+    reportPersistenceFailure("notify doodle", error);
     return "failed";
   }
 }

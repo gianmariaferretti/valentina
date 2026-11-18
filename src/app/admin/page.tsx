@@ -146,6 +146,12 @@ export default async function AdminHome() {
       text: "Cose da fare nella vita",
     },
     {
+      href: "/admin/disegni",
+      icon: "🎨",
+      title: "Disegni",
+      text: "I disegni di Valentina, rispondi disegnando",
+    },
+    {
       href: "/admin/storia",
       icon: "📖",
       title: "La nostra storia",

@@ -16,6 +16,7 @@ export type IconName =
   | "bucket-list"
   | "songs"
   | "open-when"
+  | "doodles"
   | "our-story"
   | "quiz"
   | "secret"

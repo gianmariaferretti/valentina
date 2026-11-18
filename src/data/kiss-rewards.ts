@@ -18,6 +18,8 @@ export const kissRewardDefaults = {
   letterFirstOpen: 10,
   /** First visit to each place on the map. */
   placeFirstOpen: 10,
+  /** The first doodle sent to Gianmaria. */
+  firstDoodle: 30,
 } as const;
 
 export type KissRewardKind = keyof typeof kissRewardDefaults;
@@ -32,6 +34,7 @@ export const kissRewardLabels: Record<KissRewardKind, string> = {
   achievement: "Achievement sbloccato",
   letterFirstOpen: "Prima apertura di una lettera",
   placeFirstOpen: "Prima visita a un luogo della mappa",
+  firstDoodle: "Primo disegno mandato a Gianmaria",
 };
 
 /** Upper bound for a single event (the database allows up to 100 000). */

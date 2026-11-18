@@ -165,6 +165,7 @@ test("tabs: Coupons · Casino · Games · Memories, then More", () => {
     [
       "/map",
       "/our-story",
+      "/doodles",
       "/gallery",
       "/open-when",
       "/year-two",
