@@ -170,3 +170,31 @@ Both are licensed under the MIT License:
 
 rough-notation — Copyright (c) 2020 Preet Shihn. Licensed under the MIT
 License (the same permission text quoted above for NumberFlow).
+
+## Site v4 — doodles
+
+| Package                  | Version | License | Use                                                               | Source                                     |
+| ------------------------ | ------- | ------- | ----------------------------------------------------------------- | ------------------------------------------ |
+| `@excalidraw/excalidraw` | 0.18.1  | MIT     | The drawing board on /doodles and in the panel (loaded on demand) | <https://github.com/excalidraw/excalidraw> |
+
+Excalidraw — Copyright (c) 2020 Excalidraw. MIT License (the same
+permission text quoted above). Its dependencies were checked in the
+installed packages: MIT, ISC, BSD-2/3-Clause, Apache-2.0, 0BSD, CC0-1.0,
+Unlicense, MIT AND Zlib, and DOMPurify under "MPL-2.0 OR Apache-2.0"
+(used here under Apache-2.0). All are compatible with GPL-3.0.
+
+Fonts self-hosted from the package into `public/excalidraw/fonts` by
+`scripts/sync-excalidraw-assets.mjs` (generated at build time, not
+committed); each licence is the one stated inside the font file:
+
+| Font         | Licence     | Copyright                                      |
+| ------------ | ----------- | ---------------------------------------------- |
+| Virgil       | SIL OFL 1.1 | (c) 2011 Your Own Font Foundry                 |
+| Nunito       | SIL OFL 1.1 | (c) 2014 The Nunito Project Authors            |
+| Lilita One   | SIL OFL 1.1 | (c) 2011 Juan Montoreano                       |
+| Cascadia     | SIL OFL 1.1 | (c) 2020 Microsoft Corporation                 |
+| Assistant    | SIL OFL 1.1 | (c) 2020 The Assistant Project Authors         |
+| Comic Shanns | MIT         | (c) 2018 Shannon Miwa, (c) 2023 Jesus Gonzalez |
+
+Not self-hosted: Excalifont and Liberation Sans (their font files do not
+state an open licence) and Xiaolai (13 MB). The board uses Virgil.

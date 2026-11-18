@@ -1,0 +1,161 @@
+/* The drawing board: full screen above the tab bar, in the paper theme. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: #fbf8f3;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.frame {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: calc(0.5rem + env(safe-area-inset-top)) 0.75rem 0.5rem;
+  border-bottom: 1px solid rgba(36, 30, 28, 0.12);
+  background: #fffdf8;
+}
+
+.barTitle {
+  font-family: var(--font-display, Georgia), serif;
+  font-size: 1.1rem;
+  font-style: italic;
+}
+
+.board {
+  position: relative;
+  min-height: 0;
+  flex: 1;
+  width: 100%;
+}
+
+/* Excalidraw's own colours, matched to the site (paper, ink, rust). */
+.board :global(.excalidraw) {
+  --color-primary: #b46258;
+  --color-primary-darker: #93463e;
+  --color-primary-darkest: #8c1c34;
+  --color-primary-light: #f3e2dc;
+  --color-primary-hover: #93463e;
+  --island-bg-color: #fffdf8;
+  --default-bg-color: #fbf8f3;
+  --ui-font: var(--font-sans, system-ui), sans-serif;
+}
+
+.send,
+.close {
+  min-height: 2.5rem;
+  border-radius: 999px;
+  padding: 0 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.send {
+  background: #241e1c;
+  color: #fbf8f3;
+}
+
+.send:disabled {
+  opacity: 0.6;
+}
+
+.close {
+  border: 1px solid rgba(36, 30, 28, 0.2);
+  background: #fffdf8;
+}
+
+.error {
+  position: absolute;
+  left: 50%;
+  bottom: calc(5rem + env(safe-area-inset-bottom));
+  z-index: 10;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #8c1c34;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+}
+
+/* Skeleton while Excalidraw loads. */
+.skeleton {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  background:
+    radial-gradient(
+        circle at 1px 1px,
+        rgba(36, 30, 28, 0.12) 1px,
+        transparent 0
+      )
+      0 0 / 22px 22px,
+    #fbf8f3;
+  color: #6f625c;
+  font-family: var(--font-display, Georgia), serif;
+  font-size: 1.4rem;
+  font-style: italic;
+}
+
+.skeleton span {
+  animation: breathe 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes breathe {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton span {
+    animation: none;
+  }
+}
+
+/* The album: polaroids, newest first. */
+.album {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(10.5rem, 44%), 1fr));
+  gap: 1.4rem 1rem;
+}
+
+.polaroid {
+  position: relative;
+  background: #fffdf8;
+  padding: 0.55rem 0.55rem 2.6rem;
+  box-shadow: 0 14px 30px rgba(49, 35, 30, 0.16);
+  transition: transform 200ms ease;
+}
+
+.polaroid:hover {
+  transform: rotate(0deg) scale(1.02) !important;
+}
+
+.polaroid img {
+  aspect-ratio: 1;
+  width: 100%;
+  object-fit: contain;
+  background: #fbf8f3;
+}
+
+.caption {
+  position: absolute;
+  right: 0.7rem;
+  bottom: 0.55rem;
+  left: 0.7rem;
+  font-family: var(--font-display, Georgia), serif;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: #6f625c;
+}

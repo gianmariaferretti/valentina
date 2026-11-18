@@ -14,7 +14,7 @@ import {
 } from "../lib/settings";
 
 export type NotificationKind =
-  "coupon_redeemed" | "miss_you" | "digest" | "test";
+  "coupon_redeemed" | "miss_you" | "digest" | "test" | "doodle";
 
 export type DeliveryStatus =
   "sent" | "failed" | "pending" | "capped" | "disabled";
